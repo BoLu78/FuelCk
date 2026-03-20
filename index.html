@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    >
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b0b0f">
+    <title>Fuel Ck</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0b0f;
+        --bg-soft: #12131a;
+        --card: rgba(22, 24, 31, 0.92);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --text: #f5f7fb;
+        --muted: #9ca4b7;
+        --accent: #4f7cff;
+        --pass: #1fbe63;
+        --fail: #df3f4e;
+        --shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+        --radius: 22px;
+        --mono: "SFMono-Regular", "Menlo", "Monaco", monospace;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top, rgba(79, 124, 255, 0.12), transparent 34%),
+          linear-gradient(180deg, #12141c 0%, var(--bg) 52%);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        min-height: 100svh;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      .app-shell {
+        width: min(100%, 520px);
+        min-height: 100svh;
+        margin: 0 auto;
+        padding:
+          calc(var(--safe-top) + 18px)
+          calc(var(--safe-right) + 16px)
+          calc(var(--safe-bottom) + 28px)
+          calc(var(--safe-left) + 16px);
+      }
+
+      .screen[hidden] {
+        display: none;
+      }
+
+      .screen {
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero {
+        padding: 6px 2px 4px;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 2.4rem);
+        line-height: 1.02;
+      }
+
+      .subtitle {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        backdrop-filter: blur(18px);
+      }
+
+      .card h2 {
+        margin: 0 0 14px;
+        font-size: 1rem;
+        letter-spacing: 0.03em;
+      }
+
+      .mono {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+      }
+
+      #toleranceCard {
+        margin-top: 14px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      label,
+      .field-title {
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .input,
+      .select {
+        width: 100%;
+        min-height: 52px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.18s ease, background 0.18s ease;
+      }
+
+      .input:focus,
+      .select:focus {
+        border-color: rgba(79, 124, 255, 0.88);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .number-input {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .segmented input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .segment {
+        min-height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-weight: 600;
+        transition:
+          background 0.18s ease,
+          border-color 0.18s ease,
+          color 0.18s ease,
+          transform 0.18s ease;
+      }
+
+      .segmented input:checked + .segment {
+        background: rgba(79, 124, 255, 0.18);
+        border-color: rgba(79, 124, 255, 0.74);
+        color: var(--text);
+        transform: translateY(-1px);
+      }
+
+      .row {
+        display: grid;
+        gap: 14px;
+      }
+
+      @media (min-width: 440px) {
+        .row.two-col {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .button {
+        min-height: 52px;
+        border: none;
+        border-radius: 18px;
+        padding: 14px 18px;
+        font-size: 0.98rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .button.primary {
+        background: linear-gradient(135deg, #5c86ff 0%, #3c68f7 100%);
+      }
+
+      .button:active {
+        transform: scale(0.99);
+      }
+
+      .results-banner {
+        border-radius: 24px;
+        padding: 18px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .results-banner.pass {
+        background: linear-gradient(135deg, rgba(31, 190, 99, 0.9), rgba(23, 126, 75, 0.95));
+      }
+
+      .results-banner.fail {
+        background: linear-gradient(135deg, rgba(223, 63, 78, 0.92), rgba(151, 33, 55, 0.94));
+      }
+
+      .banner-label {
+        margin: 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .banner-title {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 800;
+      }
+
+      .banner-subtitle {
+        margin: 0;
+        font-size: 0.95rem;
+        opacity: 0.88;
+      }
+
+      .result-section {
+        display: grid;
+        gap: 12px;
+      }
+
+      .result-section.fail {
+        border-color: rgba(223, 63, 78, 0.5);
+        box-shadow: 0 14px 32px rgba(130, 24, 43, 0.24);
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .section-title {
+        margin: 0;
+        font-size: 0.86rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .section-chip {
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 0.76rem;
+        font-weight: 700;
+      }
+
+      .section-chip.fail {
+        background: rgba(223, 63, 78, 0.18);
+        color: #ffb4bc;
+      }
+
+      .kv-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .kv-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: baseline;
+      }
+
+      .kv-key {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .kv-value {
+        text-align: right;
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .kv-row.fail .kv-key,
+      .kv-row.fail .kv-value {
+        color: #ff9ea9;
+      }
+
+      .muted-note {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="screen" id="input-screen">
+        <header class="hero">
+          <span class="eyebrow">Offline Fuel Check</span>
+          <h1>Fuel Ck</h1>
+          <div class="card" id="toleranceCard">
+            <h2>Tolerance Rule</h2>
+            <div id="toleranceText" class="mono">—</div>
+          </div>
+          <p class="subtitle">Quick uplift verification for iPhone, with full offline support after first load.</p>
+        </header>
+
+        <form id="fuel-form" class="stack" novalidate>
+          <div class="card stack">
+            <div class="field">
+              <div class="segmented" role="radiogroup" aria-label="Aircraft selector">
+                <label>
+                  <input type="radio" name="aircraft" value="B787" checked>
+                  <span class="segment">B787</span>
+                </label>
+                <label>
+                  <input type="radio" name="aircraft" value="B737">
+                  <span class="segment">B737</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="card stack">
+            <div class="row two-col">
+              <div class="field">
+                <label for="ramp-fuel">Ramp Fuel (kg)</label>
+                <input
+                  id="ramp-fuel"
+                  name="rampFuel"
+                  class="input number-input"
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="any"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label for="remaining-fuel">Remaining Fuel (kg)</label>
+                <input
+                  id="remaining-fuel"
+                  name="remainingFuel"
+                  class="input number-input"
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="any"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="card stack">
+            <div class="field">
+              <span class="field-title">Unit selector</span>
+              <div class="segmented" role="radiogroup" aria-label="Density unit selector">
+                <label>
+                  <input type="radio" name="densityUnit" value="kg/L" checked>
+                  <span class="segment">kg/L</span>
+                </label>
+                <label>
+                  <input type="radio" name="densityUnit" value="lbs/US gal">
+                  <span class="segment">lbs/US gal</span>
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="density-value">Value</label>
+              <input
+                id="density-value"
+                name="densityValue"
+                class="input number-input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="any"
+                value="0.796"
+                autocomplete="off"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="card stack">
+            <div class="field">
+              <span class="field-title">Volume unit</span>
+              <div class="segmented" role="radiogroup" aria-label="Volume unit selector">
+                <label>
+                  <input type="radio" name="volumeUnit" value="Liters" checked>
+                  <span class="segment">Liters</span>
+                </label>
+                <label>
+                  <input type="radio" name="volumeUnit" value="US gallons">
+                  <span class="segment">US gallons</span>
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="actual-volume">Volume input</label>
+              <input
+                id="actual-volume"
+                name="actualVolume"
+                class="input number-input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="any"
+                autocomplete="off"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="button" type="button" id="clear-button">CLEAR</button>
+            <button class="button primary" type="submit">CHECK</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="screen" id="results-screen" hidden>
+        <div id="results-banner" class="results-banner fail" aria-live="polite">
+          <p class="banner-label" id="banner-label">FAIL</p>
+          <h2 class="banner-title" id="banner-title">B787</h2>
+          <p class="banner-subtitle" id="banner-subtitle">Outside tolerance</p>
+        </div>
+
+        <section class="card result-section" id="conversions-section">
+          <div class="section-header">
+            <h3 class="section-title">Input Conversions</h3>
+          </div>
+          <div id="conversions-list" class="kv-list"></div>
+        </section>
+
+        <section class="card result-section" id="weight-section">
+          <div class="section-header">
+            <h3 class="section-title">Weight Check</h3>
+            <span id="weight-chip" class="section-chip">IN RANGE</span>
+          </div>
+          <div id="weight-list" class="kv-list"></div>
+        </section>
+
+        <section class="card result-section" id="volume-section">
+          <div class="section-header">
+            <h3 class="section-title">Volume Check</h3>
+            <span id="volume-chip" class="section-chip">IN RANGE</span>
+          </div>
+          <div id="volume-list" class="kv-list"></div>
+        </section>
+
+        <div class="actions">
+          <button class="button" type="button" id="back-button">BACK</button>
+          <button class="button primary" type="button" id="recheck-button">RECHECK</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
