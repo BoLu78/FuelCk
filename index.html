@@ -303,11 +303,14 @@
         line-height: 1.45;
       }
 
-      .placeholder-note {
+      .inline-message {
         margin: 0;
-        color: var(--text);
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(223, 63, 78, 0.34);
+        background: rgba(223, 63, 78, 0.12);
+        color: #ffb4bc;
         line-height: 1.6;
-        white-space: pre-line;
       }
 
       .results-banner {
@@ -379,6 +382,11 @@
         font-weight: 700;
       }
 
+      .section-chip.pass {
+        background: rgba(31, 190, 99, 0.18);
+        color: #baf0cf;
+      }
+
       .section-chip.fail {
         background: rgba(223, 63, 78, 0.18);
         color: #ffb4bc;
@@ -415,6 +423,15 @@
       .muted-note {
         color: var(--muted);
         font-size: 0.88rem;
+      }
+
+      .result-note {
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      .result-note.fail {
+        color: #ffb4bc;
       }
     </style>
   </head>
@@ -619,9 +636,143 @@
           <p class="subtitle">Pavement compatibility</p>
         </header>
 
-        <section class="card">
-          <p class="placeholder-note">Module under setup.
-Next step: aircraft selection, weight input, PCN coding, ACN calculation, and result.</p>
+        <form id="acn-form" class="stack" novalidate>
+          <section class="card stack">
+            <h2>PCN Coding</h2>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="acn-pcn-number">PCN number</label>
+                <input
+                  id="acn-pcn-number"
+                  name="pcnNumber"
+                  class="input number-input"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  max="999"
+                  step="1"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label for="acn-pavement-type">Pavement type</label>
+                <select
+                  id="acn-pavement-type"
+                  name="pavementType"
+                  class="select"
+                  required
+                >
+                  <option value="R" selected>R = Rigid</option>
+                  <option value="F">F = Flexible</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="acn-subgrade">Subgrade</label>
+                <select id="acn-subgrade" name="subgrade" class="select" required>
+                  <option value="A">A = High</option>
+                  <option value="B" selected>B = Medium</option>
+                  <option value="C">C = Low</option>
+                  <option value="D">D = Ultra Low</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="acn-tire-code">Tire pressure category</label>
+                <select id="acn-tire-code" name="tireCode" class="select" required>
+                  <option value="W">W = Unlimited</option>
+                  <option value="X" selected>X = High (max 254 psi)</option>
+                  <option value="Y">Y = Medium (max 181 psi)</option>
+                  <option value="Z">Z = Low (max 73 psi)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="acn-evaluation-method">Evaluation method</label>
+              <select
+                id="acn-evaluation-method"
+                name="evaluationMethod"
+                class="select"
+                required
+              >
+                <option value="T" selected>T = Technical</option>
+                <option value="U">U = Using aircraft experience</option>
+              </select>
+            </div>
+          </section>
+
+          <section class="card stack">
+            <h2>Aircraft / Weight</h2>
+
+            <div class="field">
+              <label for="acn-aircraft-type">Aircraft type</label>
+              <select id="acn-aircraft-type" name="aircraftType" class="select" required>
+                <option value="B787-9" selected>B787-9</option>
+                <option value="B737 NG">B737 NG</option>
+                <option value="B737 MAX">B737 MAX</option>
+              </select>
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="acn-actual-weight">Actual weight</label>
+                <input
+                  id="acn-actual-weight"
+                  name="actualWeight"
+                  class="input number-input"
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="any"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label for="acn-weight-unit">Units</label>
+                <select id="acn-weight-unit" name="weightUnit" class="select" required>
+                  <option value="KGS" selected>KGS</option>
+                  <option value="LBS">LBS</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <p id="acn-validation-message" class="inline-message" aria-live="polite" hidden></p>
+
+          <div class="actions">
+            <button class="button" type="button" id="acn-clear-button">Clear</button>
+            <button class="button primary" type="submit" id="acn-evaluate-button">Evaluate</button>
+          </div>
+        </form>
+
+        <section class="screen" id="acn-result-panel" hidden>
+          <div id="acn-results-banner" class="results-banner fail" aria-live="polite">
+            <p class="banner-label" id="acn-banner-label">RESULT</p>
+            <h2 class="banner-title" id="acn-banner-title">FAIL</h2>
+            <p class="banner-subtitle" id="acn-banner-subtitle">
+              ACN exceeds PCN. Normal operations are not suitable on this pavement.
+            </p>
+          </div>
+
+          <section class="card result-section fail" id="acn-overload-card" hidden>
+            <div class="section-header">
+              <h3 class="section-title">Overload Note</h3>
+            </div>
+            <p id="acn-overload-note" class="result-note fail"></p>
+          </section>
+
+          <section class="card result-section" id="acn-report-section">
+            <div class="section-header">
+              <h3 class="section-title">Report Details</h3>
+              <span id="acn-result-chip" class="section-chip">FAIL</span>
+            </div>
+            <div id="acn-details-list" class="kv-list"></div>
+          </section>
         </section>
       </section>
     </main>
