@@ -2,6 +2,13 @@ const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
 
+const homeView = document.getElementById("homeView");
+const fuelView = document.getElementById("fuelView");
+const acnView = document.getElementById("acnView");
+const openFuelBtn = document.getElementById("openFuelBtn");
+const openAcnBtn = document.getElementById("openAcnBtn");
+const backFromFuelBtn = document.getElementById("backFromFuelBtn");
+const backFromAcnBtn = document.getElementById("backFromAcnBtn");
 const form = document.getElementById("fuel-form");
 const inputScreen = document.getElementById("input-screen");
 const resultsScreen = document.getElementById("results-screen");
@@ -23,6 +30,24 @@ const volumeChip = document.getElementById("volume-chip");
 
 registerServiceWorker();
 updateToleranceText();
+showHomeView();
+
+openFuelBtn.addEventListener("click", () => {
+  showInputScreen();
+  showFuelView();
+});
+
+openAcnBtn.addEventListener("click", () => {
+  showAcnView();
+});
+
+backFromFuelBtn.addEventListener("click", () => {
+  showHomeView();
+});
+
+backFromAcnBtn.addEventListener("click", () => {
+  showHomeView();
+});
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -296,6 +321,27 @@ function setSectionState(section, chip, isFail) {
   section.classList.toggle("fail", isFail);
   chip.classList.toggle("fail", isFail);
   chip.textContent = isFail ? "OUT OF RANGE" : "IN RANGE";
+}
+
+function showAppView(activeView) {
+  [homeView, fuelView, acnView].forEach((view) => {
+    const isActive = view === activeView;
+    view.hidden = !isActive;
+    view.setAttribute("aria-hidden", String(!isActive));
+  });
+  window.scrollTo(0, 0);
+}
+
+function showHomeView() {
+  showAppView(homeView);
+}
+
+function showFuelView() {
+  showAppView(fuelView);
+}
+
+function showAcnView() {
+  showAppView(acnView);
 }
 
 function showResultsScreen() {

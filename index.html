@@ -80,6 +80,10 @@
         gap: 16px;
       }
 
+      .app-view {
+        align-content: start;
+      }
+
       .hero {
         padding: 6px 2px 4px;
       }
@@ -244,6 +248,68 @@
         transform: scale(0.99);
       }
 
+      .module-nav {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .module-title {
+        color: var(--muted);
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .module-back {
+        width: auto;
+        min-width: 108px;
+      }
+
+      .home-menu {
+        display: grid;
+        gap: 12px;
+      }
+
+      .menu-button {
+        width: 100%;
+        min-height: 104px;
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius);
+        padding: 18px;
+        background: var(--card);
+        box-shadow: var(--shadow);
+        color: var(--text);
+        text-align: left;
+        display: grid;
+        gap: 6px;
+        align-content: center;
+      }
+
+      .menu-button:focus-visible {
+        outline: 2px solid rgba(79, 124, 255, 0.88);
+        outline-offset: 2px;
+      }
+
+      .menu-button-title {
+        font-size: 1.12rem;
+        font-weight: 700;
+      }
+
+      .menu-button-note {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.45;
+      }
+
+      .placeholder-note {
+        margin: 0;
+        color: var(--text);
+        line-height: 1.6;
+        white-space: pre-line;
+      }
+
       .results-banner {
         border-radius: 24px;
         padding: 18px;
@@ -354,167 +420,209 @@
   </head>
   <body>
     <main class="app-shell">
-      <section class="screen" id="input-screen">
+      <section class="screen app-view" id="homeView" aria-hidden="false">
         <header class="hero">
-          <span class="eyebrow">Offline Ramp Calculator</span>
+          <span class="eyebrow">OFFLINE OPS TOOL</span>
           <h1>RampCheck</h1>
-          <div class="card" id="toleranceCard">
-            <h2>Tolerance Rule</h2>
-            <div id="toleranceText" class="mono">—</div>
-          </div>
+          <p class="subtitle">Select a module to continue.</p>
         </header>
 
-        <form id="fuel-form" class="stack" novalidate>
-          <div class="card stack">
-            <div class="field">
-              <div class="segmented" role="radiogroup" aria-label="Aircraft selector">
-                <label>
-                  <input type="radio" name="aircraft" value="B787" checked>
-                  <span class="segment">B787</span>
-                </label>
-                <label>
-                  <input type="radio" name="aircraft" value="B737">
-                  <span class="segment">B737</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="card stack">
-            <div class="row two-col">
-              <div class="field">
-                <label for="ramp-fuel">Ramp Fuel (kg)</label>
-                <input
-                  id="ramp-fuel"
-                  name="rampFuel"
-                  class="input number-input"
-                  type="number"
-                  inputmode="decimal"
-                  min="0"
-                  step="any"
-                  autocomplete="off"
-                  required
-                >
-              </div>
-              <div class="field">
-                <label for="remaining-fuel">Remaining Fuel (kg)</label>
-                <input
-                  id="remaining-fuel"
-                  name="remainingFuel"
-                  class="input number-input"
-                  type="number"
-                  inputmode="decimal"
-                  min="0"
-                  step="any"
-                  autocomplete="off"
-                  required
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="card stack">
-            <div class="field">
-              <span class="field-title">Unit selector</span>
-              <div class="segmented" role="radiogroup" aria-label="Density unit selector">
-                <label>
-                  <input type="radio" name="densityUnit" value="kg/L" checked>
-                  <span class="segment">kg/L</span>
-                </label>
-                <label>
-                  <input type="radio" name="densityUnit" value="lbs/US gal">
-                  <span class="segment">lbs/US gal</span>
-                </label>
-              </div>
-            </div>
-            <div class="field">
-              <label for="density-value">Value</label>
-              <input
-                id="density-value"
-                name="densityValue"
-                class="input number-input"
-                type="number"
-                inputmode="decimal"
-                min="0"
-                step="any"
-                value="0.796"
-                autocomplete="off"
-                required
-              >
-            </div>
-          </div>
-
-          <div class="card stack">
-            <div class="field">
-              <span class="field-title">Volume unit</span>
-              <div class="segmented" role="radiogroup" aria-label="Volume unit selector">
-                <label>
-                  <input type="radio" name="volumeUnit" value="Liters" checked>
-                  <span class="segment">Liters</span>
-                </label>
-                <label>
-                  <input type="radio" name="volumeUnit" value="US gallons">
-                  <span class="segment">US gallons</span>
-                </label>
-              </div>
-            </div>
-            <div class="field">
-              <label for="actual-volume">Volume input</label>
-              <input
-                id="actual-volume"
-                name="actualVolume"
-                class="input number-input"
-                type="number"
-                inputmode="decimal"
-                min="0"
-                step="any"
-                autocomplete="off"
-                required
-              >
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="button" type="button" id="clear-button">CLEAR</button>
-            <button class="button primary" type="submit">CHECK</button>
-          </div>
-        </form>
+        <section class="home-menu" aria-label="Module menu">
+          <button class="menu-button" type="button" id="openFuelBtn">
+            <span class="menu-button-title">Fuel Check</span>
+            <span class="menu-button-note">Tolerance check for remaining fuel</span>
+          </button>
+          <button class="menu-button" type="button" id="openAcnBtn">
+            <span class="menu-button-title">ACN-PCN</span>
+            <span class="menu-button-note">Pavement compatibility module</span>
+          </button>
+        </section>
       </section>
 
-      <section class="screen" id="results-screen" hidden>
-        <div id="results-banner" class="results-banner fail" aria-live="polite">
-          <p class="banner-label" id="banner-label">FAIL</p>
-          <h2 class="banner-title" id="banner-title">B787</h2>
-          <p class="banner-subtitle" id="banner-subtitle">Outside tolerance</p>
+      <section class="screen app-view" id="fuelView" hidden aria-hidden="true">
+        <div class="module-nav">
+          <button class="button module-back" type="button" id="backFromFuelBtn">Back</button>
+          <span class="module-title">Fuel Check</span>
         </div>
 
-        <section class="card result-section" id="conversions-section">
-          <div class="section-header">
-            <h3 class="section-title">Input Conversions</h3>
-          </div>
-          <div id="conversions-list" class="kv-list"></div>
+        <section class="screen" id="input-screen">
+          <header class="hero">
+            <span class="eyebrow">Offline Ramp Calculator</span>
+            <h1>RampCheck</h1>
+            <div class="card" id="toleranceCard">
+              <h2>Tolerance Rule</h2>
+              <div id="toleranceText" class="mono">—</div>
+            </div>
+          </header>
+
+          <form id="fuel-form" class="stack" novalidate>
+            <div class="card stack">
+              <div class="field">
+                <div class="segmented" role="radiogroup" aria-label="Aircraft selector">
+                  <label>
+                    <input type="radio" name="aircraft" value="B787" checked>
+                    <span class="segment">B787</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="aircraft" value="B737">
+                    <span class="segment">B737</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="card stack">
+              <div class="row two-col">
+                <div class="field">
+                  <label for="ramp-fuel">Ramp Fuel (kg)</label>
+                  <input
+                    id="ramp-fuel"
+                    name="rampFuel"
+                    class="input number-input"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="any"
+                    autocomplete="off"
+                    required
+                  >
+                </div>
+                <div class="field">
+                  <label for="remaining-fuel">Remaining Fuel (kg)</label>
+                  <input
+                    id="remaining-fuel"
+                    name="remainingFuel"
+                    class="input number-input"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="any"
+                    autocomplete="off"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="card stack">
+              <div class="field">
+                <span class="field-title">Unit selector</span>
+                <div class="segmented" role="radiogroup" aria-label="Density unit selector">
+                  <label>
+                    <input type="radio" name="densityUnit" value="kg/L" checked>
+                    <span class="segment">kg/L</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="densityUnit" value="lbs/US gal">
+                    <span class="segment">lbs/US gal</span>
+                  </label>
+                </div>
+              </div>
+              <div class="field">
+                <label for="density-value">Value</label>
+                <input
+                  id="density-value"
+                  name="densityValue"
+                  class="input number-input"
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="any"
+                  value="0.796"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="card stack">
+              <div class="field">
+                <span class="field-title">Volume unit</span>
+                <div class="segmented" role="radiogroup" aria-label="Volume unit selector">
+                  <label>
+                    <input type="radio" name="volumeUnit" value="Liters" checked>
+                    <span class="segment">Liters</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="volumeUnit" value="US gallons">
+                    <span class="segment">US gallons</span>
+                  </label>
+                </div>
+              </div>
+              <div class="field">
+                <label for="actual-volume">Volume input</label>
+                <input
+                  id="actual-volume"
+                  name="actualVolume"
+                  class="input number-input"
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="any"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="button" type="button" id="clear-button">CLEAR</button>
+              <button class="button primary" type="submit">CHECK</button>
+            </div>
+          </form>
         </section>
 
-        <section class="card result-section" id="weight-section">
-          <div class="section-header">
-            <h3 class="section-title">Weight Check</h3>
-            <span id="weight-chip" class="section-chip">IN RANGE</span>
+        <section class="screen" id="results-screen" hidden>
+          <div id="results-banner" class="results-banner fail" aria-live="polite">
+            <p class="banner-label" id="banner-label">FAIL</p>
+            <h2 class="banner-title" id="banner-title">B787</h2>
+            <p class="banner-subtitle" id="banner-subtitle">Outside tolerance</p>
           </div>
-          <div id="weight-list" class="kv-list"></div>
-        </section>
 
-        <section class="card result-section" id="volume-section">
-          <div class="section-header">
-            <h3 class="section-title">Volume Check</h3>
-            <span id="volume-chip" class="section-chip">IN RANGE</span>
+          <section class="card result-section" id="conversions-section">
+            <div class="section-header">
+              <h3 class="section-title">Input Conversions</h3>
+            </div>
+            <div id="conversions-list" class="kv-list"></div>
+          </section>
+
+          <section class="card result-section" id="weight-section">
+            <div class="section-header">
+              <h3 class="section-title">Weight Check</h3>
+              <span id="weight-chip" class="section-chip">IN RANGE</span>
+            </div>
+            <div id="weight-list" class="kv-list"></div>
+          </section>
+
+          <section class="card result-section" id="volume-section">
+            <div class="section-header">
+              <h3 class="section-title">Volume Check</h3>
+              <span id="volume-chip" class="section-chip">IN RANGE</span>
+            </div>
+            <div id="volume-list" class="kv-list"></div>
+          </section>
+
+          <div class="actions">
+            <button class="button" type="button" id="back-button">BACK</button>
+            <button class="button primary" type="button" id="recheck-button">RECHECK</button>
           </div>
-          <div id="volume-list" class="kv-list"></div>
         </section>
+      </section>
 
-        <div class="actions">
-          <button class="button" type="button" id="back-button">BACK</button>
-          <button class="button primary" type="button" id="recheck-button">RECHECK</button>
+      <section class="screen app-view" id="acnView" hidden aria-hidden="true">
+        <div class="module-nav">
+          <button class="button module-back" type="button" id="backFromAcnBtn">Back</button>
         </div>
+
+        <header class="hero">
+          <h1>ACN-PCN</h1>
+          <p class="subtitle">Pavement compatibility</p>
+        </header>
+
+        <section class="card">
+          <p class="placeholder-note">Module under setup.
+Next step: aircraft selection, weight input, PCN coding, ACN calculation, and result.</p>
+        </section>
       </section>
     </main>
 
