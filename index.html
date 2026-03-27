@@ -433,6 +433,70 @@
       .result-note.fail {
         color: #ffb4bc;
       }
+
+      #acnView {
+        gap: 18px;
+      }
+
+      #acnView .card {
+        width: 100%;
+      }
+
+      #acnView .field,
+      #acnView .row,
+      #acnView .actions {
+        min-width: 0;
+      }
+
+      #acnView .input,
+      #acnView .select {
+        min-height: 52px;
+      }
+
+      .acn-form {
+        display: grid;
+        gap: 16px;
+      }
+
+      .acn-section-card {
+        height: 100%;
+        align-content: start;
+      }
+
+      .acn-full-row {
+        width: 100%;
+      }
+
+      .acn-result-panel {
+        gap: 16px;
+      }
+
+      .acn-result-summary {
+        margin-top: 4px;
+      }
+
+      .acn-comparison-detail {
+        margin: 0;
+      }
+
+      #acn-report-section .kv-row {
+        align-items: flex-start;
+      }
+
+      #acn-report-section .kv-value {
+        max-width: 58%;
+      }
+
+      @media (min-width: 440px) {
+        .acn-form {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          align-items: stretch;
+        }
+
+        .acn-full-row {
+          grid-column: 1 / -1;
+        }
+      }
     </style>
   </head>
   <body>
@@ -636,8 +700,8 @@
           <p class="subtitle">Pavement compatibility</p>
         </header>
 
-        <form id="acn-form" class="stack" novalidate>
-          <section class="card stack">
+        <form id="acn-form" class="stack acn-form" novalidate>
+          <section class="card stack acn-section-card">
             <h2>PCN Coding</h2>
 
             <div class="row two-col">
@@ -705,7 +769,7 @@
             </div>
           </section>
 
-          <section class="card stack">
+          <section class="card stack acn-section-card">
             <h2>Aircraft / Weight</h2>
 
             <div class="field">
@@ -742,36 +806,39 @@
             </div>
           </section>
 
-          <p id="acn-validation-message" class="inline-message" aria-live="polite" hidden></p>
+          <p
+            id="acn-validation-message"
+            class="inline-message acn-full-row"
+            aria-live="polite"
+            hidden
+          ></p>
 
-          <div class="actions">
+          <div class="actions acn-full-row">
             <button class="button" type="button" id="acn-clear-button">Clear</button>
             <button class="button primary" type="submit" id="acn-evaluate-button">Evaluate</button>
           </div>
         </form>
 
-        <section class="screen" id="acn-result-panel" hidden>
-          <div id="acn-results-banner" class="results-banner fail" aria-live="polite">
-            <p class="banner-label" id="acn-banner-label">RESULT</p>
-            <h2 class="banner-title" id="acn-banner-title">FAIL</h2>
-            <p class="banner-subtitle" id="acn-banner-subtitle">
-              ACN exceeds PCN. Normal operations are not suitable on this pavement.
-            </p>
-          </div>
-
-          <section class="card result-section fail" id="acn-overload-card" hidden>
-            <div class="section-header">
-              <h3 class="section-title">Overload Note</h3>
-            </div>
-            <p id="acn-overload-note" class="result-note fail"></p>
-          </section>
-
+        <section class="screen acn-result-panel" id="acn-result-panel" hidden>
           <section class="card result-section" id="acn-report-section">
             <div class="section-header">
               <h3 class="section-title">Report Details</h3>
               <span id="acn-result-chip" class="section-chip">FAIL</span>
             </div>
             <div id="acn-details-list" class="kv-list"></div>
+            <div
+              id="acn-results-banner"
+              class="results-banner fail acn-result-summary"
+              aria-live="polite"
+            >
+              <p class="banner-label" id="acn-banner-label">RESULT</p>
+              <h2 class="banner-title" id="acn-banner-title">FAIL</h2>
+              <p class="banner-subtitle" id="acn-banner-subtitle">
+                ACN exceeds PCN. Normal operations are not suitable on this pavement.
+              </p>
+            </div>
+            <p id="acn-overload-note" class="result-note fail" hidden></p>
+            <p id="acn-comparison-detail" class="muted-note acn-comparison-detail"></p>
           </section>
         </section>
       </section>

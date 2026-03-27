@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.5";
+const APP_VERSION = "v1.6";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -142,9 +142,10 @@ const acnBannerLabel = document.getElementById("acn-banner-label");
 const acnBannerTitle = document.getElementById("acn-banner-title");
 const acnBannerSubtitle = document.getElementById("acn-banner-subtitle");
 const acnResultChip = document.getElementById("acn-result-chip");
+const acnReportSection = document.getElementById("acn-report-section");
 const acnDetailsList = document.getElementById("acn-details-list");
-const acnOverloadCard = document.getElementById("acn-overload-card");
 const acnOverloadNote = document.getElementById("acn-overload-note");
+const acnComparisonDetail = document.getElementById("acn-comparison-detail");
 
 registerServiceWorker();
 updateToleranceText();
@@ -606,8 +607,42 @@ function calculateAcnResult(values) {
     acnPass,
     overallPass,
     coding: `${values.pcnNumber}/${values.pavementType}/${values.subgrade}/${values.tireCode}/${values.evaluationMethod}`,
+    maxAllowableWeight: calculateMaxAllowableWeight(
+      values.pcnNumber,
+      values.aircraftData,
+      acnRange
+    ),
     resultMessage: getAcnResultMessage(acnPass, tirePass),
     overloadNote: getAcnOverloadNote(roundedAcn, values.pcnNumber),
+  };
+}
+
+function calculateMaxAllowableWeight(pcnNumber, aircraftData, acnRange) {
+  if (pcnNumber >= acnRange.max) {
+    return {
+      kind: "weight",
+      weightKg: aircraftData.maxWeightKg,
+    };
+  }
+
+  if (pcnNumber < acnRange.empty) {
+    return {
+      kind: "belowRange",
+    };
+  }
+
+  const interpolatedWeightKg =
+    aircraftData.maxWeightKg
+    - ((acnRange.max - pcnNumber) / (acnRange.max - acnRange.empty))
+      * (aircraftData.maxWeightKg - aircraftData.emptyWeightKg);
+  const clampedWeightKg = Math.max(
+    aircraftData.emptyWeightKg,
+    Math.min(aircraftData.maxWeightKg, interpolatedWeightKg)
+  );
+
+  return {
+    kind: "weight",
+    weightKg: Math.round(clampedWeightKg),
   };
 }
 
@@ -615,6 +650,7 @@ function renderAcnResult(result) {
   const stateLabel = result.overallPass ? "PASS" : "FAIL";
 
   acnResultPanel.hidden = false;
+  acnReportSection.classList.toggle("fail", !result.overallPass);
   acnResultsBanner.classList.toggle("pass", result.overallPass);
   acnResultsBanner.classList.toggle("fail", !result.overallPass);
   acnBannerLabel.textContent = "RESULT";
@@ -623,8 +659,9 @@ function renderAcnResult(result) {
   acnResultChip.classList.toggle("pass", result.overallPass);
   acnResultChip.classList.toggle("fail", !result.overallPass);
   acnResultChip.textContent = stateLabel;
-  acnOverloadCard.hidden = !result.overloadNote;
+  acnOverloadNote.hidden = !result.overloadNote;
   acnOverloadNote.textContent = result.overloadNote;
+  acnComparisonDetail.textContent = `ACN ${result.roundedAcn} vs PCN ${result.pcnNumber}`;
 
   renderKeyValueList(acnDetailsList, [
     ["Coding", result.coding],
@@ -632,23 +669,18 @@ function renderAcnResult(result) {
     ["Pavement Type", `${result.pavementType} - ${PAVEMENT_LABELS[result.pavementType]}`],
     ["Subgrade Strength", `${result.subgrade} - ${SUBGRADE_LABELS[result.subgrade]}`],
     [
-      "Tire Pressure Limit",
-      `${result.tireCode} - ${TIRE_CODE_DETAILS[result.tireCode].label}`,
-    ],
-    [
       "Evaluation Method",
       `${result.evaluationMethod} - ${EVALUATION_LABELS[result.evaluationMethod]}`,
     ],
-    ["Aircraft Type", result.aircraftData.label],
-    ["Reference Table Used", result.aircraftData.referenceLabel],
-    ["Aircraft Weight", formatAcnWeight(result.enteredWeight, result.weightUnit, result.actualWeightKg)],
-    ["Aircraft Tire Pressure", formatPsi(result.aircraftTirePsi)],
-    ["ACN", `${formatNumber(result.roundedAcn, 0)} (raw ${formatNumber(result.rawAcn, 2)})`, !result.acnPass],
-    ["ACN Comparison", `ACN ${result.roundedAcn} vs PCN ${result.pcnNumber}`, !result.acnPass],
     [
-      "Tire Comparison",
-      `Tire ${result.aircraftTirePsi} psi vs code ${result.tireCode}`,
-      !result.tirePass,
+      "Aircraft Weight",
+      formatAcnWeight(result.enteredWeight, result.weightUnit, result.actualWeightKg),
+    ],
+    ["ACN", `${formatNumber(result.roundedAcn, 0)} (raw ${formatNumber(result.rawAcn, 2)})`, !result.acnPass],
+    [
+      "Max Allowable Weight",
+      formatMaxAllowableWeight(result.maxAllowableWeight, result.weightUnit),
+      result.maxAllowableWeight.kind === "belowRange",
     ],
   ]);
 }
@@ -682,8 +714,10 @@ function clearAcnValidation() {
 
 function hideAcnResult() {
   acnResultPanel.hidden = true;
-  acnOverloadCard.hidden = true;
+  acnReportSection.classList.remove("fail");
   acnOverloadNote.textContent = "";
+  acnOverloadNote.hidden = true;
+  acnComparisonDetail.textContent = "";
   acnDetailsList.textContent = "";
 }
 
@@ -751,6 +785,19 @@ function formatLiters(value) {
 
 function formatPsi(value) {
   return `${formatNumber(value, 0)} psi`;
+}
+
+function formatMaxAllowableWeight(maxAllowableWeight, unit) {
+  if (maxAllowableWeight.kind === "belowRange") {
+    return "Below empty-weight ACN range";
+  }
+
+  if (unit === "LBS") {
+    const weightLbs = Math.round(maxAllowableWeight.weightKg / LBS_TO_KG);
+    return `${formatNumber(weightLbs, 0)} lbs (${formatNumber(maxAllowableWeight.weightKg, 0)} kg)`;
+  }
+
+  return `${formatNumber(maxAllowableWeight.weightKg, 0)} kg`;
 }
 
 function formatAcnWeight(value, unit, actualWeightKg) {
