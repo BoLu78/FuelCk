@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.6";
+const APP_VERSION = "v1.7";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -538,7 +538,7 @@ function readAcnInputValues() {
     return null;
   }
 
-  if (weightUnit !== "KGS" && weightUnit !== "LBS") {
+  if (weightUnit !== "KGS" && weightUnit !== "T") {
     showAcnValidation("Select a valid weight unit.");
     return null;
   }
@@ -548,11 +548,11 @@ function readAcnInputValues() {
     return null;
   }
 
-  const actualWeightKg = weightUnit === "LBS" ? enteredWeight * LBS_TO_KG : enteredWeight;
+  const actualWeightKg = weightUnit === "T" ? enteredWeight * 1000 : enteredWeight;
 
   if (actualWeightKg < aircraftData.emptyWeightKg) {
     showAcnValidation(
-      `Weight is below the ${aircraftData.label} empty weight of ${formatKg(
+      `Weight is below the ${aircraftData.label} empty weight of ${formatWholeKg(
         aircraftData.emptyWeightKg
       )}.`
     );
@@ -561,7 +561,7 @@ function readAcnInputValues() {
 
   if (actualWeightKg > aircraftData.maxWeightKg) {
     showAcnValidation(
-      `Weight exceeds the ${aircraftData.label} max table weight of ${formatKg(
+      `Weight exceeds the ${aircraftData.label} max table weight of ${formatWholeKg(
         aircraftData.maxWeightKg
       )}.`
     );
@@ -787,25 +787,35 @@ function formatPsi(value) {
   return `${formatNumber(value, 0)} psi`;
 }
 
+function formatWholeKg(value) {
+  return `${formatNumber(Math.round(value), 0)} kg`;
+}
+
+function formatTonnes(value) {
+  return `${Number(value).toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  })} t`;
+}
+
 function formatMaxAllowableWeight(maxAllowableWeight, unit) {
   if (maxAllowableWeight.kind === "belowRange") {
     return "Below empty-weight ACN range";
   }
 
-  if (unit === "LBS") {
-    const weightLbs = Math.round(maxAllowableWeight.weightKg / LBS_TO_KG);
-    return `${formatNumber(weightLbs, 0)} lbs (${formatNumber(maxAllowableWeight.weightKg, 0)} kg)`;
+  if (unit === "T") {
+    return formatTonnes(maxAllowableWeight.weightKg / 1000);
   }
 
-  return `${formatNumber(maxAllowableWeight.weightKg, 0)} kg`;
+  return formatWholeKg(maxAllowableWeight.weightKg);
 }
 
 function formatAcnWeight(value, unit, actualWeightKg) {
-  if (unit === "LBS") {
-    return `${formatNumber(value, 1)} LBS (${formatKg(actualWeightKg)})`;
+  if (unit === "T") {
+    return formatTonnes(value);
   }
 
-  return `${formatNumber(value, 1)} KGS`;
+  return formatWholeKg(actualWeightKg);
 }
 
 function formatSignedKg(value) {

@@ -1,10 +1,11 @@
-const CACHE_NAME = "rampcheck-v1.6";
+const CACHE_NAME = "rampcheck-v1.7";
 const APP_FILES = [
   "./",
   "./index.html",
   "./app.js",
   "./manifest.json",
   "./service-worker.js",
+  "./assets/logo-lb.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
 ];

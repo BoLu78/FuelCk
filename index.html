@@ -272,6 +272,20 @@
         gap: 12px;
       }
 
+      .home-logo-wrap {
+        display: flex;
+        justify-content: center;
+        padding-top: 4px;
+      }
+
+      .home-logo {
+        width: min(42%, 128px);
+        height: auto;
+        opacity: 0.48;
+        pointer-events: none;
+        user-select: none;
+      }
+
       .menu-button {
         width: 100%;
         min-height: 104px;
@@ -443,9 +457,16 @@
       }
 
       #acnView .field,
-      #acnView .row,
       #acnView .actions {
         min-width: 0;
+      }
+
+      #acnView .field {
+        gap: 10px;
+      }
+
+      #acnView label {
+        line-height: 1.25;
       }
 
       #acnView .input,
@@ -461,6 +482,15 @@
       .acn-section-card {
         height: 100%;
         align-content: start;
+      }
+
+      .acn-card-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .acn-span-2 {
+        width: 100%;
       }
 
       .acn-full-row {
@@ -493,6 +523,15 @@
           align-items: stretch;
         }
 
+        .acn-card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          column-gap: 14px;
+        }
+
+        .acn-span-2 {
+          grid-column: 1 / -1;
+        }
+
         .acn-full-row {
           grid-column: 1 / -1;
         }
@@ -518,6 +557,10 @@
             <span class="menu-button-note">Pavement compatibility module</span>
           </button>
         </section>
+
+        <div class="home-logo-wrap" aria-hidden="true">
+          <img class="home-logo" src="assets/logo-lb.png" alt="">
+        </div>
       </section>
 
       <section class="screen app-view" id="fuelView" hidden aria-hidden="true">
@@ -704,7 +747,7 @@
           <section class="card stack acn-section-card">
             <h2>PCN Coding</h2>
 
-            <div class="row two-col">
+            <div class="acn-card-grid">
               <div class="field">
                 <label for="acn-pcn-number">PCN number</label>
                 <input
@@ -732,9 +775,6 @@
                   <option value="F">F = Flexible</option>
                 </select>
               </div>
-            </div>
-
-            <div class="row two-col">
               <div class="field">
                 <label for="acn-subgrade">Subgrade</label>
                 <select id="acn-subgrade" name="subgrade" class="select" required>
@@ -753,35 +793,33 @@
                   <option value="Z">Z = Low (max 73 psi)</option>
                 </select>
               </div>
-            </div>
-
-            <div class="field">
-              <label for="acn-evaluation-method">Evaluation method</label>
-              <select
-                id="acn-evaluation-method"
-                name="evaluationMethod"
-                class="select"
-                required
-              >
-                <option value="T" selected>T = Technical</option>
-                <option value="U">U = Using aircraft experience</option>
-              </select>
+              <div class="field acn-span-2">
+                <label for="acn-evaluation-method">Evaluation method</label>
+                <select
+                  id="acn-evaluation-method"
+                  name="evaluationMethod"
+                  class="select"
+                  required
+                >
+                  <option value="T" selected>T = Technical</option>
+                  <option value="U">U = Using aircraft experience</option>
+                </select>
+              </div>
             </div>
           </section>
 
           <section class="card stack acn-section-card">
             <h2>Aircraft / Weight</h2>
 
-            <div class="field">
-              <label for="acn-aircraft-type">Aircraft type</label>
-              <select id="acn-aircraft-type" name="aircraftType" class="select" required>
-                <option value="B787-9" selected>B787-9</option>
-                <option value="B737 NG">B737 NG</option>
-                <option value="B737 MAX">B737 MAX</option>
-              </select>
-            </div>
-
-            <div class="row two-col">
+            <div class="acn-card-grid">
+              <div class="field acn-span-2">
+                <label for="acn-aircraft-type">Aircraft type</label>
+                <select id="acn-aircraft-type" name="aircraftType" class="select" required>
+                  <option value="B787-9" selected>B787-9</option>
+                  <option value="B737 NG">B737 NG</option>
+                  <option value="B737 MAX">B737 MAX</option>
+                </select>
+              </div>
               <div class="field">
                 <label for="acn-actual-weight">Actual weight</label>
                 <input
@@ -800,7 +838,7 @@
                 <label for="acn-weight-unit">Units</label>
                 <select id="acn-weight-unit" name="weightUnit" class="select" required>
                   <option value="KGS" selected>KGS</option>
-                  <option value="LBS">LBS</option>
+                  <option value="T">T</option>
                 </select>
               </div>
             </div>
