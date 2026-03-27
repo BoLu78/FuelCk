@@ -88,6 +88,12 @@
         padding: 6px 2px 4px;
       }
 
+      .fuel-header h1 {
+        font-size: clamp(2rem, 5vw, 2.4rem);
+        font-weight: 700;
+        line-height: 1.02;
+      }
+
       .eyebrow {
         display: inline-block;
         margin-bottom: 8px;
@@ -130,8 +136,8 @@
         font-variant-numeric: tabular-nums;
       }
 
-      #toleranceCard {
-        margin-top: 14px;
+      .fuel-header #toleranceCard {
+        margin-top: 10px;
       }
 
       .stack {
@@ -552,7 +558,7 @@
         </div>
 
         <section class="screen" id="input-screen">
-          <header class="hero">
+          <header class="hero fuel-header">
             <span class="eyebrow">Offline Ramp Calculator</span>
             <h1>FuelCk</h1>
             <div class="card" id="toleranceCard">
