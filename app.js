@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.8";
+const APP_VERSION = "v1.9";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -71,24 +71,6 @@ const SUBGRADE_LABELS = {
   C: "Low",
   D: "Ultra Low",
 };
-const TIRE_CODE_DETAILS = {
-  W: {
-    label: "Unlimited",
-    limitPsi: Number.POSITIVE_INFINITY,
-  },
-  X: {
-    label: "High (max 254 psi)",
-    limitPsi: 254,
-  },
-  Y: {
-    label: "Medium (max 181 psi)",
-    limitPsi: 181,
-  },
-  Z: {
-    label: "Low (max 73 psi)",
-    limitPsi: 73,
-  },
-};
 const EVALUATION_LABELS = {
   T: "Technical",
   U: "Using aircraft experience",
@@ -101,7 +83,6 @@ const ACN_DEFAULTS = {
   pcnNumber: "",
   pavementType: "R",
   subgrade: "B",
-  tireCode: "X",
   evaluationMethod: "T",
   aircraftType: "B787-9",
   weightUnit: "KGS",
@@ -494,19 +475,25 @@ function readAcnInputValues() {
   const pcnInput = acnForm.elements.pcnNumber.value;
   const pavementType = acnForm.elements.pavementType.value;
   const subgrade = acnForm.elements.subgrade.value;
-  const tireCode = acnForm.elements.tireCode.value;
   const evaluationMethod = acnForm.elements.evaluationMethod.value;
   const aircraftType = acnForm.elements.aircraftType.value;
   const weightUnit = acnForm.elements.weightUnit.value;
   const actualWeightInput = acnForm.elements.actualWeight.value;
   const aircraftData = ACN_AIRCRAFT_DATA[aircraftType];
-  const pcnNumber = Number(pcnInput);
-  const enteredWeight = parsePositiveNumber(actualWeightInput);
+  const trimmedPcnInput = typeof pcnInput === "string" ? pcnInput.trim() : "";
+  const parsedWeight = parseAcnWeightInput(actualWeightInput, weightUnit);
 
-  if (typeof pcnInput !== "string" || pcnInput.trim() === "") {
+  if (trimmedPcnInput === "") {
     showAcnValidation("Enter a PCN number.");
     return null;
   }
+
+  if (!/^\d+$/.test(trimmedPcnInput)) {
+    showAcnValidation("PCN number must be a whole number from 1 to 999.");
+    return null;
+  }
+
+  const pcnNumber = Number(trimmedPcnInput);
 
   if (!Number.isInteger(pcnNumber) || pcnNumber < 1 || pcnNumber > 999) {
     showAcnValidation("PCN number must be a whole number from 1 to 999.");
@@ -520,11 +507,6 @@ function readAcnInputValues() {
 
   if (!SUBGRADE_LABELS[subgrade]) {
     showAcnValidation("Select a valid subgrade category.");
-    return null;
-  }
-
-  if (!TIRE_CODE_DETAILS[tireCode]) {
-    showAcnValidation("Select a valid tire pressure category.");
     return null;
   }
 
@@ -543,14 +525,12 @@ function readAcnInputValues() {
     return null;
   }
 
-  if (enteredWeight === null) {
+  if (!parsedWeight) {
     showAcnValidation("Enter a valid aircraft weight greater than 0.");
     return null;
   }
 
-  const actualWeightKg = weightUnit === "T" ? enteredWeight * 1000 : enteredWeight;
-
-  if (actualWeightKg < aircraftData.emptyWeightKg) {
+  if (parsedWeight.actualWeightKg < aircraftData.emptyWeightKg) {
     showAcnValidation(
       `Weight is below the ${aircraftData.label} empty weight of ${formatWholeKg(
         aircraftData.emptyWeightKg
@@ -559,7 +539,7 @@ function readAcnInputValues() {
     return null;
   }
 
-  if (actualWeightKg > aircraftData.maxWeightKg) {
+  if (parsedWeight.actualWeightKg > aircraftData.maxWeightKg) {
     showAcnValidation(
       `Weight exceeds the ${aircraftData.label} max table weight of ${formatWholeKg(
         aircraftData.maxWeightKg
@@ -572,12 +552,13 @@ function readAcnInputValues() {
     pcnNumber,
     pavementType,
     subgrade,
-    tireCode,
     evaluationMethod,
     aircraftType,
     weightUnit,
-    enteredWeight,
-    actualWeightKg,
+    enteredWeight: parsedWeight.enteredWeight,
+    actualWeightKg: parsedWeight.actualWeightKg,
+    displayWeightUnit: parsedWeight.displayWeightUnit,
+    displayWeightValue: parsedWeight.displayWeightValue,
     aircraftData,
   };
 }
@@ -591,28 +572,22 @@ function calculateAcnResult(values) {
       / (values.aircraftData.maxWeightKg - values.aircraftData.emptyWeightKg))
       * (acnRange.max - acnRange.empty);
   const roundedAcn = Math.round(rawAcn);
-  const aircraftTirePsi = values.aircraftData.tirePsi;
-  const tireLimitPsi = TIRE_CODE_DETAILS[values.tireCode].limitPsi;
-  const tirePass =
-    values.tireCode === "W" ? true : aircraftTirePsi <= tireLimitPsi;
   const acnPass = roundedAcn <= values.pcnNumber;
-  const overallPass = acnPass && tirePass;
+  const overallPass = acnPass;
 
   return {
     ...values,
     rawAcn,
     roundedAcn,
-    aircraftTirePsi,
-    tirePass,
     acnPass,
     overallPass,
-    coding: `${values.pcnNumber}/${values.pavementType}/${values.subgrade}/${values.tireCode}/${values.evaluationMethod}`,
+    coding: `${values.pcnNumber}/${values.pavementType}/${values.subgrade}/${values.evaluationMethod}`,
     maxAllowableWeight: calculateMaxAllowableWeight(
       values.pcnNumber,
       values.aircraftData,
       acnRange
     ),
-    resultMessage: getAcnResultMessage(acnPass, tirePass),
+    resultMessage: getAcnResultMessage(acnPass),
     overloadNote: getAcnOverloadNote(roundedAcn, values.pcnNumber),
   };
 }
@@ -674,7 +649,7 @@ function renderAcnResult(result) {
     ],
     [
       "Aircraft Weight",
-      formatAcnWeight(result.enteredWeight, result.weightUnit, result.actualWeightKg),
+      formatAcnWeight(result.displayWeightValue, result.displayWeightUnit),
     ],
     ["ACN", `${formatNumber(result.roundedAcn, 0)} (raw ${formatNumber(result.rawAcn, 2)})`, !result.acnPass],
     [
@@ -689,7 +664,6 @@ function resetAcnForm(shouldFocus) {
   acnForm.elements.pcnNumber.value = ACN_DEFAULTS.pcnNumber;
   acnForm.elements.pavementType.value = ACN_DEFAULTS.pavementType;
   acnForm.elements.subgrade.value = ACN_DEFAULTS.subgrade;
-  acnForm.elements.tireCode.value = ACN_DEFAULTS.tireCode;
   acnForm.elements.evaluationMethod.value = ACN_DEFAULTS.evaluationMethod;
   acnForm.elements.aircraftType.value = ACN_DEFAULTS.aircraftType;
   acnForm.elements.weightUnit.value = ACN_DEFAULTS.weightUnit;
@@ -721,20 +695,12 @@ function hideAcnResult() {
   acnDetailsList.textContent = "";
 }
 
-function getAcnResultMessage(acnPass, tirePass) {
-  if (acnPass && tirePass) {
+function getAcnResultMessage(acnPass) {
+  if (acnPass) {
     return "ACN vs PCN check OK. Aircraft is within the selected pavement limitation.";
   }
 
-  if (!acnPass && tirePass) {
-    return "ACN exceeds PCN. Normal operations are not suitable on this pavement.";
-  }
-
-  if (acnPass && !tirePass) {
-    return "Tire pressure category is not compatible with the aircraft tire pressure.";
-  }
-
-  return "ACN exceeds PCN and tire pressure category is not compatible.";
+  return "ACN exceeds PCN. Normal operations are not suitable on this pavement.";
 }
 
 function getAcnOverloadNote(roundedAcn, pcnNumber) {
@@ -810,12 +776,52 @@ function formatMaxAllowableWeight(maxAllowableWeight, unit) {
   return formatWholeKg(maxAllowableWeight.weightKg);
 }
 
-function formatAcnWeight(value, unit, actualWeightKg) {
+function formatAcnWeight(value, unit) {
   if (unit === "T") {
     return formatTonnes(value);
   }
 
-  return formatWholeKg(actualWeightKg);
+  return formatWholeKg(value);
+}
+
+function parseAcnWeightInput(rawValue, weightUnit) {
+  if (typeof rawValue !== "string") {
+    return null;
+  }
+
+  const trimmedValue = rawValue.trim();
+
+  if (trimmedValue === "") {
+    return null;
+  }
+
+  if (/^\d{3}$/.test(trimmedValue)) {
+    const shortcutValue = Number(trimmedValue);
+
+    if (!Number.isFinite(shortcutValue) || shortcutValue <= 0) {
+      return null;
+    }
+
+    return {
+      enteredWeight: shortcutValue,
+      actualWeightKg: shortcutValue * 1000,
+      displayWeightUnit: "T",
+      displayWeightValue: shortcutValue,
+    };
+  }
+
+  const enteredWeight = parsePositiveNumber(trimmedValue);
+
+  if (enteredWeight === null) {
+    return null;
+  }
+
+  return {
+    enteredWeight,
+    actualWeightKg: weightUnit === "T" ? enteredWeight * 1000 : enteredWeight,
+    displayWeightUnit: weightUnit,
+    displayWeightValue: enteredWeight,
+  };
 }
 
 function formatSignedKg(value) {
