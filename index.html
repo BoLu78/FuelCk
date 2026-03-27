@@ -449,11 +449,12 @@
       }
 
       #acnView {
-        gap: 18px;
+        gap: 16px;
       }
 
       #acnView .card {
         width: 100%;
+        padding: 20px;
       }
 
       #acnView .field,
@@ -471,22 +472,24 @@
 
       #acnView .input,
       #acnView .select {
-        min-height: 52px;
+        min-height: 54px;
       }
 
       .acn-form {
         display: grid;
-        gap: 16px;
+        gap: 18px;
+        grid-template-columns: minmax(0, 1fr);
       }
 
       .acn-section-card {
-        height: 100%;
         align-content: start;
+        gap: 16px;
       }
 
       .acn-card-grid {
         display: grid;
-        gap: 14px;
+        gap: 16px;
+        grid-template-columns: minmax(0, 1fr);
       }
 
       .acn-span-2 {
@@ -498,15 +501,24 @@
       }
 
       .acn-result-panel {
-        gap: 16px;
+        gap: 18px;
       }
 
       .acn-result-summary {
-        margin-top: 4px;
+        margin-top: 6px;
       }
 
       .acn-comparison-detail {
         margin: 0;
+      }
+
+      #acnView .actions {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      #acnView .actions .button {
+        width: 100%;
       }
 
       #acn-report-section .kv-row {
@@ -515,26 +527,6 @@
 
       #acn-report-section .kv-value {
         max-width: 58%;
-      }
-
-      @media (min-width: 440px) {
-        .acn-form {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          align-items: stretch;
-        }
-
-        .acn-card-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          column-gap: 14px;
-        }
-
-        .acn-span-2 {
-          grid-column: 1 / -1;
-        }
-
-        .acn-full-row {
-          grid-column: 1 / -1;
-        }
       }
     </style>
   </head>
