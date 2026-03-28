@@ -356,6 +356,10 @@
         background: linear-gradient(135deg, rgba(223, 63, 78, 0.92), rgba(151, 33, 55, 0.94));
       }
 
+      .results-banner.warn {
+        background: linear-gradient(135deg, rgba(224, 161, 53, 0.9), rgba(158, 105, 21, 0.94));
+      }
+
       .banner-label {
         margin: 0;
         font-size: 0.82rem;
@@ -420,6 +424,11 @@
         color: #ffb4bc;
       }
 
+      .section-chip.warn {
+        background: rgba(224, 161, 53, 0.18);
+        color: #ffe2aa;
+      }
+
       .kv-list {
         display: grid;
         gap: 10px;
@@ -460,6 +469,10 @@
 
       .result-note.fail {
         color: #ffb4bc;
+      }
+
+      .result-note.warn {
+        color: #ffe2aa;
       }
 
       #acnView {
@@ -774,6 +787,16 @@
                 <option value="B" selected>B = Medium</option>
                 <option value="C">C = Low</option>
                 <option value="D">D = Ultra Low</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="acn-tire-code">Tire pressure category</label>
+              <select id="acn-tire-code" name="tireCode" class="select" required>
+                <option value="W">W = Unlimited</option>
+                <option value="X" selected>X = High (max 254 psi)</option>
+                <option value="Y">Y = Medium (max 181 psi)</option>
+                <option value="Z">Z = Low (max 73 psi)</option>
               </select>
             </div>
 

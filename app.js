@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.12";
+const APP_VERSION = "v1.13";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -71,6 +71,24 @@ const SUBGRADE_LABELS = {
   C: "Low",
   D: "Ultra Low",
 };
+const TIRE_CODE_DETAILS = {
+  W: {
+    label: "Unlimited",
+    limitPsi: Number.POSITIVE_INFINITY,
+  },
+  X: {
+    label: "High (max 254 psi)",
+    limitPsi: 254,
+  },
+  Y: {
+    label: "Medium (max 181 psi)",
+    limitPsi: 181,
+  },
+  Z: {
+    label: "Low (max 73 psi)",
+    limitPsi: 73,
+  },
+};
 const EVALUATION_LABELS = {
   T: "Technical",
   U: "Using aircraft experience",
@@ -83,6 +101,7 @@ const ACN_DEFAULTS = {
   pcnNumber: "",
   pavementType: "R",
   subgrade: "B",
+  tireCode: "X",
   evaluationMethod: "T",
   aircraftType: "B787-9",
   weightUnit: "KGS",
@@ -475,6 +494,7 @@ function readAcnInputValues() {
   const pcnInput = acnForm.elements.pcnNumber.value;
   const pavementType = acnForm.elements.pavementType.value;
   const subgrade = acnForm.elements.subgrade.value;
+  const tireCode = acnForm.elements.tireCode.value;
   const evaluationMethod = acnForm.elements.evaluationMethod.value;
   const aircraftType = acnForm.elements.aircraftType.value;
   const weightUnit = acnForm.elements.weightUnit.value;
@@ -507,6 +527,11 @@ function readAcnInputValues() {
 
   if (!SUBGRADE_LABELS[subgrade]) {
     showAcnValidation("Select a valid subgrade category.");
+    return null;
+  }
+
+  if (!TIRE_CODE_DETAILS[tireCode]) {
+    showAcnValidation("Select a valid tire pressure category.");
     return null;
   }
 
@@ -552,6 +577,7 @@ function readAcnInputValues() {
     pcnNumber,
     pavementType,
     subgrade,
+    tireCode,
     evaluationMethod,
     aircraftType,
     weightUnit,
@@ -566,6 +592,7 @@ function readAcnInputValues() {
 function calculateAcnResult(values) {
   const pavementTableKey = PAVEMENT_TABLE_KEYS[values.pavementType];
   const acnRange = values.aircraftData[pavementTableKey][values.subgrade];
+  const tireDetails = TIRE_CODE_DETAILS[values.tireCode];
   const rawAcn =
     acnRange.max
     - ((values.aircraftData.maxWeightKg - values.actualWeightKg)
@@ -573,22 +600,40 @@ function calculateAcnResult(values) {
       * (acnRange.max - acnRange.empty);
   const roundedAcn = Math.round(rawAcn);
   const acnPass = roundedAcn <= values.pcnNumber;
-  const overallPass = acnPass;
+  const aircraftTirePsi = values.aircraftData.tirePsi;
+  const tirePass =
+    values.tireCode === "W" ? true : aircraftTirePsi <= tireDetails.limitPsi;
+  const occasionalLimit =
+    values.pavementType === "F" ? values.pcnNumber * 1.1 : values.pcnNumber * 1.05;
+  const status = getAcnOperationalStatus({
+    pavementType: values.pavementType,
+    pcnNumber: values.pcnNumber,
+    roundedAcn,
+    tirePass,
+  });
 
   return {
     ...values,
     rawAcn,
     roundedAcn,
     acnPass,
-    overallPass,
-    coding: `${values.pcnNumber}/${values.pavementType}/${values.subgrade}/${values.evaluationMethod}`,
+    tirePass,
+    aircraftTirePsi,
+    occasionalLimit,
+    statusTone: status.tone,
+    statusHeadline: status.headline,
+    statusChipLabel: status.chipLabel,
+    coding: `${values.pcnNumber}/${values.pavementType}/${values.subgrade}/${values.tireCode}/${values.evaluationMethod}`,
     maxAllowableWeight: calculateMaxAllowableWeight(
       values.pcnNumber,
       values.aircraftData,
       acnRange
     ),
-    resultMessage: getAcnResultMessage(acnPass),
-    overloadNote: getAcnOverloadNote(roundedAcn, values.pcnNumber),
+    tirePressureLimitLabel: `${values.tireCode} - ${tireDetails.label}`,
+    tireCompatibilityLabel: tirePass ? "Compatible" : "Not compatible",
+    tireComparison: `Tire ${formatPsi(aircraftTirePsi)} vs code ${values.tireCode}`,
+    resultMessage: status.message,
+    resultNote: status.note,
   };
 }
 
@@ -622,20 +667,24 @@ function calculateMaxAllowableWeight(pcnNumber, aircraftData, acnRange) {
 }
 
 function renderAcnResult(result) {
-  const stateLabel = result.overallPass ? "PASS" : "FAIL";
+  const isFail = result.statusTone === "fail";
 
   acnResultPanel.hidden = false;
-  acnReportSection.classList.toggle("fail", !result.overallPass);
-  acnResultsBanner.classList.toggle("pass", result.overallPass);
-  acnResultsBanner.classList.toggle("fail", !result.overallPass);
+  acnReportSection.classList.toggle("fail", isFail);
+  acnResultsBanner.classList.toggle("pass", result.statusTone === "pass");
+  acnResultsBanner.classList.toggle("warn", result.statusTone === "warn");
+  acnResultsBanner.classList.toggle("fail", isFail);
   acnBannerLabel.textContent = "RESULT";
-  acnBannerTitle.textContent = stateLabel;
+  acnBannerTitle.textContent = result.statusHeadline;
   acnBannerSubtitle.textContent = result.resultMessage;
-  acnResultChip.classList.toggle("pass", result.overallPass);
-  acnResultChip.classList.toggle("fail", !result.overallPass);
-  acnResultChip.textContent = stateLabel;
-  acnOverloadNote.hidden = !result.overloadNote;
-  acnOverloadNote.textContent = result.overloadNote;
+  acnResultChip.classList.toggle("pass", result.statusTone === "pass");
+  acnResultChip.classList.toggle("warn", result.statusTone === "warn");
+  acnResultChip.classList.toggle("fail", isFail);
+  acnResultChip.textContent = result.statusChipLabel;
+  acnOverloadNote.hidden = !result.resultNote;
+  acnOverloadNote.textContent = result.resultNote;
+  acnOverloadNote.classList.toggle("warn", result.statusTone === "warn");
+  acnOverloadNote.classList.toggle("fail", isFail);
   acnComparisonDetail.textContent = `ACN ${result.roundedAcn} vs PCN ${result.pcnNumber}`;
 
   renderKeyValueList(acnDetailsList, [
@@ -643,6 +692,7 @@ function renderAcnResult(result) {
     ["PCN", formatNumber(result.pcnNumber, 0)],
     ["Pavement Type", `${result.pavementType} - ${PAVEMENT_LABELS[result.pavementType]}`],
     ["Subgrade Strength", `${result.subgrade} - ${SUBGRADE_LABELS[result.subgrade]}`],
+    ["Tire Pressure Limit", result.tirePressureLimitLabel],
     [
       "Evaluation Method",
       `${result.evaluationMethod} - ${EVALUATION_LABELS[result.evaluationMethod]}`,
@@ -651,12 +701,18 @@ function renderAcnResult(result) {
       "Aircraft Weight",
       formatAcnWeight(result.displayWeightValue, result.displayWeightUnit),
     ],
-    ["ACN", `${formatNumber(result.roundedAcn, 0)} (raw ${formatNumber(result.rawAcn, 2)})`, !result.acnPass],
+    [
+      "ACN",
+      `${formatNumber(result.roundedAcn, 0)} (raw ${formatNumber(result.rawAcn, 2)})`,
+      result.tirePass && result.roundedAcn > result.occasionalLimit,
+    ],
     [
       "Max Allowable Weight",
       formatMaxAllowableWeight(result.maxAllowableWeight, result.weightUnit),
       result.maxAllowableWeight.kind === "belowRange",
     ],
+    ["Tire Compatibility", result.tireCompatibilityLabel, !result.tirePass],
+    ["Tire Comparison", result.tireComparison, !result.tirePass],
   ]);
 }
 
@@ -664,6 +720,7 @@ function resetAcnForm(shouldFocus) {
   acnForm.elements.pcnNumber.value = ACN_DEFAULTS.pcnNumber;
   acnForm.elements.pavementType.value = ACN_DEFAULTS.pavementType;
   acnForm.elements.subgrade.value = ACN_DEFAULTS.subgrade;
+  acnForm.elements.tireCode.value = ACN_DEFAULTS.tireCode;
   acnForm.elements.evaluationMethod.value = ACN_DEFAULTS.evaluationMethod;
   acnForm.elements.aircraftType.value = ACN_DEFAULTS.aircraftType;
   acnForm.elements.weightUnit.value = ACN_DEFAULTS.weightUnit;
@@ -689,30 +746,61 @@ function clearAcnValidation() {
 function hideAcnResult() {
   acnResultPanel.hidden = true;
   acnReportSection.classList.remove("fail");
+  acnResultsBanner.classList.remove("pass", "warn", "fail");
+  acnResultChip.classList.remove("pass", "warn", "fail");
   acnOverloadNote.textContent = "";
   acnOverloadNote.hidden = true;
+  acnOverloadNote.classList.remove("warn", "fail");
   acnComparisonDetail.textContent = "";
   acnDetailsList.textContent = "";
 }
 
-function getAcnResultMessage(acnPass) {
-  if (acnPass) {
-    return "ACN vs PCN check OK. Aircraft is within the selected pavement limitation.";
+function getAcnOperationalStatus({ pavementType, pcnNumber, roundedAcn, tirePass }) {
+  if (!tirePass) {
+    return {
+      tone: "fail",
+      headline: "FAIL",
+      chipLabel: "FAIL",
+      message:
+        "Selected tire pressure category is not compatible with the aircraft tire pressure.",
+      note:
+        "Choose a compatible tire pressure category before evaluating pavement suitability.",
+    };
   }
 
-  return "ACN exceeds PCN. Normal operations are not suitable on this pavement.";
-}
-
-function getAcnOverloadNote(roundedAcn, pcnNumber) {
   if (roundedAcn <= pcnNumber) {
-    return "";
+    return {
+      tone: "pass",
+      headline: "PASS",
+      chipLabel: "PASS",
+      message: "Normal operations suitable on this pavement.",
+      note: "",
+    };
   }
 
-  if (roundedAcn <= pcnNumber * 1.1) {
-    return "Overload note: normal operations are not suitable. Any overload operation requires airport approval. Keep overload within 10% above reported PCN and within about 5% of annual movements.";
+  const occasionalLimit = pavementType === "F" ? pcnNumber * 1.1 : pcnNumber * 1.05;
+
+  if (roundedAcn <= occasionalLimit) {
+    return {
+      tone: "warn",
+      headline: "OCCASIONAL OVERLOAD",
+      chipLabel: "OVERLOAD",
+      message:
+        pavementType === "F"
+          ? "ACN is within 10% above the PCN on a flexible pavement. Occasional minor overloading operations may be acceptable."
+          : "ACN is within 5% above the PCN on a rigid pavement. Occasional minor overloading operations may be acceptable.",
+      note: "Authority permission may be required.",
+    };
   }
 
-  return "Overload note: exceeds the 10% overload guidance. Airport approval would still be required, but this case is outside the normal occasional overload guidance.";
+  return {
+    tone: "fail",
+    headline: "FAIL",
+    chipLabel: "FAIL",
+    message: "ACN exceeds the occasional overload guidance for this pavement.",
+    note:
+      "For emergency use, further overloading is usually acceptable. Different restrictions may apply.",
+  };
 }
 
 function showResultsScreen() {
