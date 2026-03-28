@@ -84,6 +84,10 @@
         align-content: start;
       }
 
+      #homeView {
+        position: relative;
+      }
+
       .hero {
         padding: 6px 2px 4px;
       }
@@ -279,15 +283,19 @@
       }
 
       .home-logo-wrap {
+        position: absolute;
+        top: 4px;
+        right: 0;
         display: flex;
-        justify-content: center;
-        padding-top: 18px;
+        justify-content: flex-end;
+        padding-top: 0;
+        pointer-events: none;
       }
 
       .home-logo {
-        width: min(22%, 72px);
+        width: min(11%, 36px);
         height: auto;
-        opacity: 0.16;
+        opacity: 0.12;
         pointer-events: none;
         user-select: none;
       }
@@ -554,12 +562,10 @@
       <section class="screen app-view" id="fuelView" hidden aria-hidden="true">
         <div class="module-nav">
           <button class="button module-back" type="button" id="backFromFuelBtn">Back</button>
-          <span class="module-title">Fuel Check</span>
         </div>
 
         <section class="screen" id="input-screen">
           <header class="hero fuel-header">
-            <span class="eyebrow">Offline Ramp Calculator</span>
             <h1>FuelCk</h1>
             <div class="card" id="toleranceCard">
               <h2>Tolerance Rule</h2>
