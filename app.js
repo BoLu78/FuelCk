@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.13";
+const APP_VERSION = "v1.14";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -141,6 +141,7 @@ const acnResultsBanner = document.getElementById("acn-results-banner");
 const acnBannerLabel = document.getElementById("acn-banner-label");
 const acnBannerTitle = document.getElementById("acn-banner-title");
 const acnBannerSubtitle = document.getElementById("acn-banner-subtitle");
+const acnBannerGuidance = document.getElementById("acn-banner-guidance");
 const acnResultChip = document.getElementById("acn-result-chip");
 const acnReportSection = document.getElementById("acn-report-section");
 const acnDetailsList = document.getElementById("acn-details-list");
@@ -629,6 +630,11 @@ function calculateAcnResult(values) {
       values.aircraftData,
       acnRange
     ),
+    guidanceMaxWeightKg: calculateGuidanceMaxWeight(
+      occasionalLimit,
+      values.aircraftData,
+      acnRange
+    ),
     tirePressureLimitLabel: `${values.tireCode} - ${tireDetails.label}`,
     tireCompatibilityLabel: tirePass ? "Compatible" : "Not compatible",
     tireComparison: `Tire ${formatPsi(aircraftTirePsi)} vs code ${values.tireCode}`,
@@ -666,8 +672,35 @@ function calculateMaxAllowableWeight(pcnNumber, aircraftData, acnRange) {
   };
 }
 
+function calculateGuidanceMaxWeight(targetAcn, aircraftData, acnRange) {
+  if (targetAcn >= acnRange.max) {
+    return aircraftData.maxWeightKg;
+  }
+
+  if (targetAcn < acnRange.empty) {
+    return aircraftData.emptyWeightKg;
+  }
+
+  const interpolatedWeightKg =
+    aircraftData.maxWeightKg
+    - ((acnRange.max - targetAcn) / (acnRange.max - acnRange.empty))
+      * (aircraftData.maxWeightKg - aircraftData.emptyWeightKg);
+
+  return Math.round(
+    Math.max(
+      aircraftData.emptyWeightKg,
+      Math.min(aircraftData.maxWeightKg, interpolatedWeightKg)
+    )
+  );
+}
+
 function renderAcnResult(result) {
   const isFail = result.statusTone === "fail";
+  const remainingOverloadMarginKg = Math.max(
+    0,
+    result.guidanceMaxWeightKg - result.actualWeightKg
+  );
+  const showOverloadMargin = result.statusHeadline === "OCCASIONAL OVERLOAD";
 
   acnResultPanel.hidden = false;
   acnReportSection.classList.toggle("fail", isFail);
@@ -677,6 +710,10 @@ function renderAcnResult(result) {
   acnBannerLabel.textContent = "RESULT";
   acnBannerTitle.textContent = result.statusHeadline;
   acnBannerSubtitle.textContent = result.resultMessage;
+  acnBannerGuidance.hidden = !showOverloadMargin;
+  acnBannerGuidance.textContent = showOverloadMargin
+    ? `Remaining overload margin: ${formatWeightByUnit(remainingOverloadMarginKg, result.weightUnit)}`
+    : "";
   acnResultChip.classList.toggle("pass", result.statusTone === "pass");
   acnResultChip.classList.toggle("warn", result.statusTone === "warn");
   acnResultChip.classList.toggle("fail", isFail);
@@ -751,6 +788,8 @@ function hideAcnResult() {
   acnOverloadNote.textContent = "";
   acnOverloadNote.hidden = true;
   acnOverloadNote.classList.remove("warn", "fail");
+  acnBannerGuidance.textContent = "";
+  acnBannerGuidance.hidden = true;
   acnComparisonDetail.textContent = "";
   acnDetailsList.textContent = "";
 }
@@ -870,6 +909,14 @@ function formatAcnWeight(value, unit) {
   }
 
   return formatWholeKg(value);
+}
+
+function formatWeightByUnit(weightKg, unit) {
+  if (unit === "T") {
+    return formatTonnes(weightKg / 1000);
+  }
+
+  return formatWholeKg(weightKg);
 }
 
 function parseAcnWeightInput(rawValue, weightUnit) {
