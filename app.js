@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.15";
+const APP_VERSION = "v1.16";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -176,7 +176,7 @@ acnForm.addEventListener("submit", (event) => {
 });
 
 acnClearButton.addEventListener("click", () => {
-  resetAcnForm(true);
+  resetAcnForm(true, true);
 });
 
 form.addEventListener("submit", (event) => {
@@ -475,7 +475,7 @@ function showAcnView() {
 }
 
 function initializeAcnModule() {
-  resetAcnForm(false);
+  resetAcnForm(false, false);
 }
 
 function evaluateAcnModule() {
@@ -757,12 +757,12 @@ function renderAcnResult(result) {
   ]);
 }
 
-function resetAcnForm(shouldFocus) {
+function resetAcnForm(shouldFocus, clearSelects) {
   acnForm.elements.pcnNumber.value = ACN_DEFAULTS.pcnNumber;
-  acnForm.elements.pavementType.value = ACN_DEFAULTS.pavementType;
-  acnForm.elements.subgrade.value = ACN_DEFAULTS.subgrade;
-  acnForm.elements.tireCode.value = ACN_DEFAULTS.tireCode;
-  acnForm.elements.evaluationMethod.value = ACN_DEFAULTS.evaluationMethod;
+  acnForm.elements.pavementType.value = clearSelects ? "" : ACN_DEFAULTS.pavementType;
+  acnForm.elements.subgrade.value = clearSelects ? "" : ACN_DEFAULTS.subgrade;
+  acnForm.elements.tireCode.value = clearSelects ? "" : ACN_DEFAULTS.tireCode;
+  acnForm.elements.evaluationMethod.value = clearSelects ? "" : ACN_DEFAULTS.evaluationMethod;
   acnForm.elements.aircraftType.value = ACN_DEFAULTS.aircraftType;
   acnForm.elements.weightUnit.value = ACN_DEFAULTS.weightUnit;
   acnForm.elements.actualWeight.value = ACN_DEFAULTS.actualWeight;
