@@ -287,6 +287,9 @@
         top: 4px;
         right: 0;
         display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
         justify-content: flex-end;
         padding-top: 0;
         pointer-events: none;
@@ -298,6 +301,14 @@
         opacity: 0.12;
         pointer-events: none;
         user-select: none;
+      }
+
+      .home-version {
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+        opacity: 0.42;
       }
 
       .menu-button {
@@ -567,8 +578,9 @@
           </button>
         </section>
 
-        <div class="home-logo-wrap" aria-hidden="true">
+        <div class="home-logo-wrap">
           <img class="home-logo" src="assets/logo-lb.png" alt="">
+          <span class="home-version">v1.15</span>
         </div>
       </section>
 

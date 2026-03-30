@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.14";
+const APP_VERSION = "v1.15";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -599,7 +599,7 @@ function calculateAcnResult(values) {
     - ((values.aircraftData.maxWeightKg - values.actualWeightKg)
       / (values.aircraftData.maxWeightKg - values.aircraftData.emptyWeightKg))
       * (acnRange.max - acnRange.empty);
-  const roundedAcn = Math.round(rawAcn);
+  const roundedAcn = Math.floor(rawAcn);
   const acnPass = roundedAcn <= values.pcnNumber;
   const aircraftTirePsi = values.aircraftData.tirePsi;
   const tirePass =
@@ -696,10 +696,12 @@ function calculateGuidanceMaxWeight(targetAcn, aircraftData, acnRange) {
 
 function renderAcnResult(result) {
   const isFail = result.statusTone === "fail";
+  const guidanceMaxWeightDisplayKg = Math.round(result.guidanceMaxWeightKg);
   const remainingOverloadMarginKg = Math.max(
     0,
     result.guidanceMaxWeightKg - result.actualWeightKg
   );
+  const remainingOverloadMarginDisplayKg = Math.round(remainingOverloadMarginKg);
   const showOverloadMargin = result.statusHeadline === "OCCASIONAL OVERLOAD";
 
   acnResultPanel.hidden = false;
@@ -712,7 +714,9 @@ function renderAcnResult(result) {
   acnBannerSubtitle.textContent = result.resultMessage;
   acnBannerGuidance.hidden = !showOverloadMargin;
   acnBannerGuidance.textContent = showOverloadMargin
-    ? `Remaining overload margin: ${formatWeightByUnit(remainingOverloadMarginKg, result.weightUnit)}`
+    ? `Maximum operating weight within guidance: ${formatItalianKgInteger(
+        guidanceMaxWeightDisplayKg
+      )} kg (+${formatItalianKgInteger(remainingOverloadMarginDisplayKg)})`
     : "";
   acnResultChip.classList.toggle("pass", result.statusTone === "pass");
   acnResultChip.classList.toggle("warn", result.statusTone === "warn");
@@ -911,12 +915,11 @@ function formatAcnWeight(value, unit) {
   return formatWholeKg(value);
 }
 
-function formatWeightByUnit(weightKg, unit) {
-  if (unit === "T") {
-    return formatTonnes(weightKg / 1000);
-  }
-
-  return formatWholeKg(weightKg);
+function formatItalianKgInteger(value) {
+  return Math.round(value).toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).replace(/,/g, ".");
 }
 
 function parseAcnWeightInput(rawValue, weightUnit) {
