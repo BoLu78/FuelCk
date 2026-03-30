@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.16";
+const APP_VERSION = "v1.17";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -427,11 +427,14 @@ function renderResults(result) {
 function renderKeyValueList(container, rows) {
   container.textContent = "";
 
-  rows.forEach(([key, value, isFail]) => {
+  rows.forEach(([key, value, isFail, rowClassName]) => {
     const row = document.createElement("div");
     row.className = "kv-row";
     if (isFail) {
       row.classList.add("fail");
+    }
+    if (rowClassName) {
+      row.classList.add(rowClassName);
     }
 
     const keyNode = document.createElement("span");
@@ -606,6 +609,7 @@ function calculateAcnResult(values) {
     values.tireCode === "W" ? true : aircraftTirePsi <= tireDetails.limitPsi;
   const occasionalLimit =
     values.pavementType === "F" ? values.pcnNumber * 1.1 : values.pcnNumber * 1.05;
+  const acnBand = getAcnBand(values.pavementType, values.pcnNumber, roundedAcn);
   const status = getAcnOperationalStatus({
     pavementType: values.pavementType,
     pcnNumber: values.pcnNumber,
@@ -621,6 +625,7 @@ function calculateAcnResult(values) {
     tirePass,
     aircraftTirePsi,
     occasionalLimit,
+    acnBand,
     statusTone: status.tone,
     statusHeadline: status.headline,
     statusChipLabel: status.chipLabel,
@@ -750,7 +755,8 @@ function renderAcnResult(result) {
     [
       "Max Allowable Weight",
       formatMaxAllowableWeight(result.maxAllowableWeight, result.weightUnit),
-      result.maxAllowableWeight.kind === "belowRange",
+      false,
+      `max-allowable-row max-allowable-${result.acnBand}`,
     ],
     ["Tire Compatibility", result.tireCompatibilityLabel, !result.tirePass],
     ["Tire Comparison", result.tireComparison, !result.tirePass],
@@ -844,6 +850,15 @@ function getAcnOperationalStatus({ pavementType, pcnNumber, roundedAcn, tirePass
     note:
       "For emergency use, further overloading is usually acceptable. Different restrictions may apply.",
   };
+}
+
+function getAcnBand(pavementType, pcnNumber, roundedAcn) {
+  if (roundedAcn <= pcnNumber) {
+    return "pass";
+  }
+
+  const occasionalLimit = pavementType === "F" ? pcnNumber * 1.1 : pcnNumber * 1.05;
+  return roundedAcn <= occasionalLimit ? "warn" : "fail";
 }
 
 function showResultsScreen() {
