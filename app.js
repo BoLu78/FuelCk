@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.16";
+const APP_VERSION = "v1.20";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -160,6 +160,7 @@ openFuelBtn.addEventListener("click", () => {
 
 openAcnBtn.addEventListener("click", () => {
   showAcnView();
+  clearAcnModule();
 });
 
 backFromFuelBtn.addEventListener("click", () => {
@@ -176,7 +177,7 @@ acnForm.addEventListener("submit", (event) => {
 });
 
 acnClearButton.addEventListener("click", () => {
-  resetAcnForm(true, true);
+  clearAcnModule();
 });
 
 form.addEventListener("submit", (event) => {
@@ -476,6 +477,10 @@ function showAcnView() {
 
 function initializeAcnModule() {
   resetAcnForm(false, false);
+}
+
+function clearAcnModule() {
+  resetAcnForm(true, true);
 }
 
 function evaluateAcnModule() {
