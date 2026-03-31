@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.24";
+const APP_VERSION = "v1.25";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -363,6 +363,7 @@ function renderResults(result) {
       "Density Converted",
       formatFuelDensityConverted(result.densityKgPerL),
       false,
+      "fuel-converted-row",
       "fuel-converted-value",
     ]);
   }
@@ -377,6 +378,7 @@ function renderResults(result) {
       "Volume Converted",
       formatFuelLiters(result.actualVolumeLiters),
       false,
+      "fuel-converted-row",
       "fuel-converted-value",
     ]);
   }
@@ -437,11 +439,14 @@ function renderResults(result) {
 function renderKeyValueList(container, rows) {
   container.textContent = "";
 
-  rows.forEach(([key, value, isFail, valueClass]) => {
+  rows.forEach(([key, value, isFail, rowClass, valueClass]) => {
     const row = document.createElement("div");
     row.className = "kv-row";
     if (isFail) {
       row.classList.add("fail");
+    }
+    if (rowClass) {
+      row.classList.add(rowClass);
     }
 
     const keyNode = document.createElement("span");
