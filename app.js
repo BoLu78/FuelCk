@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.20";
+const APP_VERSION = "v1.21";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -120,8 +120,6 @@ const inputScreen = document.getElementById("input-screen");
 const resultsScreen = document.getElementById("results-screen");
 const aircraftInputs = document.querySelectorAll('input[name="aircraft"]');
 const clearButton = document.getElementById("clear-button");
-const backButton = document.getElementById("back-button");
-const recheckButton = document.getElementById("recheck-button");
 const banner = document.getElementById("results-banner");
 const bannerLabel = document.getElementById("banner-label");
 const bannerTitle = document.getElementById("banner-title");
@@ -197,14 +195,6 @@ clearButton.addEventListener("click", () => {
   form.elements.densityValue.value = "0.796";
   updateToleranceText();
   form.elements.rampFuel.focus();
-});
-
-backButton.addEventListener("click", () => {
-  showInputScreen();
-});
-
-recheckButton.addEventListener("click", () => {
-  calculateAndRender();
 });
 
 function registerServiceWorker() {
@@ -359,19 +349,19 @@ function renderResults(result) {
 
   renderKeyValueList(conversionsList, [
     ["Aircraft", result.aircraft],
-    ["Ramp Fuel", formatKg(result.rampFuel)],
-    ["Remaining Fuel", formatKg(result.remainingFuel)],
-    ["Required Uplift", formatKg(result.requiredUpliftKg)],
+    ["Ramp Fuel", formatFuelKg(result.rampFuel)],
+    ["Remaining Fuel", formatFuelKg(result.remainingFuel)],
+    ["Required Uplift", formatFuelKg(result.requiredUpliftKg)],
     [
       "Density Input",
-      `${formatNumber(result.densityValue, 3)} ${result.densityUnit}`,
+      `${formatFuelInteger(result.densityValue)} ${result.densityUnit}`,
     ],
-    ["Density Converted", `${formatNumber(result.densityKgPerL, 4)} kg/L`],
+    ["Density Converted", `${formatFuelInteger(result.densityKgPerL)} kg/L`],
     [
       "Volume Input",
-      `${formatNumber(result.actualVolume, 2)} ${result.volumeUnit}`,
+      `${formatFuelInteger(result.actualVolume)} ${result.volumeUnit}`,
     ],
-    ["Volume Converted", formatLiters(result.actualVolumeLiters)],
+    ["Volume Converted", formatFuelLiters(result.actualVolumeLiters)],
   ]);
 
   const actualWeightDifference = result.actualUpliftKg - result.requiredUpliftKg;
@@ -381,24 +371,24 @@ function renderResults(result) {
     result.actualVolumeLiters > result.volumeMaxLiters;
 
   renderKeyValueList(weightList, [
-    ["Required Uplift", formatKg(result.requiredUpliftKg)],
-    ["Actual Uplift", formatKg(result.actualUpliftKg)],
+    ["Required Uplift", formatFuelKg(result.requiredUpliftKg)],
+    ["Actual Uplift", formatFuelKg(result.actualUpliftKg)],
     [
       "Difference",
-      `${formatSignedKg(actualWeightDifference)} (${formatSignedPercent(
+      `${formatFuelSignedKg(actualWeightDifference)} (${formatFuelSignedPercent(
         percentage(actualWeightDifference, result.requiredUpliftKg)
       )})`,
       weightDifferenceFail,
     ],
     [
       "Allowed Min / Max",
-      `${formatKg(result.weightRangeMinKg)} / ${formatKg(result.weightRangeMaxKg)}`,
+      `${formatFuelKg(result.weightRangeMinKg)} / ${formatFuelKg(result.weightRangeMaxKg)}`,
     ],
-    ["Tolerance", formatKg(result.tolerance)],
-    ["Total Fuel Loaded", formatKg(result.totalFuelLoaded)],
+    ["Tolerance", formatFuelKg(result.tolerance)],
+    ["Total Fuel Loaded", formatFuelKg(result.totalFuelLoaded)],
     [
       "Loaded vs Ramp",
-      `${formatSignedKg(result.weightDifference)} (${formatSignedPercent(
+      `${formatFuelSignedKg(result.weightDifference)} (${formatFuelSignedPercent(
         percentage(result.weightDifference, result.rampFuel)
       )})`,
       weightDifferenceFail,
@@ -406,18 +396,18 @@ function renderResults(result) {
   ]);
 
   renderKeyValueList(volumeList, [
-    ["Required Volume", formatLiters(result.requiredVolumeLiters)],
-    ["Actual Volume", formatLiters(result.actualVolumeLiters)],
+    ["Required Volume", formatFuelLiters(result.requiredVolumeLiters)],
+    ["Actual Volume", formatFuelLiters(result.actualVolumeLiters)],
     [
       "Difference",
-      `${formatSignedLiters(result.volumeDifferenceLiters)} (${formatSignedPercent(
+      `${formatFuelSignedLiters(result.volumeDifferenceLiters)} (${formatFuelSignedPercent(
         percentage(result.volumeDifferenceLiters, result.requiredVolumeLiters)
       )})`,
       volumeDifferenceFail,
     ],
     [
       "Allowed Min / Max",
-      `${formatLiters(result.volumeMinLiters)} / ${formatLiters(result.volumeMaxLiters)}`,
+      `${formatFuelLiters(result.volumeMinLiters)} / ${formatFuelLiters(result.volumeMaxLiters)}`,
     ],
   ]);
 
@@ -902,6 +892,30 @@ function formatNumber(value, decimals) {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
+}
+
+function formatFuelInteger(value) {
+  return formatNumber(Math.round(value), 0);
+}
+
+function formatFuelKg(value) {
+  return `${formatFuelInteger(value)} kg`;
+}
+
+function formatFuelLiters(value) {
+  return `${formatFuelInteger(value)} L`;
+}
+
+function formatFuelSignedKg(value) {
+  return `${value >= 0 ? "+" : "-"}${formatFuelInteger(Math.abs(value))} kg`;
+}
+
+function formatFuelSignedLiters(value) {
+  return `${value >= 0 ? "+" : "-"}${formatFuelInteger(Math.abs(value))} L`;
+}
+
+function formatFuelSignedPercent(value) {
+  return `${value >= 0 ? "+" : "-"}${formatFuelInteger(Math.abs(value))}%`;
 }
 
 function formatKg(value) {
