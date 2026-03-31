@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.23";
+const APP_VERSION = "v1.24";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -363,7 +363,7 @@ function renderResults(result) {
       "Density Converted",
       formatFuelDensityConverted(result.densityKgPerL),
       false,
-      true,
+      "fuel-converted-value",
     ]);
   }
 
@@ -377,7 +377,7 @@ function renderResults(result) {
       "Volume Converted",
       formatFuelLiters(result.actualVolumeLiters),
       false,
-      true,
+      "fuel-converted-value",
     ]);
   }
 
@@ -437,7 +437,7 @@ function renderResults(result) {
 function renderKeyValueList(container, rows) {
   container.textContent = "";
 
-  rows.forEach(([key, value, isFail, emphasizeValue]) => {
+  rows.forEach(([key, value, isFail, valueClass]) => {
     const row = document.createElement("div");
     row.className = "kv-row";
     if (isFail) {
@@ -450,8 +450,8 @@ function renderKeyValueList(container, rows) {
 
     const valueNode = document.createElement("span");
     valueNode.className = "kv-value";
-    if (emphasizeValue) {
-      valueNode.classList.add("emphasis");
+    if (valueClass) {
+      valueNode.classList.add(valueClass);
     }
     valueNode.textContent = value;
 
@@ -945,7 +945,7 @@ function formatFuelDensityInput(value, unit) {
 }
 
 function formatFuelDensityConverted(value) {
-  return `${formatNumber(value, 4)} kg/L`;
+  return `${formatNumber(value, 3)} kg/L`;
 }
 
 function formatKg(value) {
