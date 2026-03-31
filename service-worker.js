@@ -1,4 +1,4 @@
-const CACHE_NAME = "rampcheck-v1.21";
+const CACHE_NAME = "rampcheck-v1.22";
 const APP_FILES = [
   "./",
   "./index.html",

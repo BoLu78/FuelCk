@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.21";
+const APP_VERSION = "v1.22";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -347,22 +347,34 @@ function renderResults(result) {
     ? "Actual uplift is within allowed tolerance"
     : "Actual uplift is outside allowed tolerance";
 
-  renderKeyValueList(conversionsList, [
+  const conversionRows = [
     ["Aircraft", result.aircraft],
-    ["Ramp Fuel", formatFuelKg(result.rampFuel)],
     ["Remaining Fuel", formatFuelKg(result.remainingFuel)],
+    ["Ramp Fuel", formatFuelKg(result.rampFuel)],
     ["Required Uplift", formatFuelKg(result.requiredUpliftKg)],
     [
       "Density Input",
-      `${formatFuelInteger(result.densityValue)} ${result.densityUnit}`,
+      formatFuelDensityInput(result.densityValue, result.densityUnit),
     ],
-    ["Density Converted", `${formatFuelInteger(result.densityKgPerL)} kg/L`],
-    [
-      "Volume Input",
-      `${formatFuelInteger(result.actualVolume)} ${result.volumeUnit}`,
-    ],
-    ["Volume Converted", formatFuelLiters(result.actualVolumeLiters)],
+  ];
+
+  if (result.densityUnit === "lbs/US gal") {
+    conversionRows.push([
+      "Density Converted",
+      formatFuelDensityConverted(result.densityKgPerL),
+    ]);
+  }
+
+  conversionRows.push([
+    "Volume Input",
+    `${formatFuelInteger(result.actualVolume)} ${result.volumeUnit}`,
   ]);
+
+  if (result.volumeUnit === "US gallons") {
+    conversionRows.push(["Volume Converted", formatFuelLiters(result.actualVolumeLiters)]);
+  }
+
+  renderKeyValueList(conversionsList, conversionRows);
 
   const actualWeightDifference = result.actualUpliftKg - result.requiredUpliftKg;
   const weightDifferenceFail = Math.abs(actualWeightDifference) > result.tolerance;
@@ -916,6 +928,14 @@ function formatFuelSignedLiters(value) {
 
 function formatFuelSignedPercent(value) {
   return `${value >= 0 ? "+" : "-"}${formatFuelInteger(Math.abs(value))}%`;
+}
+
+function formatFuelDensityInput(value, unit) {
+  return `${formatNumber(value, 3)} ${unit}`;
+}
+
+function formatFuelDensityConverted(value) {
+  return `${formatNumber(value, 4)} kg/L`;
 }
 
 function formatKg(value) {
