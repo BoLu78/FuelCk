@@ -1,4 +1,4 @@
-const APP_VERSION = "3.9";
+const APP_VERSION = "4.0";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1590,22 +1590,24 @@ function tripInfoBuildPreviewSvg(data) {
   const noteX = pageLeft;
   const noteY = 35;
   const noteWidth = 22;
-  const noteHeight = 83;
+  const bottomBoxHeight = 20;
+  const pageBottomMargin = 2;
+  const remarksX = pageLeft;
+  const remarksWidth = 47;
+  const signatureX = remarksX + remarksWidth;
+  const signatureWidth = 43;
+  const remarksY = TRIP_INFO_PAGE_HEIGHT_MM - pageBottomMargin - bottomBoxHeight;
+  const signatureY = remarksY;
+  const noteHeight = remarksY - noteY;
   const mainX = noteX + noteWidth;
   const mainLabelX = mainX + 1.3;
   const mainRight = pageRight;
   const mainLineRight = mainRight - 0.6;
-  const mainRowStartY = noteY + 5.7;
   const mainRowStep = 8;
   const fieldLineOffset = 1.1;
+  const mainRowBottomGap = 5.7;
+  const mainRowStartY = remarksY - mainRowBottomGap - fieldLineOffset - (mainRowStep * 8);
   const inlineUnitBaselineOffset = 0.15;
-  const remarksX = pageLeft;
-  const remarksY = noteY + noteHeight;
-  const remarksWidth = 47;
-  const signatureX = remarksX + remarksWidth;
-  const signatureY = remarksY;
-  const signatureWidth = 43;
-  const bottomBoxHeight = 20;
   const logoMarkup = tripInfoLogoDataUrl
     ? `<image href="${tripInfoEscapeAttribute(tripInfoLogoDataUrl)}" x="${tripInfoFormatSvgNumber(
         6.8
