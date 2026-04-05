@@ -184,17 +184,31 @@
       .number-input {
         font-family: var(--mono);
         font-variant-numeric: tabular-nums;
-      }
-
-      #fuelView input[type="number"].number-input {
         appearance: textfield;
+        -webkit-appearance: none;
         -moz-appearance: textfield;
       }
 
-      #fuelView input[type="number"].number-input::-webkit-outer-spin-button,
-      #fuelView input[type="number"].number-input::-webkit-inner-spin-button {
+      .number-input::-webkit-outer-spin-button,
+      .number-input::-webkit-inner-spin-button {
         -webkit-appearance: none;
+        appearance: none;
         margin: 0;
+        display: none;
+      }
+
+      input[type="number"].number-input {
+        appearance: textfield;
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+      }
+
+      input[type="number"].number-input::-webkit-outer-spin-button,
+      input[type="number"].number-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        appearance: none;
+        margin: 0;
+        display: none;
       }
 
       .segmented {
