@@ -1,4 +1,4 @@
-const APP_VERSION = "4.1";
+const APP_VERSION = "4.2";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -243,7 +243,7 @@ const TRIP_INFO_LAYOUT = (() => {
     rightX: pageRight,
     labelX: noteBox.x + noteBox.width + 1.3,
     lineRightX: pageRight - 0.6,
-    rowStep: 8,
+    rowStep: 7.1,
     fieldLineOffset: 1.1,
     inlineUnitBaselineOffset: 0.15,
   };
@@ -259,9 +259,12 @@ const TRIP_INFO_LAYOUT = (() => {
       lineEndX,
       lineY,
       valueCenterX: config.valueCenterX ?? ((config.lineStartX + lineEndX) / 2),
+      valueX: config.valueX,
       valueY: config.valueY ?? lineY,
+      valueAnchor: config.valueAnchor,
     };
   };
+  const alignedValueX = mainArea.lineRightX - 0.4;
   const rows = {
     captainName: buildRow(0, {
       lineStartX: 48.7,
@@ -276,29 +279,41 @@ const TRIP_INFO_LAYOUT = (() => {
     }),
     maxZfw: buildRow(2, {
       lineStartX: 43.8,
+      valueX: alignedValueX,
+      valueAnchor: "end",
     }),
     maxTow: buildRow(3, {
       lineStartX: 62.2,
+      valueX: alignedValueX,
+      valueAnchor: "end",
     }),
     maxLdw: buildRow(4, {
       lineStartX: 62.2,
+      valueX: alignedValueX,
+      valueAnchor: "end",
     }),
     tripFuel: buildRow(5, {
       lineStartX: 43.8,
+      valueX: alignedValueX,
+      valueAnchor: "end",
     }),
     takeOffFuel: buildRow(6, {
       lineStartX: 56.8,
+      valueX: alignedValueX,
+      valueAnchor: "end",
     }),
     taxiFuel: buildRow(7, {
       lineStartX: 43.7,
-      lineEndX: 61.2,
+      valueX: alignedValueX,
+      valueAnchor: "end",
     }),
-    blockFuel: buildRow(7, {
-      labelX: 59,
-      lineStartX: 74.2,
+    blockFuel: buildRow(8, {
+      lineStartX: 47.3,
+      valueX: alignedValueX,
+      valueAnchor: "end",
     }),
     eet: (() => {
-      const y = mainArea.y + (mainArea.rowStep * 8);
+      const y = mainArea.y + (mainArea.rowStep * 9);
       const hoursLineY = y + mainArea.fieldLineOffset;
       const minutesLineY = hoursLineY;
 
@@ -306,18 +321,18 @@ const TRIP_INFO_LAYOUT = (() => {
         y,
         labelX: mainArea.labelX,
         hoursLineStartX: 35.6,
-        hoursLineEndX: 50.8,
+        hoursLineEndX: 46.8,
         hoursLineY,
-        hoursValueCenterX: 43.2,
+        hoursValueCenterX: 41.2,
         hoursValueY: hoursLineY,
-        hrsLabelX: 52.9,
+        hrsLabelX: 48.8,
         hrsLabelY: hoursLineY - mainArea.inlineUnitBaselineOffset,
-        minutesLineStartX: 60.2,
-        minutesLineEndX: 84.3,
+        minutesLineStartX: 54.2,
+        minutesLineEndX: 65.4,
         minutesLineY,
-        minutesValueCenterX: 72.25,
+        minutesValueCenterX: 59.8,
         minutesValueY: minutesLineY,
-        minLabelX: 86.2,
+        minLabelX: 67.4,
         minLabelY: minutesLineY - mainArea.inlineUnitBaselineOffset,
       };
     })(),
@@ -1816,6 +1831,7 @@ function tripInfoBuildPreviewSvg(data) {
       valueAnchor: field.valueAnchor ?? "middle",
       labelFontSize: bodyFontSize,
       valueFontSize: valueFontSize,
+      valueFontWeight: 600,
       ...options,
     });
   const logoMarkup = tripInfoLogoDataUrl
@@ -1965,6 +1981,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
+        valueFontWeight: 600,
       })}
       ${tripInfoBuildSvgMmText({
         x: rows.eet.hrsLabelX,
@@ -1986,6 +2003,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueY: rows.eet.minutesValueY,
         valueAnchor: "middle",
         valueFontSize: valueFontSize,
+        valueFontWeight: 600,
       })}
       ${tripInfoBuildSvgMmText({
         x: rows.eet.minLabelX,

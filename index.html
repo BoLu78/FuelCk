@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
+    <meta name="app-version" content="4.2">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -684,10 +685,24 @@
         background: rgba(255, 255, 255, 0.03);
       }
 
+      .wrap-fuel-section {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
       .tripInfoEetRow {
-        display: grid;
-        gap: 12px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .tripInfoEetRow .field {
+        flex: 0 0 84px;
+      }
+
+      .tripInfoEetRow .input {
+        text-align: center;
       }
 
       .tripInfoSignatureCanvas {
@@ -766,7 +781,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">4.1</span>
+          <span class="home-version">4.2</span>
         </div>
       </section>
 
@@ -1132,18 +1147,31 @@
           <section class="card stack tripInfoSectionCard">
             <h2>Fuel / Time</h2>
 
-            <div class="row two-col">
+            <div class="field">
+              <label for="tripInfo-trip-fuel">Trip Fuel</label>
+              <input
+                id="tripInfo-trip-fuel"
+                name="tripFuel"
+                class="input number-input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9., ]*"
+                autocomplete="off"
+                required
+              >
+            </div>
+
+            <div class="wrap-fuel-section">
               <div class="field">
-                <label for="tripInfo-trip-fuel">Trip Fuel</label>
+                <label for="tripInfo-takeoff-fuel">Take Off Fuel</label>
                 <input
-                  id="tripInfo-trip-fuel"
-                  name="tripFuel"
-                  class="input number-input"
+                  id="tripInfo-takeoff-fuel"
+                  name="takeOffFuel"
+                  class="input number-input tripInfoReadonlyInput mono"
                   type="text"
-                  inputmode="numeric"
-                  pattern="[0-9., ]*"
                   autocomplete="off"
-                  required
+                  readonly
+                  aria-readonly="true"
                 >
               </div>
 
@@ -1160,9 +1188,7 @@
                   required
                 >
               </div>
-            </div>
 
-            <div class="row two-col">
               <div class="field">
                 <label for="tripInfo-block-fuel">Block Fuel</label>
                 <input
@@ -1174,19 +1200,6 @@
                   pattern="[0-9., ]*"
                   autocomplete="off"
                   required
-                >
-              </div>
-
-              <div class="field">
-                <label for="tripInfo-takeoff-fuel">Take Off Fuel</label>
-                <input
-                  id="tripInfo-takeoff-fuel"
-                  name="takeOffFuel"
-                  class="input number-input tripInfoReadonlyInput mono"
-                  type="text"
-                  autocomplete="off"
-                  readonly
-                  aria-readonly="true"
                 >
               </div>
             </div>
