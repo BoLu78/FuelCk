@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="4.6">
+    <meta name="app-version" content="4.7">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -656,7 +656,19 @@
       }
 
       #tripInfoView {
-        gap: 16px;
+        gap: 22px;
+      }
+
+      #tripInfoView .module-nav {
+        margin-top: 2px;
+      }
+
+      #tripInfoView .hero {
+        padding: 10px 2px 0;
+      }
+
+      #tripInfoView .hero h1 {
+        margin: 0;
       }
 
       #tripInfoView .card {
@@ -781,7 +793,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">4.6</span>
+          <span class="home-version">4.7</span>
         </div>
       </section>
 
@@ -938,7 +950,6 @@
 
         <header class="hero">
           <h1>TRIP INFO</h1>
-          <p class="subtitle">100 x 140 mm trip form generator</p>
         </header>
 
         <form id="tripInfo-form" class="stack" novalidate>
