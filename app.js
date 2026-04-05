@@ -1,4 +1,4 @@
-const APP_VERSION = "4.2";
+const APP_VERSION = "4.3";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -118,6 +118,7 @@ const TRIP_INFO_LAYOUT = (() => {
   };
   const pageLeft = 5;
   const pageRight = 95;
+  const valueLift = 0.65;
   const header = {
     x: pageLeft,
     y: 2,
@@ -144,7 +145,7 @@ const TRIP_INFO_LAYOUT = (() => {
       lineY: 21.1,
       valueCenterX: 40.75,
       valueX: 30.4,
-      valueY: 20.45,
+      valueY: 21.1 - valueLift,
       valueAnchor: "start",
     },
     from: {
@@ -154,7 +155,7 @@ const TRIP_INFO_LAYOUT = (() => {
       lineEndX: 75.3,
       lineY: 21.1,
       valueCenterX: 69.6,
-      valueY: 20.45,
+      valueY: 21.1 - valueLift,
     },
     to: {
       labelX: 76.2,
@@ -163,7 +164,7 @@ const TRIP_INFO_LAYOUT = (() => {
       lineEndX: pageRight,
       lineY: 21.1,
       valueCenterX: 88.55,
-      valueY: 20.45,
+      valueY: 21.1 - valueLift,
     },
     date: {
       labelX: pageLeft,
@@ -172,7 +173,7 @@ const TRIP_INFO_LAYOUT = (() => {
       lineEndX: 36.9,
       lineY: 27.05,
       valueCenterX: 26.75,
-      valueY: 26.4,
+      valueY: 27.05 - valueLift,
     },
     crew: {
       labelX: 42.6,
@@ -181,7 +182,7 @@ const TRIP_INFO_LAYOUT = (() => {
       lineEndX: pageRight,
       lineY: 27.05,
       valueCenterX: 74.7,
-      valueY: 26.4,
+      valueY: 27.05 - valueLift,
     },
     registration: {
       labelX: pageLeft,
@@ -191,7 +192,7 @@ const TRIP_INFO_LAYOUT = (() => {
       lineY: 33,
       valueCenterX: 48.25,
       valueX: 32.8,
-      valueY: 32.35,
+      valueY: 33 - valueLift,
       valueAnchor: "start",
     },
     aircraftType: {
@@ -202,7 +203,7 @@ const TRIP_INFO_LAYOUT = (() => {
       lineY: 33,
       valueCenterX: 88.1,
       valueX: 81.8,
-      valueY: 32.35,
+      valueY: 33 - valueLift,
       valueAnchor: "start",
     },
   };
@@ -245,6 +246,7 @@ const TRIP_INFO_LAYOUT = (() => {
     lineRightX: pageRight - 0.6,
     rowStep: 7.1,
     fieldLineOffset: 1.1,
+    valueLift,
     inlineUnitBaselineOffset: 0.15,
   };
   const buildRow = (index, config) => {
@@ -260,7 +262,7 @@ const TRIP_INFO_LAYOUT = (() => {
       lineY,
       valueCenterX: config.valueCenterX ?? ((config.lineStartX + lineEndX) / 2),
       valueX: config.valueX,
-      valueY: config.valueY ?? lineY,
+      valueY: config.valueY ?? (lineY - mainArea.valueLift),
       valueAnchor: config.valueAnchor,
     };
   };
@@ -321,18 +323,18 @@ const TRIP_INFO_LAYOUT = (() => {
         y,
         labelX: mainArea.labelX,
         hoursLineStartX: 35.6,
-        hoursLineEndX: 46.8,
+        hoursLineEndX: 52.6,
         hoursLineY,
-        hoursValueCenterX: 41.2,
-        hoursValueY: hoursLineY,
-        hrsLabelX: 48.8,
+        hoursValueCenterX: 44.1,
+        hoursValueY: hoursLineY - mainArea.valueLift,
+        hrsLabelX: 56.2,
         hrsLabelY: hoursLineY - mainArea.inlineUnitBaselineOffset,
-        minutesLineStartX: 54.2,
-        minutesLineEndX: 65.4,
+        minutesLineStartX: 61.4,
+        minutesLineEndX: 88.6,
         minutesLineY,
-        minutesValueCenterX: 59.8,
-        minutesValueY: minutesLineY,
-        minLabelX: 67.4,
+        minutesValueCenterX: 75,
+        minutesValueY: minutesLineY - mainArea.valueLift,
+        minLabelX: 91.5,
         minLabelY: minutesLineY - mainArea.inlineUnitBaselineOffset,
       };
     })(),
