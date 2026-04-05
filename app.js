@@ -1,4 +1,4 @@
-const APP_VERSION = "4.8";
+const APP_VERSION = "5.0";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -120,9 +120,10 @@ const TRIP_INFO_LAYOUT = (() => {
   const pageRight = 95;
   const valueLift = 0.65;
   const topRows = (() => {
-    const yStart = 17.3;
-    const rowStep = 5.4;
+    const yStart = 17;
+    const rowStep = 6.15;
     const lineOffset = 1.1;
+    const valueBaselineOffset = 0.9;
     const row1Y = yStart;
     const row2Y = yStart + rowStep;
     const row3Y = yStart + (rowStep * 2);
@@ -139,7 +140,7 @@ const TRIP_INFO_LAYOUT = (() => {
         lineY: row1Y + lineOffset,
         valueCenterX: 40.75,
         valueX: 30.4,
-        valueY: row1Y + lineOffset - valueLift,
+        valueY: row1Y + lineOffset - valueBaselineOffset,
         valueAnchor: "start",
       },
       from: {
@@ -149,7 +150,7 @@ const TRIP_INFO_LAYOUT = (() => {
         lineEndX: 76.1,
         lineY: row1Y + lineOffset,
         valueCenterX: 69.85,
-        valueY: row1Y + lineOffset - valueLift,
+        valueY: row1Y + lineOffset - valueBaselineOffset,
       },
       to: {
         labelX: 76.2,
@@ -158,7 +159,7 @@ const TRIP_INFO_LAYOUT = (() => {
         lineEndX: pageRight,
         lineY: row1Y + lineOffset,
         valueCenterX: 88.1,
-        valueY: row1Y + lineOffset - valueLift,
+        valueY: row1Y + lineOffset - valueBaselineOffset,
       },
       date: {
         labelX: pageLeft,
@@ -167,7 +168,7 @@ const TRIP_INFO_LAYOUT = (() => {
         lineEndX: 40.6,
         lineY: row2Y + lineOffset,
         valueCenterX: 28.6,
-        valueY: row2Y + lineOffset - valueLift,
+        valueY: row2Y + lineOffset - valueBaselineOffset,
       },
       crew: {
         labelX: 48.8,
@@ -176,7 +177,7 @@ const TRIP_INFO_LAYOUT = (() => {
         lineEndX: 84.2,
         lineY: row2Y + lineOffset,
         valueCenterX: 72.6,
-        valueY: row2Y + lineOffset - valueLift,
+        valueY: row2Y + lineOffset - valueBaselineOffset,
       },
       registration: {
         labelX: pageLeft,
@@ -186,7 +187,7 @@ const TRIP_INFO_LAYOUT = (() => {
         lineY: row3Y + lineOffset,
         valueCenterX: 48.25,
         valueX: 32.8,
-        valueY: row3Y + lineOffset - valueLift,
+        valueY: row3Y + lineOffset - valueBaselineOffset,
         valueAnchor: "start",
       },
       aircraftType: {
@@ -197,7 +198,7 @@ const TRIP_INFO_LAYOUT = (() => {
         lineY: row3Y + lineOffset,
         valueCenterX: 87,
         valueX: 80.4,
-        valueY: row3Y + lineOffset - valueLift,
+        valueY: row3Y + lineOffset - valueBaselineOffset,
         valueAnchor: "start",
       },
     };
