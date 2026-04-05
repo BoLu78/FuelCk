@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.29";
+const APP_VERSION = "2.0";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -108,7 +108,7 @@ const ACN_DEFAULTS = {
   actualWeight: "",
 };
 const TRIP_INFO_STORAGE_KEY = "rampcheck-trip-info";
-const TRIP_INFO_LOGO_SRC = "./assets/tripinfo-logo-neos.svg";
+const TRIP_INFO_LOGO_SRC = "./assets/tripinfo-logo-neos.png";
 const TRIP_INFO_EXPORT_WIDTH = 1575;
 const TRIP_INFO_EXPORT_HEIGHT = 2220;
 const TRIP_INFO_A6_WIDTH_PT = (105 / 25.4) * 72;
@@ -1560,7 +1560,7 @@ function tripInfoUpdatePreviewVisibility() {
 function tripInfoBuildPreviewSvg(data) {
   const logoMarkup = tripInfoLogoDataUrl
     ? `<image href="${tripInfoEscapeAttribute(tripInfoLogoDataUrl)}" x="50" y="42" width="210" height="68" preserveAspectRatio="xMinYMin meet" />`
-    : `<text x="58" y="88" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" letter-spacing="2">NEOS</text>`;
+    : "";
   const signatureMarkup = data.signatureDataUrl
     ? `<image href="${tripInfoEscapeAttribute(data.signatureDataUrl)}" x="566" y="1260" width="422" height="108" preserveAspectRatio="xMidYMid meet" />`
     : "";
