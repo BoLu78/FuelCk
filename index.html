@@ -677,7 +677,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="assets/logo-lb.png" alt="">
-          <span class="home-version">v1.26</span>
+          <span class="home-version">v1.27</span>
         </div>
       </section>
 
@@ -719,10 +719,9 @@
                     id="ramp-fuel"
                     name="rampFuel"
                     class="input number-input"
-                    type="number"
+                    type="text"
                     inputmode="decimal"
-                    min="0"
-                    step="any"
+                    pattern="[0-9.,]*"
                     autocomplete="off"
                     required
                   >
@@ -733,10 +732,9 @@
                     id="remaining-fuel"
                     name="remainingFuel"
                     class="input number-input"
-                    type="number"
+                    type="text"
                     inputmode="decimal"
-                    min="0"
-                    step="any"
+                    pattern="[0-9.,]*"
                     autocomplete="off"
                     required
                   >
@@ -764,10 +762,9 @@
                   id="density-value"
                   name="densityValue"
                   class="input number-input"
-                  type="number"
+                  type="text"
                   inputmode="decimal"
-                  min="0"
-                  step="any"
+                  pattern="[0-9.,]*"
                   value="0.796"
                   autocomplete="off"
                   required
@@ -795,10 +792,9 @@
                   id="actual-volume"
                   name="actualVolume"
                   class="input number-input"
-                  type="number"
+                  type="text"
                   inputmode="decimal"
-                  min="0"
-                  step="any"
+                  pattern="[0-9.,]*"
                   autocomplete="off"
                   required
                 >

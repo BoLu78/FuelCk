@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.26";
+const APP_VERSION = "v1.27";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -265,12 +265,23 @@ function readInputValues() {
   };
 }
 
-function parseNonNegativeNumber(value) {
-  if (typeof value !== "string" || value.trim() === "") {
+function normalizeNumericInput(value) {
+  if (typeof value !== "string") {
     return null;
   }
 
-  const parsed = Number(value);
+  const normalized = value.trim().replace(/,/g, ".");
+  return normalized === "" ? null : normalized;
+}
+
+function parseNonNegativeNumber(value) {
+  const normalizedValue = normalizeNumericInput(value);
+
+  if (normalizedValue === null) {
+    return null;
+  }
+
+  const parsed = Number(normalizedValue);
   if (!Number.isFinite(parsed) || parsed < 0) {
     return null;
   }
