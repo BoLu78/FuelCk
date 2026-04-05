@@ -1,4 +1,4 @@
-const APP_VERSION = "4.3";
+const APP_VERSION = "4.4";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -119,6 +119,9 @@ const TRIP_INFO_LAYOUT = (() => {
   const pageLeft = 5;
   const pageRight = 95;
   const valueLift = 0.65;
+  const topRowBaseY = 18.2;
+  const topRowStep = 5.25;
+  const topRowLineOffset = 1.1;
   const header = {
     x: pageLeft,
     y: 2,
@@ -139,71 +142,71 @@ const TRIP_INFO_LAYOUT = (() => {
   const topRows = {
     flightNumber: {
       labelX: pageLeft,
-      labelY: 20,
+      labelY: topRowBaseY,
       lineStartX: 29.9,
       lineEndX: 51.6,
-      lineY: 21.1,
+      lineY: topRowBaseY + topRowLineOffset,
       valueCenterX: 40.75,
       valueX: 30.4,
-      valueY: 21.1 - valueLift,
+      valueY: topRowBaseY + topRowLineOffset - valueLift,
       valueAnchor: "start",
     },
     from: {
       labelX: 52.6,
-      labelY: 20,
+      labelY: topRowBaseY,
       lineStartX: 63.9,
       lineEndX: 75.3,
-      lineY: 21.1,
+      lineY: topRowBaseY + topRowLineOffset,
       valueCenterX: 69.6,
-      valueY: 21.1 - valueLift,
+      valueY: topRowBaseY + topRowLineOffset - valueLift,
     },
     to: {
       labelX: 76.2,
-      labelY: 20,
+      labelY: topRowBaseY,
       lineStartX: 82.1,
       lineEndX: pageRight,
-      lineY: 21.1,
+      lineY: topRowBaseY + topRowLineOffset,
       valueCenterX: 88.55,
-      valueY: 21.1 - valueLift,
+      valueY: topRowBaseY + topRowLineOffset - valueLift,
     },
     date: {
       labelX: pageLeft,
-      labelY: 25.95,
+      labelY: topRowBaseY + topRowStep,
       lineStartX: 16.6,
       lineEndX: 36.9,
-      lineY: 27.05,
+      lineY: topRowBaseY + topRowStep + topRowLineOffset,
       valueCenterX: 26.75,
-      valueY: 27.05 - valueLift,
+      valueY: topRowBaseY + topRowStep + topRowLineOffset - valueLift,
     },
     crew: {
       labelX: 42.6,
-      labelY: 25.95,
+      labelY: topRowBaseY + topRowStep,
       lineStartX: 54.4,
       lineEndX: pageRight,
-      lineY: 27.05,
+      lineY: topRowBaseY + topRowStep + topRowLineOffset,
       valueCenterX: 74.7,
-      valueY: 27.05 - valueLift,
+      valueY: topRowBaseY + topRowStep + topRowLineOffset - valueLift,
     },
     registration: {
       labelX: pageLeft,
-      labelY: 31.9,
+      labelY: topRowBaseY + (topRowStep * 2),
       lineStartX: 32.3,
       lineEndX: 64.2,
-      lineY: 33,
+      lineY: topRowBaseY + (topRowStep * 2) + topRowLineOffset,
       valueCenterX: 48.25,
       valueX: 32.8,
-      valueY: 33 - valueLift,
+      valueY: topRowBaseY + (topRowStep * 2) + topRowLineOffset - valueLift,
       valueAnchor: "start",
     },
     aircraftType: {
       labelX: 67.2,
-      labelY: 31.9,
+      labelY: topRowBaseY + (topRowStep * 2),
       lineStartX: 81.2,
       lineEndX: pageRight,
-      lineY: 33,
+      lineY: topRowBaseY + (topRowStep * 2) + topRowLineOffset,
       valueCenterX: 88.1,
       valueX: 81.8,
-      valueY: 33 - valueLift,
+      valueY: topRowBaseY + (topRowStep * 2) + topRowLineOffset - valueLift,
       valueAnchor: "start",
     },
   };
@@ -239,12 +242,12 @@ const TRIP_INFO_LAYOUT = (() => {
   };
   const mainArea = {
     x: noteBox.x + noteBox.width,
-    y: 47.2,
+    y: 40.8,
     width: pageRight - (noteBox.x + noteBox.width),
     rightX: pageRight,
     labelX: noteBox.x + noteBox.width + 1.3,
     lineRightX: pageRight - 0.6,
-    rowStep: 7.1,
+    rowStep: 7,
     fieldLineOffset: 1.1,
     valueLift,
     inlineUnitBaselineOffset: 0.15,
@@ -272,12 +275,17 @@ const TRIP_INFO_LAYOUT = (() => {
       lineStartX: 48.7,
     }),
     dow: buildRow(1, {
-      lineStartX: 36.9,
-      lineEndX: 56,
+      lineStartX: 35.4,
+      lineEndX: 62.6,
+      valueX: 62.2,
+      valueAnchor: "end",
     }),
     doi: buildRow(1, {
-      labelX: 57.8,
-      lineStartX: 64.3,
+      labelX: 65.8,
+      lineStartX: 71.2,
+      lineEndX: 86.8,
+      valueX: 86.4,
+      valueAnchor: "end",
     }),
     maxZfw: buildRow(2, {
       lineStartX: 43.8,
@@ -327,7 +335,7 @@ const TRIP_INFO_LAYOUT = (() => {
         hoursLineY,
         hoursValueCenterX: 44.1,
         hoursValueY: hoursLineY - mainArea.valueLift,
-        hrsLabelX: 56.2,
+        hrsLabelX: 57,
         hrsLabelY: hoursLineY - mainArea.inlineUnitBaselineOffset,
         minutesLineStartX: 61.4,
         minutesLineEndX: 88.6,
