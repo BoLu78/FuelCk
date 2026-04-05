@@ -1,4 +1,4 @@
-const APP_VERSION = "3.6";
+const APP_VERSION = "3.8";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1596,9 +1596,8 @@ function tripInfoBuildPreviewSvg(data) {
   const mainRight = pageRight;
   const mainLineRight = mainRight - 0.6;
   const mainRowStartY = noteY + 5.7;
-  const mainRowStep = 8.6;
+  const mainRowStep = 6;
   const fieldLineOffset = 1.1;
-  const fieldValueBaselineOffset = 0.18;
   const inlineUnitBaselineOffset = 0.15;
   const remarksX = pageLeft;
   const remarksY = noteY + noteHeight;
@@ -1787,7 +1786,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 0) + fieldLineOffset,
         value: tripInfoFitPreviewText(data.captainName, 22),
         valueX: (48.7 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 0) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 0) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1801,7 +1800,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
         value: data.dowDisplay,
         valueX: (36.9 + 56) / 2,
-        valueY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1815,7 +1814,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
         value: data.doiDisplay,
         valueX: (64.3 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1829,7 +1828,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 2) + fieldLineOffset,
         value: data.maxZfwDisplay,
         valueX: (43.8 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 2) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 2) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1843,7 +1842,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 3) + fieldLineOffset,
         value: data.maxTowDisplay,
         valueX: (62.2 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 3) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 3) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1857,7 +1856,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 4) + fieldLineOffset,
         value: data.maxLdwDisplay,
         valueX: (62.2 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 4) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 4) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1871,7 +1870,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 5) + fieldLineOffset,
         value: data.tripFuelDisplay,
         valueX: (43.8 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 5) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 5) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1885,7 +1884,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 6) + fieldLineOffset,
         value: data.takeOffFuelDisplay,
         valueX: (56.8 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 6) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 6) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1899,7 +1898,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
         value: data.taxiFuelDisplay,
         valueX: (43.7 + 61.2) / 2,
-        valueY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1913,7 +1912,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
         value: data.blockFuelDisplay,
         valueX: (74.2 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1927,7 +1926,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         value: data.eetHours,
         valueX: (35.6 + 50.8) / 2,
-        valueY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
@@ -1949,7 +1948,7 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         value: data.eetMinutes,
         valueX: (60.2 + 84.3) / 2,
-        valueY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset - fieldValueBaselineOffset,
+        valueY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         valueAnchor: "middle",
         valueFontSize: valueFontSize,
       })}
