@@ -1590,15 +1590,16 @@ function tripInfoBuildPreviewSvg(data) {
   const noteX = pageLeft;
   const noteY = 35;
   const noteWidth = 22;
-  const noteHeight = 57;
+  const noteHeight = 83;
   const mainX = noteX + noteWidth;
   const mainLabelX = mainX + 1.3;
   const mainRight = pageRight;
   const mainLineRight = mainRight - 0.6;
-  const mainRowStartY = noteY + 5.3;
-  const mainRowStep = 6.15;
+  const mainRowStartY = noteY + 5.7;
+  const mainRowStep = 8.6;
   const fieldLineOffset = 1.1;
-  const fieldValueOffset = fieldLineOffset;
+  const fieldValueBaselineOffset = 0.18;
+  const inlineUnitBaselineOffset = 0.15;
   const remarksX = pageLeft;
   const remarksY = noteY + noteHeight;
   const remarksWidth = 47;
@@ -1785,10 +1786,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: mainLineRight,
         lineY: mainRowStartY + (mainRowStep * 0) + fieldLineOffset,
         value: tripInfoFitPreviewText(data.captainName, 22),
-        valueX: 49.3,
-        valueY: mainRowStartY + (mainRowStep * 0) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (48.7 + mainLineRight) / 2,
+        valueY: mainRowStartY + (mainRowStep * 0) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1800,10 +1800,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: 56,
         lineY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
         value: data.dowDisplay,
-        valueX: 37.5,
-        valueY: mainRowStartY + (mainRowStep * 1) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (36.9 + 56) / 2,
+        valueY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1815,10 +1814,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: mainLineRight,
         lineY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
         value: data.doiDisplay,
-        valueX: 64.9,
-        valueY: mainRowStartY + (mainRowStep * 1) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (64.3 + mainLineRight) / 2,
+        valueY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1830,10 +1828,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: mainLineRight,
         lineY: mainRowStartY + (mainRowStep * 2) + fieldLineOffset,
         value: data.maxZfwDisplay,
-        valueX: 44.4,
-        valueY: mainRowStartY + (mainRowStep * 2) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (43.8 + mainLineRight) / 2,
+        valueY: mainRowStartY + (mainRowStep * 2) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1845,10 +1842,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: mainLineRight,
         lineY: mainRowStartY + (mainRowStep * 3) + fieldLineOffset,
         value: data.maxTowDisplay,
-        valueX: 62.8,
-        valueY: mainRowStartY + (mainRowStep * 3) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (62.2 + mainLineRight) / 2,
+        valueY: mainRowStartY + (mainRowStep * 3) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1860,10 +1856,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: mainLineRight,
         lineY: mainRowStartY + (mainRowStep * 4) + fieldLineOffset,
         value: data.maxLdwDisplay,
-        valueX: 62.8,
-        valueY: mainRowStartY + (mainRowStep * 4) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (62.2 + mainLineRight) / 2,
+        valueY: mainRowStartY + (mainRowStep * 4) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1875,10 +1870,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: mainLineRight,
         lineY: mainRowStartY + (mainRowStep * 5) + fieldLineOffset,
         value: data.tripFuelDisplay,
-        valueX: 44.4,
-        valueY: mainRowStartY + (mainRowStep * 5) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (43.8 + mainLineRight) / 2,
+        valueY: mainRowStartY + (mainRowStep * 5) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1890,10 +1884,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: mainLineRight,
         lineY: mainRowStartY + (mainRowStep * 6) + fieldLineOffset,
         value: data.takeOffFuelDisplay,
-        valueX: 57.4,
-        valueY: mainRowStartY + (mainRowStep * 6) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (56.8 + mainLineRight) / 2,
+        valueY: mainRowStartY + (mainRowStep * 6) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1905,10 +1898,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: 61.2,
         lineY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
         value: data.taxiFuelDisplay,
-        valueX: 44.3,
-        valueY: mainRowStartY + (mainRowStep * 7) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (43.7 + 61.2) / 2,
+        valueY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1920,10 +1912,9 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: mainLineRight,
         lineY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
         value: data.blockFuelDisplay,
-        valueX: 74.8,
-        valueY: mainRowStartY + (mainRowStep * 7) + fieldValueOffset,
-        valueAnchor: "start",
-        valueDominantBaseline: "middle",
+        valueX: (74.2 + mainLineRight) / 2,
+        valueY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1935,19 +1926,19 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: 50.8,
         lineY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         value: data.eetHours,
-        valueY: mainRowStartY + (mainRowStep * 8) + fieldValueOffset,
-        valueDominantBaseline: "middle",
+        valueX: (35.6 + 50.8) / 2,
+        valueY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
       ${tripInfoBuildSvgMmText({
         x: 52.9,
-        y: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
+        y: mainRowStartY + (mainRowStep * 8) + fieldLineOffset - inlineUnitBaselineOffset,
         text: "hrs",
         fontSize: bodyFontSize,
         fontWeight: 400,
         letterSpacing: 0,
-        dominantBaseline: "middle",
       })}
       ${tripInfoBuildSvgInlineField({
         label: "",
@@ -1957,18 +1948,18 @@ function tripInfoBuildPreviewSvg(data) {
         lineEndX: 84.3,
         lineY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         value: data.eetMinutes,
-        valueY: mainRowStartY + (mainRowStep * 8) + fieldValueOffset,
-        valueDominantBaseline: "middle",
+        valueX: (60.2 + 84.3) / 2,
+        valueY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset - fieldValueBaselineOffset,
+        valueAnchor: "middle",
         valueFontSize: valueFontSize,
       })}
       ${tripInfoBuildSvgMmText({
         x: 86.2,
-        y: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
+        y: mainRowStartY + (mainRowStep * 8) + fieldLineOffset - inlineUnitBaselineOffset,
         text: "min",
         fontSize: bodyFontSize,
         fontWeight: 400,
         letterSpacing: 0,
-        dominantBaseline: "middle",
       })}
 
       ${tripInfoBuildSvgRect(remarksX, remarksY, remarksWidth, bottomBoxHeight)}
@@ -2007,7 +1998,6 @@ function tripInfoBuildSvgInlineField(options) {
     valueX = (lineStartX + lineEndX) / 2,
     valueY = lineY - 0.55,
     valueAnchor = "middle",
-    valueDominantBaseline,
     labelFontSize = 9 * (25.4 / 72),
     valueFontSize = 10 * (25.4 / 72),
     labelFontWeight = 400,
@@ -2034,7 +2024,6 @@ function tripInfoBuildSvgInlineField(options) {
           fontSize: valueFontSize,
           fontWeight: valueFontWeight,
           letterSpacing: 0,
-          dominantBaseline: valueDominantBaseline,
         })
       : ""}
     ${tripInfoBuildSvgLine(lineStartX, lineY, lineEndX, lineY)}
@@ -2066,7 +2055,6 @@ function tripInfoBuildSvgMmText(options) {
     fontSize = 1.6,
     fontWeight = 400,
     letterSpacing = 0,
-    dominantBaseline,
   } = options;
 
   return `<text x="${tripInfoFormatSvgNumber(x)}" y="${tripInfoFormatSvgNumber(
@@ -2075,7 +2063,7 @@ function tripInfoBuildSvgMmText(options) {
     fontSize
   )}" font-weight="${fontWeight}" letter-spacing="${tripInfoFormatSvgNumber(
     letterSpacing
-  )}" text-anchor="${textAnchor}"${dominantBaseline ? ` dominant-baseline="${dominantBaseline}"` : ""}>${tripInfoEscapeXml(text)}</text>`;
+  )}" text-anchor="${textAnchor}">${tripInfoEscapeXml(text)}</text>`;
 }
 
 function tripInfoFormatSvgNumber(value) {
