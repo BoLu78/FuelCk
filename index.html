@@ -670,6 +670,15 @@
         text-transform: uppercase;
       }
 
+      .tripInfoDateInput {
+        color-scheme: dark;
+      }
+
+      .tripInfoDateInput::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        opacity: 0.86;
+      }
+
       .tripInfoReadonlyInput {
         color: rgba(245, 247, 251, 0.86);
         background: rgba(255, 255, 255, 0.03);
@@ -969,10 +978,8 @@
                 <input
                   id="tripInfo-date"
                   name="date"
-                  class="input mono tripInfoUppercaseField"
-                  type="text"
-                  inputmode="text"
-                  placeholder="05/APR/26"
+                  class="input mono tripInfoDateInput"
+                  type="date"
                   autocomplete="off"
                   required
                 >
@@ -986,7 +993,7 @@
                   class="input mono tripInfoUppercaseField"
                   type="text"
                   inputmode="text"
-                  placeholder="2+9"
+                  value="2+9"
                   autocomplete="off"
                   required
                 >
@@ -1084,6 +1091,7 @@
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9., ]*"
+                  value="181.436"
                   autocomplete="off"
                   required
                 >
@@ -1098,6 +1106,7 @@
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9., ]*"
+                  value="247.207"
                   autocomplete="off"
                   required
                 >
@@ -1113,6 +1122,7 @@
                 type="text"
                 inputmode="numeric"
                 pattern="[0-9., ]*"
+                value="192.776"
                 autocomplete="off"
                 required
               >
