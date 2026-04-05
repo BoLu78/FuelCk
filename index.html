@@ -440,6 +440,12 @@
         color: #ffe2aa;
       }
 
+      .result-card-title {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.03em;
+      }
+
       .kv-list {
         display: grid;
         gap: 10px;
@@ -538,6 +544,20 @@
         color: #ffe2aa;
       }
 
+      .advanced-details {
+        display: grid;
+        gap: 10px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .advanced-details-title {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
       #acnView {
         gap: 16px;
       }
@@ -632,7 +652,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="assets/logo-lb.png" alt="">
-          <span class="home-version">v1.25</span>
+          <span class="home-version">v1.26</span>
         </div>
       </section>
 
@@ -774,27 +794,13 @@
             <p class="banner-subtitle" id="banner-subtitle">Outside tolerance</p>
           </div>
 
-          <section class="card result-section" id="conversions-section">
-            <div class="section-header">
-              <h3 class="section-title">Input Conversions</h3>
+          <section class="card result-section" id="fuel-result-section">
+            <h3 class="result-card-title">Uplift Crosscheck</h3>
+            <div id="fuel-results-list" class="kv-list"></div>
+            <div id="fuel-advanced-details" class="advanced-details" hidden>
+              <h4 class="advanced-details-title">Advanced details</h4>
+              <div id="fuel-advanced-list" class="kv-list"></div>
             </div>
-            <div id="conversions-list" class="kv-list"></div>
-          </section>
-
-          <section class="card result-section" id="weight-section">
-            <div class="section-header">
-              <h3 class="section-title">Weight Check</h3>
-              <span id="weight-chip" class="section-chip">IN RANGE</span>
-            </div>
-            <div id="weight-list" class="kv-list"></div>
-          </section>
-
-          <section class="card result-section" id="volume-section">
-            <div class="section-header">
-              <h3 class="section-title">Volume Check</h3>
-              <span id="volume-chip" class="section-chip">IN RANGE</span>
-            </div>
-            <div id="volume-list" class="kv-list"></div>
           </section>
 
         </section>

@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.25";
+const APP_VERSION = "v1.26";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -124,13 +124,10 @@ const banner = document.getElementById("results-banner");
 const bannerLabel = document.getElementById("banner-label");
 const bannerTitle = document.getElementById("banner-title");
 const bannerSubtitle = document.getElementById("banner-subtitle");
-const conversionsList = document.getElementById("conversions-list");
-const weightList = document.getElementById("weight-list");
-const volumeList = document.getElementById("volume-list");
-const weightSection = document.getElementById("weight-section");
-const volumeSection = document.getElementById("volume-section");
-const weightChip = document.getElementById("weight-chip");
-const volumeChip = document.getElementById("volume-chip");
+const fuelResultSection = document.getElementById("fuel-result-section");
+const fuelResultsList = document.getElementById("fuel-results-list");
+const fuelAdvancedDetails = document.getElementById("fuel-advanced-details");
+const fuelAdvancedList = document.getElementById("fuel-advanced-list");
 const acnForm = document.getElementById("acn-form");
 const acnValidationMessage = document.getElementById("acn-validation-message");
 const acnClearButton = document.getElementById("acn-clear-button");
@@ -338,6 +335,11 @@ function calculateFuelCheck(values) {
 
 function renderResults(result) {
   const stateLabel = result.pass ? "PASS" : "FAIL";
+  const upliftDifferenceKg = result.actualUpliftKg - result.requiredUpliftKg;
+  const upliftDifferencePercent = percentage(
+    upliftDifferenceKg,
+    result.requiredUpliftKg
+  );
 
   banner.classList.toggle("pass", result.pass);
   banner.classList.toggle("fail", !result.pass);
@@ -346,20 +348,23 @@ function renderResults(result) {
   bannerSubtitle.textContent = result.pass
     ? "Actual uplift is within allowed tolerance"
     : "Actual uplift is outside allowed tolerance";
+  fuelResultSection.classList.toggle("fail", !result.pass);
 
-  const conversionRows = [
-    ["Aircraft", result.aircraft],
-    ["Remaining Fuel", formatFuelKg(result.remainingFuel)],
-    ["Ramp Fuel", formatFuelKg(result.rampFuel)],
-    ["Required Uplift", formatFuelKg(result.requiredUpliftKg)],
+  const mainRows = [
+    ["Planned Fuel", formatFuelKg(result.requiredUpliftKg)],
+    ["Calc Fuel", formatFuelKg(result.actualUpliftKg)],
     [
-      "Density Input",
-      formatFuelDensityInput(result.densityValue, result.densityUnit),
+      "Difference",
+      `${formatFuelSignedKg(upliftDifferenceKg)} (${formatFuelSignedPercent(
+        upliftDifferencePercent
+      )})`,
+      !result.pass,
     ],
+    ["Tolerance", formatFuelKg(result.tolerance)],
   ];
 
   if (result.densityUnit === "lbs/US gal") {
-    conversionRows.push([
+    mainRows.push([
       "Density Converted",
       formatFuelDensityConverted(result.densityKgPerL),
       false,
@@ -368,13 +373,8 @@ function renderResults(result) {
     ]);
   }
 
-  conversionRows.push([
-    "Volume Input",
-    `${formatFuelInteger(result.actualVolume)} ${result.volumeUnit}`,
-  ]);
-
   if (result.volumeUnit === "US gallons") {
-    conversionRows.push([
+    mainRows.push([
       "Volume Converted",
       formatFuelLiters(result.actualVolumeLiters),
       false,
@@ -383,57 +383,26 @@ function renderResults(result) {
     ]);
   }
 
-  renderKeyValueList(conversionsList, conversionRows);
+  renderKeyValueList(fuelResultsList, mainRows);
 
-  const actualWeightDifference = result.actualUpliftKg - result.requiredUpliftKg;
-  const weightDifferenceFail = Math.abs(actualWeightDifference) > result.tolerance;
-  const volumeDifferenceFail =
-    result.actualVolumeLiters < result.volumeMinLiters ||
-    result.actualVolumeLiters > result.volumeMaxLiters;
+  fuelAdvancedDetails.hidden = result.pass;
 
-  renderKeyValueList(weightList, [
-    ["Required Uplift", formatFuelKg(result.requiredUpliftKg)],
-    ["Actual Uplift", formatFuelKg(result.actualUpliftKg)],
+  if (result.pass) {
+    fuelAdvancedList.textContent = "";
+    return;
+  }
+
+  renderKeyValueList(fuelAdvancedList, [
     [
-      "Difference",
-      `${formatFuelSignedKg(actualWeightDifference)} (${formatFuelSignedPercent(
-        percentage(actualWeightDifference, result.requiredUpliftKg)
-      )})`,
-      weightDifferenceFail,
-    ],
-    [
-      "Allowed Min / Max",
+      "Allowed min / max",
       `${formatFuelKg(result.weightRangeMinKg)} / ${formatFuelKg(result.weightRangeMaxKg)}`,
     ],
-    ["Tolerance", formatFuelKg(result.tolerance)],
-    ["Total Fuel Loaded", formatFuelKg(result.totalFuelLoaded)],
     [
-      "Loaded vs Ramp",
-      `${formatFuelSignedKg(result.weightDifference)} (${formatFuelSignedPercent(
-        percentage(result.weightDifference, result.rampFuel)
-      )})`,
-      weightDifferenceFail,
-    ],
-  ]);
-
-  renderKeyValueList(volumeList, [
-    ["Required Volume", formatFuelLiters(result.requiredVolumeLiters)],
-    ["Actual Volume", formatFuelLiters(result.actualVolumeLiters)],
-    [
-      "Difference",
-      `${formatFuelSignedLiters(result.volumeDifferenceLiters)} (${formatFuelSignedPercent(
-        percentage(result.volumeDifferenceLiters, result.requiredVolumeLiters)
-      )})`,
-      volumeDifferenceFail,
-    ],
-    [
-      "Allowed Min / Max",
+      "Volume range",
       `${formatFuelLiters(result.volumeMinLiters)} / ${formatFuelLiters(result.volumeMaxLiters)}`,
     ],
+    ["Percent difference", formatFuelSignedPercent(upliftDifferencePercent)],
   ]);
-
-  setSectionState(weightSection, weightChip, weightDifferenceFail);
-  setSectionState(volumeSection, volumeChip, volumeDifferenceFail);
 }
 
 function renderKeyValueList(container, rows) {
@@ -463,12 +432,6 @@ function renderKeyValueList(container, rows) {
     row.append(keyNode, valueNode);
     container.appendChild(row);
   });
-}
-
-function setSectionState(section, chip, isFail) {
-  section.classList.toggle("fail", isFail);
-  chip.classList.toggle("fail", isFail);
-  chip.textContent = isFail ? "OUT OF RANGE" : "IN RANGE";
 }
 
 function showAppView(activeView) {
@@ -937,16 +900,8 @@ function formatFuelSignedKg(value) {
   return `${value >= 0 ? "+" : "-"}${formatFuelInteger(Math.abs(value))} kg`;
 }
 
-function formatFuelSignedLiters(value) {
-  return `${value >= 0 ? "+" : "-"}${formatFuelInteger(Math.abs(value))} L`;
-}
-
 function formatFuelSignedPercent(value) {
   return `${value >= 0 ? "+" : "-"}${formatFuelInteger(Math.abs(value))}%`;
-}
-
-function formatFuelDensityInput(value, unit) {
-  return `${formatNumber(value, 3)} ${unit}`;
 }
 
 function formatFuelDensityConverted(value) {
