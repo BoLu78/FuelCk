@@ -1,4 +1,4 @@
-const APP_VERSION = "4.4";
+const APP_VERSION = "4.5";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -173,18 +173,18 @@ const TRIP_INFO_LAYOUT = (() => {
       labelX: pageLeft,
       labelY: topRowBaseY + topRowStep,
       lineStartX: 16.6,
-      lineEndX: 36.9,
+      lineEndX: 40.6,
       lineY: topRowBaseY + topRowStep + topRowLineOffset,
-      valueCenterX: 26.75,
+      valueCenterX: 28.6,
       valueY: topRowBaseY + topRowStep + topRowLineOffset - valueLift,
     },
     crew: {
-      labelX: 42.6,
+      labelX: 47.2,
       labelY: topRowBaseY + topRowStep,
-      lineStartX: 54.4,
-      lineEndX: pageRight,
+      lineStartX: 58.4,
+      lineEndX: 88.8,
       lineY: topRowBaseY + topRowStep + topRowLineOffset,
-      valueCenterX: 74.7,
+      valueCenterX: 73.6,
       valueY: topRowBaseY + topRowStep + topRowLineOffset - valueLift,
     },
     registration: {
@@ -247,7 +247,7 @@ const TRIP_INFO_LAYOUT = (() => {
     rightX: pageRight,
     labelX: noteBox.x + noteBox.width + 1.3,
     lineRightX: pageRight - 0.6,
-    rowStep: 7,
+    rowStep: 7.7,
     fieldLineOffset: 1.1,
     valueLift,
     inlineUnitBaselineOffset: 0.15,
@@ -326,23 +326,28 @@ const TRIP_INFO_LAYOUT = (() => {
       const y = mainArea.y + (mainArea.rowStep * 9);
       const hoursLineY = y + mainArea.fieldLineOffset;
       const minutesLineY = hoursLineY;
+      const hoursLineStartX = 35.6;
+      const hoursLineEndX = 52.8;
+      const hoursGap = 4.8;
+      const minutesLineStartX = hoursLineEndX + hoursGap;
+      const minutesLineEndX = 89.6;
 
       return {
         y,
         labelX: mainArea.labelX,
-        hoursLineStartX: 35.6,
-        hoursLineEndX: 52.6,
+        hoursLineStartX,
+        hoursLineEndX,
         hoursLineY,
-        hoursValueCenterX: 44.1,
+        hoursValueCenterX: (hoursLineStartX + hoursLineEndX) / 2,
         hoursValueY: hoursLineY - mainArea.valueLift,
-        hrsLabelX: 57,
+        hrsLabelX: (hoursLineEndX + minutesLineStartX) / 2,
         hrsLabelY: hoursLineY - mainArea.inlineUnitBaselineOffset,
-        minutesLineStartX: 61.4,
-        minutesLineEndX: 88.6,
+        minutesLineStartX,
+        minutesLineEndX,
         minutesLineY,
-        minutesValueCenterX: 75,
+        minutesValueCenterX: (minutesLineStartX + minutesLineEndX) / 2,
         minutesValueY: minutesLineY - mainArea.valueLift,
-        minLabelX: 91.5,
+        minLabelX: (minutesLineEndX + mainArea.lineRightX) / 2,
         minLabelY: minutesLineY - mainArea.inlineUnitBaselineOffset,
       };
     })(),
