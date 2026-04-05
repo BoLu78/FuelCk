@@ -1,4 +1,4 @@
-const APP_VERSION = "4.0";
+const APP_VERSION = "4.1";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -111,10 +111,232 @@ const TRIP_INFO_STORAGE_KEY = "rampcheck-trip-info";
 const TRIP_INFO_LOGO_SRC = "./assets/tripinfo-logo-neos.png";
 const TRIP_INFO_EXPORT_WIDTH = 1500;
 const TRIP_INFO_EXPORT_HEIGHT = 2100;
-const TRIP_INFO_PAGE_WIDTH_MM = 100;
-const TRIP_INFO_PAGE_HEIGHT_MM = 140;
-const TRIP_INFO_PAGE_WIDTH_PT = (100 / 25.4) * 72;
-const TRIP_INFO_PAGE_HEIGHT_PT = (140 / 25.4) * 72;
+const TRIP_INFO_LAYOUT = (() => {
+  const page = {
+    widthMm: 100,
+    heightMm: 140,
+  };
+  const pageLeft = 5;
+  const pageRight = 95;
+  const header = {
+    x: pageLeft,
+    y: 2,
+    width: pageRight - pageLeft,
+    height: 9,
+    titleCenterX: 50,
+    titleBaselineY: 7.95,
+    logoX: 6.8,
+    logoY: 3.6,
+    logoWidth: 17.8,
+    logoHeight: 6.3,
+    metadataRightX: 94,
+    metadataLine1Y: 3.9,
+    metadataLine2Y: 5.7,
+    metadataLine3Y: 7.5,
+    metadataLine4Y: 9.3,
+  };
+  const topRows = {
+    flightNumber: {
+      labelX: pageLeft,
+      labelY: 20,
+      lineStartX: 29.9,
+      lineEndX: 51.6,
+      lineY: 21.1,
+      valueCenterX: 40.75,
+      valueX: 30.4,
+      valueY: 20.45,
+      valueAnchor: "start",
+    },
+    from: {
+      labelX: 52.6,
+      labelY: 20,
+      lineStartX: 63.9,
+      lineEndX: 75.3,
+      lineY: 21.1,
+      valueCenterX: 69.6,
+      valueY: 20.45,
+    },
+    to: {
+      labelX: 76.2,
+      labelY: 20,
+      lineStartX: 82.1,
+      lineEndX: pageRight,
+      lineY: 21.1,
+      valueCenterX: 88.55,
+      valueY: 20.45,
+    },
+    date: {
+      labelX: pageLeft,
+      labelY: 25.95,
+      lineStartX: 16.6,
+      lineEndX: 36.9,
+      lineY: 27.05,
+      valueCenterX: 26.75,
+      valueY: 26.4,
+    },
+    crew: {
+      labelX: 42.6,
+      labelY: 25.95,
+      lineStartX: 54.4,
+      lineEndX: pageRight,
+      lineY: 27.05,
+      valueCenterX: 74.7,
+      valueY: 26.4,
+    },
+    registration: {
+      labelX: pageLeft,
+      labelY: 31.9,
+      lineStartX: 32.3,
+      lineEndX: 64.2,
+      lineY: 33,
+      valueCenterX: 48.25,
+      valueX: 32.8,
+      valueY: 32.35,
+      valueAnchor: "start",
+    },
+    aircraftType: {
+      labelX: 67.2,
+      labelY: 31.9,
+      lineStartX: 81.2,
+      lineEndX: pageRight,
+      lineY: 33,
+      valueCenterX: 88.1,
+      valueX: 81.8,
+      valueY: 32.35,
+      valueAnchor: "start",
+    },
+  };
+  const bottomBoxes = {
+    remarks: {
+      x: pageLeft,
+      y: 118,
+      width: 47,
+      height: 20,
+      labelX: 6.4,
+      labelY: 121.9,
+    },
+    signature: {
+      x: 52,
+      y: 118,
+      width: 43,
+      height: 20,
+      labelX: 53.4,
+      labelY: 121.9,
+      imageX: 53.1,
+      imageY: 122.6,
+      imageWidth: 40.8,
+      imageHeight: 13.8,
+    },
+  };
+  const noteBox = {
+    x: pageLeft,
+    y: 35,
+    width: 22,
+    height: bottomBoxes.remarks.y - 35,
+    labelX: 6.2,
+    labelY: 38.9,
+  };
+  const mainArea = {
+    x: noteBox.x + noteBox.width,
+    y: 47.2,
+    width: pageRight - (noteBox.x + noteBox.width),
+    rightX: pageRight,
+    labelX: noteBox.x + noteBox.width + 1.3,
+    lineRightX: pageRight - 0.6,
+    rowStep: 8,
+    fieldLineOffset: 1.1,
+    inlineUnitBaselineOffset: 0.15,
+  };
+  const buildRow = (index, config) => {
+    const y = mainArea.y + (mainArea.rowStep * index);
+    const lineEndX = config.lineEndX ?? mainArea.lineRightX;
+    const lineY = y + mainArea.fieldLineOffset;
+
+    return {
+      y,
+      labelX: config.labelX ?? mainArea.labelX,
+      lineStartX: config.lineStartX,
+      lineEndX,
+      lineY,
+      valueCenterX: config.valueCenterX ?? ((config.lineStartX + lineEndX) / 2),
+      valueY: config.valueY ?? lineY,
+    };
+  };
+  const rows = {
+    captainName: buildRow(0, {
+      lineStartX: 48.7,
+    }),
+    dow: buildRow(1, {
+      lineStartX: 36.9,
+      lineEndX: 56,
+    }),
+    doi: buildRow(1, {
+      labelX: 57.8,
+      lineStartX: 64.3,
+    }),
+    maxZfw: buildRow(2, {
+      lineStartX: 43.8,
+    }),
+    maxTow: buildRow(3, {
+      lineStartX: 62.2,
+    }),
+    maxLdw: buildRow(4, {
+      lineStartX: 62.2,
+    }),
+    tripFuel: buildRow(5, {
+      lineStartX: 43.8,
+    }),
+    takeOffFuel: buildRow(6, {
+      lineStartX: 56.8,
+    }),
+    taxiFuel: buildRow(7, {
+      lineStartX: 43.7,
+      lineEndX: 61.2,
+    }),
+    blockFuel: buildRow(7, {
+      labelX: 59,
+      lineStartX: 74.2,
+    }),
+    eet: (() => {
+      const y = mainArea.y + (mainArea.rowStep * 8);
+      const hoursLineY = y + mainArea.fieldLineOffset;
+      const minutesLineY = hoursLineY;
+
+      return {
+        y,
+        labelX: mainArea.labelX,
+        hoursLineStartX: 35.6,
+        hoursLineEndX: 50.8,
+        hoursLineY,
+        hoursValueCenterX: 43.2,
+        hoursValueY: hoursLineY,
+        hrsLabelX: 52.9,
+        hrsLabelY: hoursLineY - mainArea.inlineUnitBaselineOffset,
+        minutesLineStartX: 60.2,
+        minutesLineEndX: 84.3,
+        minutesLineY,
+        minutesValueCenterX: 72.25,
+        minutesValueY: minutesLineY,
+        minLabelX: 86.2,
+        minLabelY: minutesLineY - mainArea.inlineUnitBaselineOffset,
+      };
+    })(),
+  };
+
+  return {
+    page,
+    header,
+    topRows,
+    noteBox,
+    mainArea,
+    rows,
+    bottomBoxes,
+  };
+})();
+const TRIP_INFO_PAGE_WIDTH_MM = TRIP_INFO_LAYOUT.page.widthMm;
+const TRIP_INFO_PAGE_HEIGHT_MM = TRIP_INFO_LAYOUT.page.heightMm;
+const TRIP_INFO_PAGE_WIDTH_PT = (TRIP_INFO_LAYOUT.page.widthMm / 25.4) * 72;
+const TRIP_INFO_PAGE_HEIGHT_PT = (TRIP_INFO_LAYOUT.page.heightMm / 25.4) * 72;
 const TRIP_INFO_MONTHS = [
   "JAN",
   "FEB",
@@ -1579,60 +1801,50 @@ function tripInfoBuildPreviewSvg(data) {
   const bodyFontSize = 9 * (25.4 / 72);
   const valueFontSize = 10 * (25.4 / 72);
   const metadataFontSize = 4 * (25.4 / 72);
-  const pageLeft = 5;
-  const pageRight = 95;
-  const headerX = pageLeft;
-  const headerY = 2;
-  const headerWidth = pageRight - pageLeft;
-  const headerHeight = 9;
-  const metadataStartX = 77;
-  const metadataRightX = metadataStartX + 17;
-  const noteX = pageLeft;
-  const noteY = 35;
-  const noteWidth = 22;
-  const bottomBoxHeight = 20;
-  const pageBottomMargin = 2;
-  const remarksX = pageLeft;
-  const remarksWidth = 47;
-  const signatureX = remarksX + remarksWidth;
-  const signatureWidth = 43;
-  const remarksY = TRIP_INFO_PAGE_HEIGHT_MM - pageBottomMargin - bottomBoxHeight;
-  const signatureY = remarksY;
-  const noteHeight = remarksY - noteY;
-  const mainX = noteX + noteWidth;
-  const mainLabelX = mainX + 1.3;
-  const mainRight = pageRight;
-  const mainLineRight = mainRight - 0.6;
-  const mainRowStep = 8;
-  const fieldLineOffset = 1.1;
-  const mainRowBottomGap = 5.7;
-  const mainRowStartY = remarksY - mainRowBottomGap - fieldLineOffset - (mainRowStep * 8);
-  const inlineUnitBaselineOffset = 0.15;
+  const { page, header, topRows, noteBox, rows, bottomBoxes } = TRIP_INFO_LAYOUT;
+  const buildSvgField = (field, value, options = {}) =>
+    tripInfoBuildSvgInlineField({
+      label: options.label ?? field.label ?? "",
+      labelX: field.labelX,
+      labelY: field.labelY ?? field.y,
+      lineStartX: field.lineStartX,
+      lineEndX: field.lineEndX,
+      lineY: field.lineY,
+      value,
+      valueX: field.valueX ?? field.valueCenterX,
+      valueY: field.valueY,
+      valueAnchor: field.valueAnchor ?? "middle",
+      labelFontSize: bodyFontSize,
+      valueFontSize: valueFontSize,
+      ...options,
+    });
   const logoMarkup = tripInfoLogoDataUrl
     ? `<image href="${tripInfoEscapeAttribute(tripInfoLogoDataUrl)}" x="${tripInfoFormatSvgNumber(
-        6.8
-      )}" y="${tripInfoFormatSvgNumber(3.6)}" width="${tripInfoFormatSvgNumber(
-        17.8
-      )}" height="${tripInfoFormatSvgNumber(6.3)}" preserveAspectRatio="xMidYMid meet" />`
+        header.logoX
+      )}" y="${tripInfoFormatSvgNumber(header.logoY)}" width="${tripInfoFormatSvgNumber(
+        header.logoWidth
+      )}" height="${tripInfoFormatSvgNumber(
+        header.logoHeight
+      )}" preserveAspectRatio="xMidYMid meet" />`
     : "";
   const signatureMarkup = data.signatureDataUrl
     ? `<image href="${tripInfoEscapeAttribute(data.signatureDataUrl)}" x="${tripInfoFormatSvgNumber(
-        signatureX + 1.1
-      )}" y="${tripInfoFormatSvgNumber(signatureY + 4.6)}" width="${tripInfoFormatSvgNumber(
-        signatureWidth - 2.2
+        bottomBoxes.signature.imageX
+      )}" y="${tripInfoFormatSvgNumber(bottomBoxes.signature.imageY)}" width="${tripInfoFormatSvgNumber(
+        bottomBoxes.signature.imageWidth
       )}" height="${tripInfoFormatSvgNumber(
-        bottomBoxHeight - 6.2
+        bottomBoxes.signature.imageHeight
       )}" preserveAspectRatio="xMidYMid meet" />`
     : "";
 
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${TRIP_INFO_PAGE_WIDTH_MM}mm" height="${TRIP_INFO_PAGE_HEIGHT_MM}mm" viewBox="0 0 ${TRIP_INFO_PAGE_WIDTH_MM} ${TRIP_INFO_PAGE_HEIGHT_MM}" role="img" aria-label="Trip Info preview">
-      <rect x="0" y="0" width="${TRIP_INFO_PAGE_WIDTH_MM}" height="${TRIP_INFO_PAGE_HEIGHT_MM}" fill="#ffffff" />
-      ${tripInfoBuildSvgRect(headerX, headerY, headerWidth, headerHeight)}
+    <svg xmlns="http://www.w3.org/2000/svg" width="${page.widthMm}mm" height="${page.heightMm}mm" viewBox="0 0 ${page.widthMm} ${page.heightMm}" role="img" aria-label="Trip Info preview">
+      <rect x="0" y="0" width="${page.widthMm}" height="${page.heightMm}" fill="#ffffff" />
+      ${tripInfoBuildSvgRect(header.x, header.y, header.width, header.height)}
       ${logoMarkup}
       ${tripInfoBuildSvgMmText({
-        x: headerX + (headerWidth / 2),
-        y: 7.95,
+        x: header.titleCenterX,
+        y: header.titleBaselineY,
         text: "TRIP - INFO",
         textAnchor: "middle",
         fontSize: titleFontSize,
@@ -1640,8 +1852,8 @@ function tripInfoBuildPreviewSvg(data) {
         letterSpacing: 0,
       })}
       ${tripInfoBuildSvgMmText({
-        x: metadataRightX,
-        y: 3.9,
+        x: header.metadataRightX,
+        y: header.metadataLine1Y,
         text: "SN: FO-FO-008",
         textAnchor: "end",
         fontSize: metadataFontSize,
@@ -1649,8 +1861,8 @@ function tripInfoBuildPreviewSvg(data) {
         letterSpacing: 0,
       })}
       ${tripInfoBuildSvgMmText({
-        x: metadataRightX,
-        y: 5.7,
+        x: header.metadataRightX,
+        y: header.metadataLine2Y,
         text: "Revision: 03",
         textAnchor: "end",
         fontSize: metadataFontSize,
@@ -1658,8 +1870,8 @@ function tripInfoBuildPreviewSvg(data) {
         letterSpacing: 0,
       })}
       ${tripInfoBuildSvgMmText({
-        x: metadataRightX,
-        y: 7.5,
+        x: header.metadataRightX,
+        y: header.metadataLine3Y,
         text: "Date: 30 Jun 05",
         textAnchor: "end",
         fontSize: metadataFontSize,
@@ -1667,8 +1879,8 @@ function tripInfoBuildPreviewSvg(data) {
         letterSpacing: 0,
       })}
       ${tripInfoBuildSvgMmText({
-        x: metadataRightX,
-        y: 9.3,
+        x: header.metadataRightX,
+        y: header.metadataLine4Y,
         text: "Edited by: FOPH",
         textAnchor: "end",
         fontSize: metadataFontSize,
@@ -1676,266 +1888,87 @@ function tripInfoBuildPreviewSvg(data) {
         letterSpacing: 0,
       })}
 
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(topRows.flightNumber, tripInfoFitPreviewText(data.flightNumber, 16), {
         label: "Flight Number",
-        labelX: pageLeft,
-        labelY: 20,
-        lineStartX: 29.9,
-        lineEndX: 51.6,
-        lineY: 21.1,
-        value: tripInfoFitPreviewText(data.flightNumber, 16),
-        valueX: 30.4,
-        valueY: 20.45,
-        valueAnchor: "start",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(topRows.from, data.from, {
         label: "From",
-        labelX: 52.6,
-        labelY: 20,
-        lineStartX: 63.9,
-        lineEndX: 75.3,
-        lineY: 21.1,
-        value: data.from,
-        valueY: 20.45,
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(topRows.to, data.to, {
         label: "To",
-        labelX: 76.2,
-        labelY: 20,
-        lineStartX: 82.1,
-        lineEndX: pageRight,
-        lineY: 21.1,
-        value: data.to,
-        valueY: 20.45,
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
 
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(topRows.date, data.dateDisplay, {
         label: "Date",
-        labelX: pageLeft,
-        labelY: 25.95,
-        lineStartX: 16.6,
-        lineEndX: 36.9,
-        lineY: 27.05,
-        value: data.dateDisplay,
-        valueY: 26.4,
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(topRows.crew, data.crew, {
         label: "Crew",
-        labelX: 42.6,
-        labelY: 25.95,
-        lineStartX: 54.4,
-        lineEndX: pageRight,
-        lineY: 27.05,
-        value: data.crew,
-        valueY: 26.4,
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
 
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(topRows.registration, data.aircraftRegistration, {
         label: "A/C Registration",
-        labelX: pageLeft,
-        labelY: 31.9,
-        lineStartX: 32.3,
-        lineEndX: 64.2,
-        lineY: 33,
-        value: data.aircraftRegistration,
-        valueX: 32.8,
-        valueY: 32.35,
-        valueAnchor: "start",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(topRows.aircraftType, data.aircraftType, {
         label: "A/C Type",
-        labelX: 67.2,
-        labelY: 31.9,
-        lineStartX: 81.2,
-        lineEndX: pageRight,
-        lineY: 33,
-        value: data.aircraftType,
-        valueX: 81.8,
-        valueY: 32.35,
-        valueAnchor: "start",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
 
-      ${tripInfoBuildSvgRect(noteX, noteY, noteWidth, noteHeight)}
+      ${tripInfoBuildSvgRect(noteBox.x, noteBox.y, noteBox.width, noteBox.height)}
       ${tripInfoBuildSvgMmText({
-        x: noteX + 1.2,
-        y: noteY + 3.9,
+        x: noteBox.labelX,
+        y: noteBox.labelY,
         text: "NOTE:",
         fontSize: bodyFontSize,
         fontWeight: 400,
         letterSpacing: 0,
       })}
 
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.captainName, tripInfoFitPreviewText(data.captainName, 22), {
         label: "Captain Name",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 0),
-        lineStartX: 48.7,
-        lineEndX: mainLineRight,
-        lineY: mainRowStartY + (mainRowStep * 0) + fieldLineOffset,
-        value: tripInfoFitPreviewText(data.captainName, 22),
-        valueX: (48.7 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 0) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.dow, data.dowDisplay, {
         label: "DOW",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 1),
-        lineStartX: 36.9,
-        lineEndX: 56,
-        lineY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
-        value: data.dowDisplay,
-        valueX: (36.9 + 56) / 2,
-        valueY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.doi, data.doiDisplay, {
         label: "DOI",
-        labelX: 57.8,
-        labelY: mainRowStartY + (mainRowStep * 1),
-        lineStartX: 64.3,
-        lineEndX: mainLineRight,
-        lineY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
-        value: data.doiDisplay,
-        valueX: (64.3 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 1) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.maxZfw, data.maxZfwDisplay, {
         label: "Max ZFW",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 2),
-        lineStartX: 43.8,
-        lineEndX: mainLineRight,
-        lineY: mainRowStartY + (mainRowStep * 2) + fieldLineOffset,
-        value: data.maxZfwDisplay,
-        valueX: (43.8 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 2) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.maxTow, data.maxTowDisplay, {
         label: "Max or Restricted TOW",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 3),
-        lineStartX: 62.2,
-        lineEndX: mainLineRight,
-        lineY: mainRowStartY + (mainRowStep * 3) + fieldLineOffset,
-        value: data.maxTowDisplay,
-        valueX: (62.2 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 3) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.maxLdw, data.maxLdwDisplay, {
         label: "Max or Restricted LDW",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 4),
-        lineStartX: 62.2,
-        lineEndX: mainLineRight,
-        lineY: mainRowStartY + (mainRowStep * 4) + fieldLineOffset,
-        value: data.maxLdwDisplay,
-        valueX: (62.2 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 4) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.tripFuel, data.tripFuelDisplay, {
         label: "Trip Fuel",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 5),
-        lineStartX: 43.8,
-        lineEndX: mainLineRight,
-        lineY: mainRowStartY + (mainRowStep * 5) + fieldLineOffset,
-        value: data.tripFuelDisplay,
-        valueX: (43.8 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 5) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.takeOffFuel, data.takeOffFuelDisplay, {
         label: "Take Off Fuel",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 6),
-        lineStartX: 56.8,
-        lineEndX: mainLineRight,
-        lineY: mainRowStartY + (mainRowStep * 6) + fieldLineOffset,
-        value: data.takeOffFuelDisplay,
-        valueX: (56.8 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 6) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.taxiFuel, data.taxiFuelDisplay, {
         label: "Taxi Fuel",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 7),
-        lineStartX: 43.7,
-        lineEndX: 61.2,
-        lineY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
-        value: data.taxiFuelDisplay,
-        valueX: (43.7 + 61.2) / 2,
-        valueY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
-      ${tripInfoBuildSvgInlineField({
+      ${buildSvgField(rows.blockFuel, data.blockFuelDisplay, {
         label: "Block Fuel",
-        labelX: 59,
-        labelY: mainRowStartY + (mainRowStep * 7),
-        lineStartX: 74.2,
-        lineEndX: mainLineRight,
-        lineY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
-        value: data.blockFuelDisplay,
-        valueX: (74.2 + mainLineRight) / 2,
-        valueY: mainRowStartY + (mainRowStep * 7) + fieldLineOffset,
-        valueAnchor: "middle",
-        labelFontSize: bodyFontSize,
-        valueFontSize: valueFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "EET",
-        labelX: mainLabelX,
-        labelY: mainRowStartY + (mainRowStep * 8),
-        lineStartX: 35.6,
-        lineEndX: 50.8,
-        lineY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
+        labelX: rows.eet.labelX,
+        labelY: rows.eet.y,
+        lineStartX: rows.eet.hoursLineStartX,
+        lineEndX: rows.eet.hoursLineEndX,
+        lineY: rows.eet.hoursLineY,
         value: data.eetHours,
-        valueX: (35.6 + 50.8) / 2,
-        valueY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
+        valueX: rows.eet.hoursValueCenterX,
+        valueY: rows.eet.hoursValueY,
         valueAnchor: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
       ${tripInfoBuildSvgMmText({
-        x: 52.9,
-        y: mainRowStartY + (mainRowStep * 8) + fieldLineOffset - inlineUnitBaselineOffset,
+        x: rows.eet.hrsLabelX,
+        y: rows.eet.hrsLabelY,
         text: "hrs",
         fontSize: bodyFontSize,
         fontWeight: 400,
@@ -1943,40 +1976,50 @@ function tripInfoBuildPreviewSvg(data) {
       })}
       ${tripInfoBuildSvgInlineField({
         label: "",
-        labelX: 58.8,
-        labelY: mainRowStartY + (mainRowStep * 8),
-        lineStartX: 60.2,
-        lineEndX: 84.3,
-        lineY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
+        labelX: rows.eet.labelX,
+        labelY: rows.eet.y,
+        lineStartX: rows.eet.minutesLineStartX,
+        lineEndX: rows.eet.minutesLineEndX,
+        lineY: rows.eet.minutesLineY,
         value: data.eetMinutes,
-        valueX: (60.2 + 84.3) / 2,
-        valueY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
+        valueX: rows.eet.minutesValueCenterX,
+        valueY: rows.eet.minutesValueY,
         valueAnchor: "middle",
         valueFontSize: valueFontSize,
       })}
       ${tripInfoBuildSvgMmText({
-        x: 86.2,
-        y: mainRowStartY + (mainRowStep * 8) + fieldLineOffset - inlineUnitBaselineOffset,
+        x: rows.eet.minLabelX,
+        y: rows.eet.minLabelY,
         text: "min",
         fontSize: bodyFontSize,
         fontWeight: 400,
         letterSpacing: 0,
       })}
 
-      ${tripInfoBuildSvgRect(remarksX, remarksY, remarksWidth, bottomBoxHeight)}
+      ${tripInfoBuildSvgRect(
+        bottomBoxes.remarks.x,
+        bottomBoxes.remarks.y,
+        bottomBoxes.remarks.width,
+        bottomBoxes.remarks.height
+      )}
       ${tripInfoBuildSvgMmText({
-        x: remarksX + 1.4,
-        y: remarksY + 3.9,
+        x: bottomBoxes.remarks.labelX,
+        y: bottomBoxes.remarks.labelY,
         text: "Remarks",
         fontSize: bodyFontSize,
         fontWeight: 400,
         letterSpacing: 0,
       })}
 
-      ${tripInfoBuildSvgRect(signatureX, signatureY, signatureWidth, bottomBoxHeight)}
+      ${tripInfoBuildSvgRect(
+        bottomBoxes.signature.x,
+        bottomBoxes.signature.y,
+        bottomBoxes.signature.width,
+        bottomBoxes.signature.height
+      )}
       ${tripInfoBuildSvgMmText({
-        x: signatureX + 1.4,
-        y: signatureY + 3.9,
+        x: bottomBoxes.signature.labelX,
+        y: bottomBoxes.signature.labelY,
         text: "Captain Signature",
         fontSize: bodyFontSize,
         fontWeight: 400,
