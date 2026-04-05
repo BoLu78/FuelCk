@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="5.1">
+    <meta name="app-version" content="5.2">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -793,7 +793,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">5.1</span>
+          <span class="home-version">5.2</span>
         </div>
       </section>
 
@@ -1059,6 +1059,19 @@
                   <option value="B789" selected>B789</option>
                 </select>
               </div>
+            </div>
+
+            <div class="field">
+              <label for="tripInfo-crew-bag">Crew Bag</label>
+              <input
+                id="tripInfo-crew-bag"
+                name="crewBag"
+                class="input number-input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                autocomplete="off"
+              >
             </div>
 
             <div class="field">

@@ -1,4 +1,4 @@
-const APP_VERSION = "5.1";
+const APP_VERSION = "5.2";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -405,6 +405,7 @@ const TRIP_INFO_DEFAULTS = {
   to: "",
   date: "",
   crew: "2+9",
+  crewBag: "",
   aircraftRegistration: TRIP_INFO_REGISTRATIONS[0],
   aircraftType: "B789",
   captainName: "",
@@ -473,6 +474,7 @@ const tripInfoExportCanvas = document.getElementById("tripInfo-export-canvas");
 let tripInfoState = {
   generatedData: null,
   signatureDataUrl: "",
+  crewBagManualOverride: false,
 };
 let tripInfoLogoDataUrl = "";
 let tripInfoSignaturePointerId = null;
@@ -1306,6 +1308,12 @@ function handleTripInfoFormInput(event) {
 
   if (target.name === "crew") {
     target.value = target.value.replace(/[^\d+\s]/g, "");
+    tripInfoSyncCrewBagFromCrew();
+  }
+
+  if (target.name === "crewBag") {
+    target.value = tripInfoNormalizeCrewBagInput(target.value);
+    tripInfoState.crewBagManualOverride = true;
   }
 
   if (target.name === "eetHours" || target.name === "eetMinutes") {
@@ -1336,6 +1344,12 @@ function handleTripInfoFormChange(event) {
     if (normalizedCrew) {
       target.value = normalizedCrew;
     }
+    tripInfoSyncCrewBagFromCrew();
+  }
+
+  if (target.name === "crewBag") {
+    target.value = tripInfoNormalizeCrewBagDisplayValue(target.value);
+    tripInfoState.crewBagManualOverride = true;
   }
 
   tripInfoUpdateTakeOffFuelField();
@@ -1492,7 +1506,9 @@ function tripInfoDrawSignatureDataUrl(dataUrl) {
 
 function tripInfoRestoreState() {
   const storedState = tripInfoReadStoredState();
+  tripInfoState.crewBagManualOverride = storedState.crewBagManualOverride;
   tripInfoApplyFormValues(storedState.formValues);
+  tripInfoSyncCrewBagFromCrew();
   tripInfoState.signatureDataUrl = storedState.signatureDataUrl;
   tripInfoUpdateTakeOffFuelField();
   tripInfoClearValidation();
@@ -1526,6 +1542,7 @@ function tripInfoReadStoredState() {
     formValues: tripInfoGetDefaultFormValues(),
     generatedData: null,
     signatureDataUrl: "",
+    crewBagManualOverride: false,
   };
 
   try {
@@ -1535,6 +1552,11 @@ function tripInfoReadStoredState() {
     }
 
     const parsedState = JSON.parse(rawState);
+    const rawCrewBagValue = parsedState?.formValues?.crewBag;
+    const inferredCrewBagManualOverride = tripInfoNormalizeCrewBagInput(
+      String(rawCrewBagValue ?? "")
+    ) !== "";
+
     return {
       formValues: tripInfoSanitizeStoredFormValues(parsedState?.formValues),
       generatedData:
@@ -1543,6 +1565,10 @@ function tripInfoReadStoredState() {
           : null,
       signatureDataUrl:
         typeof parsedState?.signatureDataUrl === "string" ? parsedState.signatureDataUrl : "",
+      crewBagManualOverride:
+        typeof parsedState?.crewBagManualOverride === "boolean"
+          ? parsedState.crewBagManualOverride
+          : inferredCrewBagManualOverride,
     };
   } catch {
     return emptyState;
@@ -1557,6 +1583,7 @@ function tripInfoSaveState() {
         formValues: tripInfoGetFormValues(),
         generatedData: tripInfoState.generatedData,
         signatureDataUrl: tripInfoState.signatureDataUrl,
+        crewBagManualOverride: tripInfoState.crewBagManualOverride,
       })
     );
   } catch {
@@ -1571,6 +1598,7 @@ function tripInfoGetFormValues() {
     to: tripInfoForm.elements.to.value,
     date: tripInfoForm.elements.date.value,
     crew: tripInfoForm.elements.crew.value,
+    crewBag: tripInfoForm.elements.crewBag.value,
     aircraftRegistration: tripInfoForm.elements.aircraftRegistration.value,
     aircraftType: tripInfoForm.elements.aircraftType.value,
     captainName: tripInfoForm.elements.captainName.value,
@@ -1604,7 +1632,9 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
 }
 
 function resetTripInfoModule(shouldFocus) {
+  tripInfoState.crewBagManualOverride = false;
   tripInfoApplyFormValues(tripInfoGetDefaultFormValues());
+  tripInfoSyncCrewBagFromCrew();
   tripInfoState.generatedData = null;
   tripInfoState.signatureDataUrl = "";
   tripInfoPreviewMount.textContent = "";
@@ -1654,6 +1684,8 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const to = tripInfoNormalizeIataCode(rawValues.to);
   const parsedDate = tripInfoParseDateInput(rawValues.date);
   const crew = tripInfoNormalizeCrewValue(rawValues.crew);
+  const crewBagInput = tripInfoNormalizeCrewBagInput(rawValues.crewBag);
+  const crewBagValue = crewBagInput === "" ? null : tripInfoParsePlainInteger(crewBagInput);
   const aircraftRegistration = tripInfoNormalizeText(rawValues.aircraftRegistration);
   const aircraftType = rawValues.aircraftType;
   const captainName = tripInfoNormalizeText(rawValues.captainName);
@@ -1687,6 +1719,10 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
 
   if (!crew) {
     errors.push("Crew must be in the format 2+9.");
+  }
+
+  if (crewBagInput !== "" && crewBagValue === null) {
+    errors.push("Crew Bag must be a non-negative whole number.");
   }
 
   if (!TRIP_INFO_REGISTRATIONS.includes(aircraftRegistration)) {
@@ -1765,6 +1801,9 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     dateDisplay: parsedDate.display,
     dateIso: parsedDate.iso,
     crew,
+    crewBagValue,
+    crewBagDisplay: crewBagValue === null ? "" : String(crewBagValue),
+    showCrewBagNote: crewBagValue !== null && crewBagValue > 0,
     aircraftRegistration,
     aircraftType,
     captainName,
@@ -1800,11 +1839,15 @@ function tripInfoSanitizeStoredFormValues(values) {
   };
   const parsedStoredDate = tripInfoParseDateInput(String(mergedValues.date || ""));
   const normalizedCrew = tripInfoNormalizeCrewValue(String(mergedValues.crew || ""));
+  const normalizedCrewBag = tripInfoNormalizeCrewBagDisplayValue(
+    String(mergedValues.crewBag || "")
+  );
 
   return {
     ...mergedValues,
     date: parsedStoredDate ? parsedStoredDate.iso : defaultValues.date,
     crew: normalizedCrew || defaultValues.crew,
+    crewBag: normalizedCrewBag,
     aircraftRegistration: TRIP_INFO_REGISTRATIONS.includes(mergedValues.aircraftRegistration)
       ? mergedValues.aircraftRegistration
       : defaultValues.aircraftRegistration,
@@ -1827,6 +1870,15 @@ function tripInfoUpdateTakeOffFuelField() {
   tripInfoTakeOffFuelInput.value = tripInfoFormatKgValue(blockFuelKg - taxiFuelKg);
 }
 
+function tripInfoSyncCrewBagFromCrew() {
+  if (tripInfoState.crewBagManualOverride) {
+    return;
+  }
+
+  const autoCrewBagValue = tripInfoCalculateCrewBagFromCrew(tripInfoForm.elements.crew.value);
+  tripInfoForm.elements.crewBag.value = autoCrewBagValue === null ? "" : String(autoCrewBagValue);
+}
+
 function renderTripInfoPreview(data) {
   tripInfoPreviewMount.innerHTML = tripInfoBuildPreviewSvg(data);
   tripInfoUpdatePreviewVisibility();
@@ -1842,6 +1894,12 @@ function tripInfoBuildPreviewSvg(data) {
   const valueFontSize = 10 * (25.4 / 72);
   const metadataFontSize = 4 * (25.4 / 72);
   const { page, header, topRows, noteBox, rows, bottomBoxes } = TRIP_INFO_LAYOUT;
+  const crewBagNoteMarkup = tripInfoBuildCrewBagNoteMarkup(
+    noteBox,
+    data,
+    bodyFontSize,
+    valueFontSize
+  );
   const buildSvgField = (field, value, options = {}) =>
     tripInfoBuildSvgInlineField({
       label: options.label ?? field.label ?? "",
@@ -1962,6 +2020,7 @@ function tripInfoBuildPreviewSvg(data) {
         fontWeight: 400,
         letterSpacing: 0,
       })}
+      ${crewBagNoteMarkup}
 
       ${buildSvgField(rows.captainName, tripInfoFitPreviewText(data.captainName, 22), {
         label: "Captain Name",
@@ -2070,6 +2129,47 @@ function tripInfoBuildPreviewSvg(data) {
       })}
       ${signatureMarkup}
     </svg>
+  `.trim();
+}
+
+function tripInfoBuildCrewBagNoteMarkup(noteBox, data, bodyFontSize, valueFontSize) {
+  if (!data.showCrewBagNote) {
+    return "";
+  }
+
+  const centerX = noteBox.x + (noteBox.width / 2);
+  const crewBagTitleY = noteBox.y + 12.2;
+  const crewBagValueY = crewBagTitleY + 7.1;
+  const holdY = crewBagValueY + 7.2;
+
+  return `
+    ${tripInfoBuildSvgMmText({
+      x: centerX,
+      y: crewBagTitleY,
+      text: "CREW BAG",
+      textAnchor: "middle",
+      fontSize: bodyFontSize,
+      fontWeight: 600,
+      letterSpacing: 0,
+    })}
+    ${tripInfoBuildSvgMmText({
+      x: centerX,
+      y: crewBagValueY,
+      text: data.crewBagDisplay,
+      textAnchor: "middle",
+      fontSize: valueFontSize,
+      fontWeight: 600,
+      letterSpacing: 0,
+    })}
+    ${tripInfoBuildSvgMmText({
+      x: centerX,
+      y: holdY,
+      text: "HOLD 5",
+      textAnchor: "middle",
+      fontSize: bodyFontSize,
+      fontWeight: 400,
+      letterSpacing: 0,
+    })}
   `.trim();
 }
 
@@ -2463,6 +2563,32 @@ function tripInfoNormalizeIataCode(value) {
 function tripInfoNormalizeCrewValue(value) {
   const compactValue = tripInfoNormalizeText(value).replace(/\s+/g, "");
   return /^\d+\+\d+$/.test(compactValue) ? compactValue : null;
+}
+
+function tripInfoNormalizeCrewBagInput(value) {
+  return typeof value === "string" ? value.replace(/\D/g, "") : "";
+}
+
+function tripInfoNormalizeCrewBagDisplayValue(value) {
+  const normalizedValue = tripInfoNormalizeCrewBagInput(value);
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  return String(Number(normalizedValue));
+}
+
+function tripInfoCalculateCrewBagFromCrew(value) {
+  const normalizedCrew = tripInfoNormalizeCrewValue(String(value || ""));
+
+  if (!normalizedCrew) {
+    return null;
+  }
+
+  return normalizedCrew
+    .split("+")
+    .reduce((sum, item) => sum + Number(item), 0);
 }
 
 function tripInfoParseDateInput(value) {
