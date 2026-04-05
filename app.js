@@ -1575,13 +1575,17 @@ function tripInfoUpdatePreviewVisibility() {
 }
 
 function tripInfoBuildPreviewSvg(data) {
+  const titleFontSize = 12 * (25.4 / 72);
+  const bodyFontSize = 10 * (25.4 / 72);
+  const metadataFontSize = 5 * (25.4 / 72);
   const pageLeft = 5;
   const pageRight = 95;
   const headerX = pageLeft;
   const headerY = 5;
   const headerWidth = pageRight - pageLeft;
-  const headerHeight = 10.5;
-  const metadataX = 71;
+  const headerHeight = 9;
+  const metadataStartX = 77;
+  const metadataRightX = metadataStartX + 17;
   const noteX = pageLeft;
   const noteY = 35;
   const noteWidth = 22;
@@ -1589,13 +1593,12 @@ function tripInfoBuildPreviewSvg(data) {
   const mainX = noteX + noteWidth;
   const mainRight = pageRight;
   const remarksX = pageLeft;
-  const remarksY = 119;
+  const remarksY = noteY + noteHeight;
   const remarksWidth = 48;
-  const signatureX = 54;
-  const signatureY = 119;
+  const signatureX = remarksX + remarksWidth;
+  const signatureY = remarksY;
   const signatureWidth = 41;
   const bottomBoxHeight = 20;
-  const metadataTextX = metadataX + 1.7;
   const logoMarkup = tripInfoLogoDataUrl
     ? `<image href="${tripInfoEscapeAttribute(tripInfoLogoDataUrl)}" x="${tripInfoFormatSvgNumber(
         6.8
@@ -1617,350 +1620,354 @@ function tripInfoBuildPreviewSvg(data) {
     <svg xmlns="http://www.w3.org/2000/svg" width="${TRIP_INFO_PAGE_WIDTH_MM}mm" height="${TRIP_INFO_PAGE_HEIGHT_MM}mm" viewBox="0 0 ${TRIP_INFO_PAGE_WIDTH_MM} ${TRIP_INFO_PAGE_HEIGHT_MM}" role="img" aria-label="Trip Info preview">
       <rect x="0" y="0" width="${TRIP_INFO_PAGE_WIDTH_MM}" height="${TRIP_INFO_PAGE_HEIGHT_MM}" fill="#ffffff" />
       ${tripInfoBuildSvgRect(headerX, headerY, headerWidth, headerHeight)}
-      ${tripInfoBuildSvgLine(metadataX, headerY, metadataX, headerY + headerHeight)}
       ${logoMarkup}
       ${tripInfoBuildSvgMmText({
-        x: 44.8,
-        y: 11.35,
+        x: headerX + (headerWidth / 2),
+        y: 11.15,
         text: "TRIP - INFO",
         textAnchor: "middle",
-        fontSize: 2.35,
-        letterSpacing: 0.08,
+        fontSize: titleFontSize,
+        fontWeight: 700,
+        letterSpacing: 0,
       })}
       ${tripInfoBuildSvgMmText({
-        x: metadataTextX,
-        y: 7.8,
+        x: metadataRightX,
+        y: 6.95,
         text: "SN: FO-FO-008",
-        fontSize: 0.72,
-        fontWeight: 600,
-        letterSpacing: 0.02,
+        textAnchor: "end",
+        fontSize: metadataFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
       ${tripInfoBuildSvgMmText({
-        x: metadataTextX,
-        y: 9.75,
-        text: "REVISION: 03",
-        fontSize: 0.72,
-        fontWeight: 600,
-        letterSpacing: 0.02,
+        x: metadataRightX,
+        y: 8.85,
+        text: "Revision: 03",
+        textAnchor: "end",
+        fontSize: metadataFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
       ${tripInfoBuildSvgMmText({
-        x: metadataTextX,
-        y: 11.7,
-        text: "DATE: 30 JUN 05",
-        fontSize: 0.72,
-        fontWeight: 600,
-        letterSpacing: 0.02,
+        x: metadataRightX,
+        y: 10.75,
+        text: "Date: 30 Jun 05",
+        textAnchor: "end",
+        fontSize: metadataFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
       ${tripInfoBuildSvgMmText({
-        x: metadataTextX,
-        y: 13.65,
-        text: "EDITED BY: FOPH",
-        fontSize: 0.72,
-        fontWeight: 600,
-        letterSpacing: 0.02,
+        x: metadataRightX,
+        y: 12.65,
+        text: "Edited by: FOPH",
+        textAnchor: "end",
+        fontSize: metadataFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
 
       ${tripInfoBuildSvgInlineField({
         label: "FLIGHT NUMBER",
         labelX: pageLeft,
-        labelY: 19.7,
-        lineStartX: 24.8,
-        lineEndX: 50.8,
-        lineY: 20.95,
+        labelY: 21.1,
+        lineStartX: 29.3,
+        lineEndX: 50.5,
+        lineY: 21.95,
         value: tripInfoFitPreviewText(data.flightNumber, 16),
-        valueX: 25.4,
-        valueY: 20.25,
+        valueX: 29.8,
+        valueY: 21.1,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.58,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "FROM",
-        labelX: 53.4,
-        labelY: 19.7,
-        lineStartX: 59.8,
-        lineEndX: 71.3,
-        lineY: 20.95,
+        labelX: 52.6,
+        labelY: 21.1,
+        lineStartX: 63.8,
+        lineEndX: 74.4,
+        lineY: 21.95,
         value: data.from,
-        valueY: 20.25,
-        labelFontSize: 1.45,
-        valueFontSize: 1.58,
+        valueY: 21.1,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "TO",
-        labelX: 74.2,
-        labelY: 19.7,
-        lineStartX: 77.9,
+        labelX: 76.2,
+        labelY: 21.1,
+        lineStartX: 82.3,
         lineEndX: pageRight,
-        lineY: 20.95,
+        lineY: 21.95,
         value: data.to,
-        valueY: 20.25,
-        labelFontSize: 1.45,
-        valueFontSize: 1.58,
+        valueY: 21.1,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
 
       ${tripInfoBuildSvgInlineField({
         label: "DATE",
         labelX: pageLeft,
-        labelY: 25.8,
-        lineStartX: 11.8,
-        lineEndX: 34.8,
-        lineY: 27.05,
+        labelY: 28.35,
+        lineStartX: 16.2,
+        lineEndX: 36.8,
+        lineY: 29.2,
         value: data.dateDisplay,
-        valueY: 26.35,
-        labelFontSize: 1.45,
-        valueFontSize: 1.58,
+        valueY: 28.35,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "CREW",
-        labelX: 40.1,
-        labelY: 25.8,
-        lineStartX: 48.3,
+        labelX: 42.6,
+        labelY: 28.35,
+        lineStartX: 54.1,
         lineEndX: pageRight,
-        lineY: 27.05,
+        lineY: 29.2,
         value: data.crew,
-        valueY: 26.35,
-        labelFontSize: 1.45,
-        valueFontSize: 1.58,
+        valueY: 28.35,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
 
       ${tripInfoBuildSvgInlineField({
         label: "A/C REGISTRATION",
         labelX: pageLeft,
-        labelY: 31.9,
-        lineStartX: 25.8,
-        lineEndX: 61.9,
-        lineY: 33.15,
+        labelY: 35,
+        lineStartX: 31.2,
+        lineEndX: 64.2,
+        lineY: 35.85,
         value: data.aircraftRegistration,
-        valueX: 26.4,
-        valueY: 32.45,
+        valueX: 31.7,
+        valueY: 35,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.58,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "A/C TYPE",
-        labelX: 65.2,
-        labelY: 31.9,
-        lineStartX: 76.1,
+        labelX: 67.2,
+        labelY: 35,
+        lineStartX: 80.6,
         lineEndX: pageRight,
-        lineY: 33.15,
+        lineY: 35.85,
         value: data.aircraftType,
-        valueX: 76.7,
-        valueY: 32.45,
+        valueX: 81.1,
+        valueY: 35,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.58,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
 
       ${tripInfoBuildSvgRect(noteX, noteY, noteWidth, noteHeight)}
       ${tripInfoBuildSvgMmText({
-        x: noteX + 1.5,
-        y: noteY + 3.2,
+        x: noteX + 1.2,
+        y: noteY + 4.2,
         text: "NOTE:",
-        fontSize: 1.55,
-        fontWeight: 700,
-        letterSpacing: 0.04,
+        fontSize: bodyFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
 
       ${tripInfoBuildSvgInlineField({
-        label: "CAPTAIN NAME",
+        label: "Captain Name",
         labelX: mainX,
-        labelY: noteY + 4.8,
-        lineStartX: 47.8,
+        labelY: noteY + 6.1,
+        lineStartX: 51.5,
         lineEndX: mainRight,
-        lineY: noteY + 6.05,
+        lineY: noteY + 6.95,
         value: tripInfoFitPreviewText(data.captainName, 22),
-        valueX: 48.4,
-        valueY: noteY + 5.35,
+        valueX: 52.1,
+        valueY: noteY + 6.1,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.55,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "DOW",
         labelX: mainX,
-        labelY: noteY + 12,
-        lineStartX: 35.8,
-        lineEndX: 52.6,
-        lineY: noteY + 13.25,
+        labelY: noteY + 14.15,
+        lineStartX: 37,
+        lineEndX: 53,
+        lineY: noteY + 15,
         value: data.dowDisplay,
-        valueX: 36.4,
-        valueY: noteY + 12.55,
+        valueX: 37.5,
+        valueY: noteY + 14.15,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.5,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "DOI",
-        labelX: 56.1,
-        labelY: noteY + 12,
-        lineStartX: 62.8,
-        lineEndX: 86.8,
-        lineY: noteY + 13.25,
+        labelX: 56,
+        labelY: noteY + 14.15,
+        lineStartX: 62.5,
+        lineEndX: 79.5,
+        lineY: noteY + 15,
         value: data.doiDisplay,
-        valueX: 63.4,
-        valueY: noteY + 12.55,
+        valueX: 63,
+        valueY: noteY + 14.15,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.5,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
-        label: "MAX ZFW",
+        label: "Max ZFW",
         labelX: mainX,
-        labelY: noteY + 19.2,
-        lineStartX: 40.1,
-        lineEndX: 67,
-        lineY: noteY + 20.45,
+        labelY: noteY + 22.2,
+        lineStartX: 44.2,
+        lineEndX: 69.6,
+        lineY: noteY + 23.05,
         value: data.maxZfwDisplay,
-        valueX: 40.7,
-        valueY: noteY + 19.75,
+        valueX: 44.7,
+        valueY: noteY + 22.2,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.52,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
-        label: "MAX OR RESTRICTED TOW",
+        label: "Max or Restricted TOW",
         labelX: mainX,
-        labelY: noteY + 26.4,
-        lineStartX: 69.9,
+        labelY: noteY + 30.25,
+        lineStartX: 71.7,
         lineEndX: mainRight,
-        lineY: noteY + 27.65,
+        lineY: noteY + 31.1,
         value: data.maxTowDisplay,
-        valueX: 70.5,
-        valueY: noteY + 26.95,
+        valueX: 72.2,
+        valueY: noteY + 30.25,
         valueAnchor: "start",
-        labelFontSize: 1.36,
-        valueFontSize: 1.5,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
-        label: "MAX OR RESTRICTED LDW",
+        label: "Max or Restricted LDW",
         labelX: mainX,
-        labelY: noteY + 33.6,
-        lineStartX: 69.9,
+        labelY: noteY + 38.3,
+        lineStartX: 71.7,
         lineEndX: mainRight,
-        lineY: noteY + 34.85,
+        lineY: noteY + 39.15,
         value: data.maxLdwDisplay,
-        valueX: 70.5,
-        valueY: noteY + 34.15,
+        valueX: 72.2,
+        valueY: noteY + 38.3,
         valueAnchor: "start",
-        labelFontSize: 1.36,
-        valueFontSize: 1.5,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
-        label: "TRIP FUEL",
+        label: "Trip Fuel",
         labelX: mainX,
-        labelY: noteY + 40.8,
-        lineStartX: 41.4,
-        lineEndX: 68.8,
-        lineY: noteY + 42.05,
+        labelY: noteY + 46.35,
+        lineStartX: 44.7,
+        lineEndX: 68.9,
+        lineY: noteY + 47.2,
         value: data.tripFuelDisplay,
-        valueX: 42,
-        valueY: noteY + 41.35,
+        valueX: 45.2,
+        valueY: noteY + 46.35,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.52,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
-        label: "TAKE OFF FUEL",
+        label: "Take Off Fuel",
         labelX: mainX,
-        labelY: noteY + 48,
-        lineStartX: 51.8,
+        labelY: noteY + 54.4,
+        lineStartX: 56.6,
         lineEndX: mainRight,
-        lineY: noteY + 49.25,
+        lineY: noteY + 55.25,
         value: data.takeOffFuelDisplay,
-        valueX: 52.4,
-        valueY: noteY + 48.55,
+        valueX: 57.1,
+        valueY: noteY + 54.4,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.52,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
-        label: "TAXI FUEL",
+        label: "Taxi Fuel",
         labelX: mainX,
-        labelY: noteY + 55.2,
-        lineStartX: 41,
-        lineEndX: 55.8,
-        lineY: noteY + 56.45,
+        labelY: noteY + 62.45,
+        lineStartX: 44.5,
+        lineEndX: 56.1,
+        lineY: noteY + 63.3,
         value: data.taxiFuelDisplay,
-        valueX: 41.6,
-        valueY: noteY + 55.75,
+        valueX: 45,
+        valueY: noteY + 62.45,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.48,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
-        label: "BLOCK FUEL",
-        labelX: 58.2,
-        labelY: noteY + 55.2,
-        lineStartX: 74,
+        label: "Block Fuel",
+        labelX: 58.4,
+        labelY: noteY + 62.45,
+        lineStartX: 73.9,
         lineEndX: mainRight,
-        lineY: noteY + 56.45,
+        lineY: noteY + 63.3,
         value: data.blockFuelDisplay,
-        valueX: 74.6,
-        valueY: noteY + 55.75,
+        valueX: 74.4,
+        valueY: noteY + 62.45,
         valueAnchor: "start",
-        labelFontSize: 1.45,
-        valueFontSize: 1.48,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "EET",
         labelX: mainX,
-        labelY: noteY + 67.2,
-        lineStartX: 33.4,
-        lineEndX: 47.8,
-        lineY: noteY + 68.45,
+        labelY: noteY + 73.75,
+        lineStartX: 35.4,
+        lineEndX: 47.1,
+        lineY: noteY + 74.6,
         value: data.eetHours,
-        valueY: noteY + 67.75,
-        labelFontSize: 1.45,
-        valueFontSize: 1.52,
+        valueY: noteY + 73.75,
+        labelFontSize: bodyFontSize,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgMmText({
-        x: 49.4,
-        y: noteY + 67.2,
-        text: "HRS",
-        fontSize: 1.35,
-        fontWeight: 600,
-        letterSpacing: 0.02,
+        x: 48.5,
+        y: noteY + 73.75,
+        text: "hrs",
+        fontSize: bodyFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
       ${tripInfoBuildSvgInlineField({
         label: "",
-        labelX: 57.4,
-        labelY: noteY + 67.2,
-        lineStartX: 58.2,
-        lineEndX: 72.6,
-        lineY: noteY + 68.45,
+        labelX: 56.8,
+        labelY: noteY + 73.75,
+        lineStartX: 58,
+        lineEndX: 69.8,
+        lineY: noteY + 74.6,
         value: data.eetMinutes,
-        valueY: noteY + 67.75,
-        valueFontSize: 1.52,
+        valueY: noteY + 73.75,
+        valueFontSize: bodyFontSize,
       })}
       ${tripInfoBuildSvgMmText({
-        x: 74.5,
-        y: noteY + 67.2,
-        text: "MIN",
-        fontSize: 1.35,
-        fontWeight: 600,
-        letterSpacing: 0.02,
+        x: 70.9,
+        y: noteY + 73.75,
+        text: "min",
+        fontSize: bodyFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
 
       ${tripInfoBuildSvgRect(remarksX, remarksY, remarksWidth, bottomBoxHeight)}
       ${tripInfoBuildSvgMmText({
         x: remarksX + 1.4,
-        y: remarksY + 2.8,
-        text: "REMARKS",
-        fontSize: 1.45,
-        fontWeight: 600,
-        letterSpacing: 0.02,
+        y: remarksY + 4.2,
+        text: "Remarks",
+        fontSize: bodyFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
 
       ${tripInfoBuildSvgRect(signatureX, signatureY, signatureWidth, bottomBoxHeight)}
       ${tripInfoBuildSvgMmText({
         x: signatureX + 1.4,
-        y: signatureY + 2.8,
-        text: "CAPTAIN SIGNATURE",
-        fontSize: 1.34,
-        fontWeight: 600,
-        letterSpacing: 0.01,
+        y: signatureY + 4.2,
+        text: "Captain Signature",
+        fontSize: bodyFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
       })}
       ${signatureMarkup}
     </svg>
@@ -1977,10 +1984,12 @@ function tripInfoBuildSvgInlineField(options) {
     lineY,
     value,
     valueX = (lineStartX + lineEndX) / 2,
-    valueY = lineY - 0.65,
+    valueY = lineY - 0.85,
     valueAnchor = "middle",
-    labelFontSize = 1.55,
-    valueFontSize = 1.7,
+    labelFontSize = 10 * (25.4 / 72),
+    valueFontSize = 10 * (25.4 / 72),
+    labelFontWeight = 400,
+    valueFontWeight = 400,
   } = options;
 
   return `
@@ -1990,8 +1999,8 @@ function tripInfoBuildSvgInlineField(options) {
           y: labelY,
           text: label,
           fontSize: labelFontSize,
-          fontWeight: 700,
-          letterSpacing: 0.05,
+          fontWeight: labelFontWeight,
+          letterSpacing: 0,
         })
       : ""}
     ${value
@@ -2001,8 +2010,8 @@ function tripInfoBuildSvgInlineField(options) {
           text: value,
           textAnchor: valueAnchor,
           fontSize: valueFontSize,
-          fontWeight: 700,
-          letterSpacing: 0.02,
+          fontWeight: valueFontWeight,
+          letterSpacing: 0,
         })
       : ""}
     ${tripInfoBuildSvgLine(lineStartX, lineY, lineEndX, lineY)}
@@ -2032,8 +2041,8 @@ function tripInfoBuildSvgMmText(options) {
     text,
     textAnchor = "start",
     fontSize = 1.6,
-    fontWeight = 700,
-    letterSpacing = 0.04,
+    fontWeight = 400,
+    letterSpacing = 0,
   } = options;
 
   return `<text x="${tripInfoFormatSvgNumber(x)}" y="${tripInfoFormatSvgNumber(
