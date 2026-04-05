@@ -666,6 +666,10 @@
         align-content: start;
       }
 
+      .tripInfoUppercaseField {
+        text-transform: uppercase;
+      }
+
       .tripInfoReadonlyInput {
         color: rgba(245, 247, 251, 0.86);
         background: rgba(255, 255, 255, 0.03);
@@ -699,8 +703,8 @@
         width: min(100%, 390px);
         margin: 0 auto;
         padding: 12px;
-        border-radius: 20px;
-        background: #e7ebf3;
+        border-radius: 16px;
+        background: #dfe5ec;
       }
 
       .tripInfoPreviewMount svg {
@@ -708,8 +712,8 @@
         width: 100%;
         height: auto;
         background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 16px 30px rgba(15, 18, 28, 0.16);
+        border-radius: 4px;
+        box-shadow: 0 10px 22px rgba(15, 18, 28, 0.14);
       }
 
       .tripInfoExportActions {
@@ -753,7 +757,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="assets/logo-lb.png" alt="">
-          <span class="home-version">v1.28</span>
+          <span class="home-version">v1.29</span>
         </div>
       </section>
 
@@ -922,7 +926,7 @@
               <input
                 id="tripInfo-flight-number"
                 name="flightNumber"
-                class="input"
+                class="input tripInfoUppercaseField"
                 type="text"
                 autocomplete="off"
                 required
@@ -935,7 +939,7 @@
                 <input
                   id="tripInfo-from"
                   name="from"
-                  class="input mono"
+                  class="input mono tripInfoUppercaseField"
                   type="text"
                   inputmode="text"
                   autocomplete="off"
@@ -949,7 +953,7 @@
                 <input
                   id="tripInfo-to"
                   name="to"
-                  class="input mono"
+                  class="input mono tripInfoUppercaseField"
                   type="text"
                   inputmode="text"
                   autocomplete="off"
@@ -965,10 +969,10 @@
                 <input
                   id="tripInfo-date"
                   name="date"
-                  class="input mono"
+                  class="input mono tripInfoUppercaseField"
                   type="text"
                   inputmode="text"
-                  placeholder="05/Apr/26"
+                  placeholder="05/APR/26"
                   autocomplete="off"
                   required
                 >
@@ -979,7 +983,7 @@
                 <input
                   id="tripInfo-crew"
                   name="crew"
-                  class="input mono"
+                  class="input mono tripInfoUppercaseField"
                   type="text"
                   inputmode="text"
                   placeholder="2+9"
@@ -996,14 +1000,19 @@
             <div class="row two-col">
               <div class="field">
                 <label for="tripInfo-aircraft-registration">A/C Registration</label>
-                <input
+                <select
                   id="tripInfo-aircraft-registration"
                   name="aircraftRegistration"
-                  class="input"
-                  type="text"
-                  autocomplete="off"
+                  class="select tripInfoUppercaseField"
                   required
                 >
+                  <option value="EI-NEO" selected>EI-NEO</option>
+                  <option value="EI-NEU">EI-NEU</option>
+                  <option value="EI-NEW">EI-NEW</option>
+                  <option value="EI-NUA">EI-NUA</option>
+                  <option value="EI-NYE">EI-NYE</option>
+                  <option value="EI-XIN">EI-XIN</option>
+                </select>
               </div>
 
               <div class="field">
@@ -1011,11 +1020,10 @@
                 <select
                   id="tripInfo-aircraft-type"
                   name="aircraftType"
-                  class="select"
+                  class="select tripInfoUppercaseField"
                   required
                 >
                   <option value="B789" selected>B789</option>
-                  <option value="B737">B737</option>
                 </select>
               </div>
             </div>
@@ -1025,7 +1033,7 @@
               <input
                 id="tripInfo-captain-name"
                 name="captainName"
-                class="input"
+                class="input tripInfoUppercaseField"
                 type="text"
                 autocomplete="off"
                 required

@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.28";
+const APP_VERSION = "v1.29";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -108,24 +108,32 @@ const ACN_DEFAULTS = {
   actualWeight: "",
 };
 const TRIP_INFO_STORAGE_KEY = "rampcheck-trip-info";
-const TRIP_INFO_LOGO_SRC = "./assets/logo-lb.png";
+const TRIP_INFO_LOGO_SRC = "./assets/tripinfo-logo-neos.svg";
 const TRIP_INFO_EXPORT_WIDTH = 1575;
 const TRIP_INFO_EXPORT_HEIGHT = 2220;
 const TRIP_INFO_A6_WIDTH_PT = (105 / 25.4) * 72;
 const TRIP_INFO_A6_HEIGHT_PT = (148 / 25.4) * 72;
 const TRIP_INFO_MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "JAN",
+  "FEB",
+  "MAR",
+  "APR",
+  "MAY",
+  "JUN",
+  "JUL",
+  "AUG",
+  "SEP",
+  "OCT",
+  "NOV",
+  "DEC",
+];
+const TRIP_INFO_REGISTRATIONS = [
+  "EI-NEO",
+  "EI-NEU",
+  "EI-NEW",
+  "EI-NUA",
+  "EI-NYE",
+  "EI-XIN",
 ];
 const TRIP_INFO_DEFAULTS = {
   flightNumber: "",
@@ -133,7 +141,7 @@ const TRIP_INFO_DEFAULTS = {
   to: "",
   date: "",
   crew: "",
-  aircraftRegistration: "",
+  aircraftRegistration: TRIP_INFO_REGISTRATIONS[0],
   aircraftType: "B789",
   captainName: "",
   dow: "",
@@ -1005,6 +1013,14 @@ function handleTripInfoFormInput(event) {
     return;
   }
 
+  if (
+    target.name === "flightNumber"
+    || target.name === "date"
+    || target.name === "captainName"
+  ) {
+    target.value = tripInfoUppercaseLiveValue(target.value);
+  }
+
   if (target.name === "from" || target.name === "to") {
     target.value = tripInfoNormalizeIataCode(target.value);
   }
@@ -1027,6 +1043,14 @@ function handleTripInfoFormChange(event) {
 
   if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) {
     return;
+  }
+
+  if (
+    target.name === "flightNumber"
+    || target.name === "date"
+    || target.name === "captainName"
+  ) {
+    target.value = tripInfoNormalizeText(target.value);
   }
 
   if (target.name === "crew") {
@@ -1198,7 +1222,6 @@ function tripInfoDrawSignatureDataUrl(dataUrl) {
 function tripInfoRestoreState() {
   const storedState = tripInfoReadStoredState();
   tripInfoApplyFormValues(storedState.formValues);
-  tripInfoState.generatedData = storedState.generatedData;
   tripInfoState.signatureDataUrl = storedState.signatureDataUrl;
   tripInfoUpdateTakeOffFuelField();
   tripInfoClearValidation();
@@ -1208,12 +1231,19 @@ function tripInfoRestoreState() {
     void tripInfoDrawSignatureDataUrl(tripInfoState.signatureDataUrl);
   }
 
+  if (storedState.generatedData) {
+    const restoredGeneratedData = tripInfoReadAndNormalizeValues(false);
+    tripInfoState.generatedData = restoredGeneratedData
+      ? {
+          ...restoredGeneratedData,
+          signatureDataUrl: tripInfoState.signatureDataUrl,
+        }
+      : null;
+  } else {
+    tripInfoState.generatedData = null;
+  }
+
   if (tripInfoState.generatedData) {
-    tripInfoState.generatedData = {
-      ...tripInfoState.generatedData,
-      signatureDataUrl:
-        tripInfoState.signatureDataUrl || tripInfoState.generatedData.signatureDataUrl || "",
-    };
     renderTripInfoPreview(tripInfoState.generatedData);
   } else {
     tripInfoPreviewMount.textContent = "";
@@ -1235,12 +1265,7 @@ function tripInfoReadStoredState() {
 
     const parsedState = JSON.parse(rawState);
     return {
-      formValues: {
-        ...TRIP_INFO_DEFAULTS,
-        ...(parsedState?.formValues && typeof parsedState.formValues === "object"
-          ? parsedState.formValues
-          : {}),
-      },
+      formValues: tripInfoSanitizeStoredFormValues(parsedState?.formValues),
       generatedData:
         parsedState?.generatedData && typeof parsedState.generatedData === "object"
           ? parsedState.generatedData
@@ -1292,10 +1317,7 @@ function tripInfoGetFormValues() {
 }
 
 function tripInfoApplyFormValues(values = TRIP_INFO_DEFAULTS) {
-  const mergedValues = {
-    ...TRIP_INFO_DEFAULTS,
-    ...(values && typeof values === "object" ? values : {}),
-  };
+  const mergedValues = tripInfoSanitizeStoredFormValues(values);
 
   Object.keys(TRIP_INFO_DEFAULTS).forEach((key) => {
     const field = tripInfoForm.elements[key];
@@ -1306,6 +1328,8 @@ function tripInfoApplyFormValues(values = TRIP_INFO_DEFAULTS) {
 
   tripInfoForm.elements.from.value = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
   tripInfoForm.elements.to.value = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
+  tripInfoForm.elements.aircraftRegistration.value = mergedValues.aircraftRegistration;
+  tripInfoForm.elements.aircraftType.value = "B789";
 }
 
 function resetTripInfoModule(shouldFocus) {
@@ -1341,7 +1365,7 @@ function tripInfoClearValidation() {
 
 function generateTripInfoPreview() {
   tripInfoClearValidation();
-  const normalizedData = tripInfoReadAndNormalizeValues();
+  const normalizedData = tripInfoReadAndNormalizeValues(true);
 
   if (!normalizedData) {
     return;
@@ -1352,7 +1376,7 @@ function generateTripInfoPreview() {
   tripInfoSaveState();
 }
 
-function tripInfoReadAndNormalizeValues() {
+function tripInfoReadAndNormalizeValues(showErrors = true) {
   const rawValues = tripInfoGetFormValues();
   const flightNumber = tripInfoNormalizeText(rawValues.flightNumber);
   const from = tripInfoNormalizeIataCode(rawValues.from);
@@ -1394,12 +1418,12 @@ function tripInfoReadAndNormalizeValues() {
     errors.push("Crew must be in the format 2+9.");
   }
 
-  if (!aircraftRegistration) {
-    errors.push("Enter the aircraft registration.");
+  if (!TRIP_INFO_REGISTRATIONS.includes(aircraftRegistration)) {
+    errors.push("Select a valid A/C registration.");
   }
 
-  if (aircraftType !== "B789" && aircraftType !== "B737") {
-    errors.push("Select a valid aircraft type.");
+  if (aircraftType !== "B789") {
+    errors.push("A/C Type must be B789.");
   }
 
   if (!captainName) {
@@ -1455,7 +1479,9 @@ function tripInfoReadAndNormalizeValues() {
   }
 
   if (errors.length > 0) {
-    tripInfoShowValidation(errors[0]);
+    if (showErrors) {
+      tripInfoShowValidation(errors[0]);
+    }
     return null;
   }
 
@@ -1495,6 +1521,21 @@ function tripInfoReadAndNormalizeValues() {
   };
 }
 
+function tripInfoSanitizeStoredFormValues(values) {
+  const mergedValues = {
+    ...TRIP_INFO_DEFAULTS,
+    ...(values && typeof values === "object" ? values : {}),
+  };
+
+  return {
+    ...mergedValues,
+    aircraftRegistration: TRIP_INFO_REGISTRATIONS.includes(mergedValues.aircraftRegistration)
+      ? mergedValues.aircraftRegistration
+      : TRIP_INFO_DEFAULTS.aircraftRegistration,
+    aircraftType: "B789",
+  };
+}
+
 function tripInfoUpdateTakeOffFuelField() {
   const blockFuelKg = tripInfoParseIntegerField(tripInfoForm.elements.blockFuel.value);
   const taxiFuelKg = tripInfoParseIntegerField(tripInfoForm.elements.taxiFuel.value);
@@ -1518,116 +1559,242 @@ function tripInfoUpdatePreviewVisibility() {
 
 function tripInfoBuildPreviewSvg(data) {
   const logoMarkup = tripInfoLogoDataUrl
-    ? `<image href="${tripInfoEscapeAttribute(tripInfoLogoDataUrl)}" x="62" y="60" width="184" height="58" preserveAspectRatio="xMinYMin meet" />`
-    : `<text x="62" y="101" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">RampCheck</text>`;
+    ? `<image href="${tripInfoEscapeAttribute(tripInfoLogoDataUrl)}" x="50" y="42" width="210" height="68" preserveAspectRatio="xMinYMin meet" />`
+    : `<text x="58" y="88" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" letter-spacing="2">NEOS</text>`;
   const signatureMarkup = data.signatureDataUrl
-    ? `<image href="${tripInfoEscapeAttribute(data.signatureDataUrl)}" x="570" y="1188" width="410" height="170" preserveAspectRatio="none" />`
+    ? `<image href="${tripInfoEscapeAttribute(data.signatureDataUrl)}" x="566" y="1260" width="422" height="108" preserveAspectRatio="xMidYMid meet" />`
     : "";
-  const noteGuides = tripInfoBuildSvgGuideLines(140, 730, 866, 390, 5);
-  const remarksGuides = tripInfoBuildSvgGuideLines(44, 1146, 500, 290, 3);
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1480" role="img" aria-label="Trip Info A6 preview">
       <rect x="0" y="0" width="1050" height="1480" fill="#ffffff" />
-      <rect x="22" y="22" width="1006" height="1436" rx="16" ry="16" fill="none" stroke="#111827" stroke-width="4" />
+      <rect x="18" y="18" width="1014" height="1444" fill="none" stroke="#111827" stroke-width="2.5" />
       ${logoMarkup}
-      <text x="525" y="94" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" text-anchor="middle">TRIP INFO</text>
-      <text x="525" y="126" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="middle">A6 TRIP FORM</text>
+      <text x="526" y="84" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="700" letter-spacing="2.5" text-anchor="middle">TRIP - INFO</text>
+      <line x1="48" y1="154" x2="1002" y2="154" stroke="#111827" stroke-width="2" />
 
       <g>
-        <rect x="742" y="46" width="264" height="112" fill="none" stroke="#111827" stroke-width="3" />
-        <line x1="742" y1="74" x2="1006" y2="74" stroke="#111827" stroke-width="2" />
-        <line x1="742" y1="102" x2="1006" y2="102" stroke="#111827" stroke-width="2" />
-        <line x1="742" y1="130" x2="1006" y2="130" stroke="#111827" stroke-width="2" />
-        <line x1="840" y1="46" x2="840" y2="158" stroke="#111827" stroke-width="2" />
-        <text x="758" y="66" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">SN</text>
-        <text x="856" y="66" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">FO-FO-008</text>
-        <text x="758" y="94" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">Revision</text>
-        <text x="856" y="94" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">03</text>
-        <text x="758" y="122" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">Date</text>
-        <text x="856" y="122" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">30.Jun.05</text>
-        <text x="758" y="150" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">Edited by</text>
-        <text x="856" y="150" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">FOPH</text>
+        <rect x="744" y="38" width="266" height="108" fill="none" stroke="#111827" stroke-width="1.8" />
+        <line x1="842" y1="38" x2="842" y2="146" stroke="#111827" stroke-width="1.5" />
+        <line x1="744" y1="65" x2="1010" y2="65" stroke="#111827" stroke-width="1.2" />
+        <line x1="744" y1="92" x2="1010" y2="92" stroke="#111827" stroke-width="1.2" />
+        <line x1="744" y1="119" x2="1010" y2="119" stroke="#111827" stroke-width="1.2" />
+        ${tripInfoBuildSvgMetadataRow(760, 56, "SN", "FO-FO-008")}
+        ${tripInfoBuildSvgMetadataRow(760, 83, "REVISION", "03")}
+        ${tripInfoBuildSvgMetadataRow(760, 110, "DATE", "30.JUN.05")}
+        ${tripInfoBuildSvgMetadataRow(760, 137, "EDITED BY", "FOPH")}
       </g>
 
-      ${tripInfoBuildSvgBox(44, 190, 350, 86, "Flight Number", tripInfoFitPreviewText(data.flightNumber, 18))}
-      ${tripInfoBuildSvgBox(394, 190, 118, 86, "From", data.from, { valueSize: 34, align: "center" })}
-      ${tripInfoBuildSvgBox(512, 190, 118, 86, "To", data.to, { valueSize: 34, align: "center" })}
-      ${tripInfoBuildSvgBox(630, 190, 206, 86, "Date", data.dateDisplay, { valueSize: 26, align: "center" })}
-      ${tripInfoBuildSvgBox(836, 190, 170, 86, "Crew", data.crew, { valueSize: 30, align: "center" })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 196,
+        width: 350,
+        label: "FLIGHT NUMBER",
+        value: tripInfoFitPreviewText(data.flightNumber, 20),
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 430,
+        y: 196,
+        width: 110,
+        label: "FROM",
+        value: data.from,
+        valueSize: 24,
+        align: "center",
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 558,
+        y: 196,
+        width: 110,
+        label: "TO",
+        value: data.to,
+        valueSize: 24,
+        align: "center",
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 686,
+        y: 196,
+        width: 170,
+        label: "DATE",
+        value: data.dateDisplay,
+        valueSize: 22,
+        align: "center",
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 876,
+        y: 196,
+        width: 134,
+        label: "CREW",
+        value: data.crew,
+        valueSize: 24,
+        align: "center",
+      })}
 
-      ${tripInfoBuildSvgBox(44, 276, 350, 86, "A/C Registration", tripInfoFitPreviewText(data.aircraftRegistration, 18))}
-      ${tripInfoBuildSvgBox(394, 276, 170, 86, "A/C Type", data.aircraftType, { valueSize: 32, align: "center" })}
-      ${tripInfoBuildSvgBox(564, 276, 442, 86, "Captain Name", tripInfoFitPreviewText(data.captainName, 28))}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 274,
+        width: 250,
+        label: "A/C REGISTRATION",
+        value: data.aircraftRegistration,
+        valueSize: 22,
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 330,
+        y: 274,
+        width: 110,
+        label: "A/C TYPE",
+        value: data.aircraftType,
+        valueSize: 24,
+        align: "center",
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 462,
+        y: 274,
+        width: 548,
+        label: "CAPTAIN NAME",
+        value: tripInfoFitPreviewText(data.captainName, 30),
+      })}
 
-      ${tripInfoBuildSvgBox(44, 362, 300, 82, "DOW", data.dowDisplay)}
-      ${tripInfoBuildSvgBox(344, 362, 190, 82, "DOI", data.doiDisplay, { valueSize: 30, align: "center" })}
-      ${tripInfoBuildSvgBox(534, 362, 472, 82, "Max ZFW", data.maxZfwDisplay)}
-      ${tripInfoBuildSvgBox(44, 444, 482, 82, "Max or Restricted TOW", data.maxTowDisplay)}
-      ${tripInfoBuildSvgBox(526, 444, 480, 82, "Max or Restricted LDW", data.maxLdwDisplay)}
-      ${tripInfoBuildSvgBox(44, 526, 300, 82, "Trip Fuel", data.tripFuelDisplay)}
-      ${tripInfoBuildSvgBox(344, 526, 300, 82, "Taxi Fuel", data.taxiFuelDisplay)}
-      ${tripInfoBuildSvgBox(644, 526, 362, 82, "Block Fuel", data.blockFuelDisplay)}
-      ${tripInfoBuildSvgBox(44, 608, 420, 82, "Take Off Fuel", data.takeOffFuelDisplay)}
-      ${tripInfoBuildSvgBox(464, 608, 271, 82, "EET hrs", data.eetHours, { valueSize: 34, align: "center" })}
-      ${tripInfoBuildSvgBox(735, 608, 271, 82, "EET min", data.eetMinutes, { valueSize: 34, align: "center" })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 352,
+        width: 310,
+        label: "DOW",
+        value: data.dowDisplay,
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 390,
+        y: 352,
+        width: 170,
+        label: "DOI",
+        value: data.doiDisplay,
+        valueSize: 24,
+        align: "center",
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 430,
+        width: 952,
+        label: "MAX ZFW",
+        value: data.maxZfwDisplay,
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 508,
+        width: 952,
+        label: "MAX OR RESTRICTED TOW",
+        value: data.maxTowDisplay,
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 586,
+        width: 952,
+        label: "MAX OR RESTRICTED LDW",
+        value: data.maxLdwDisplay,
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 664,
+        width: 952,
+        label: "TRIP FUEL",
+        value: data.tripFuelDisplay,
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 742,
+        width: 952,
+        label: "TAKE OFF FUEL",
+        value: data.takeOffFuelDisplay,
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 58,
+        y: 820,
+        width: 430,
+        label: "TAXI FUEL",
+        value: data.taxiFuelDisplay,
+      })}
+      ${tripInfoBuildSvgUnderlineField({
+        x: 520,
+        y: 820,
+        width: 490,
+        label: "BLOCK FUEL",
+        value: data.blockFuelDisplay,
+      })}
 
       <g>
-        <rect x="44" y="730" width="96" height="390" fill="none" stroke="#111827" stroke-width="3" />
-        <rect x="140" y="730" width="866" height="390" fill="none" stroke="#111827" stroke-width="3" />
-        <text x="92" y="925" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="middle" transform="rotate(-90 92 925)">NOTE</text>
-        ${noteGuides}
+        <text x="58" y="910" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="1.1">EET</text>
+        ${tripInfoBuildSvgUnderlineField({
+          x: 116,
+          y: 898,
+          width: 150,
+          label: "HRS",
+          value: data.eetHours,
+          valueSize: 24,
+          align: "center",
+        })}
+        ${tripInfoBuildSvgUnderlineField({
+          x: 292,
+          y: 898,
+          width: 150,
+          label: "MIN",
+          value: data.eetMinutes,
+          valueSize: 24,
+          align: "center",
+        })}
       </g>
 
       <g>
-        <rect x="44" y="1120" width="500" height="316" fill="none" stroke="#111827" stroke-width="3" />
-        <text x="64" y="1148" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Remarks</text>
-        ${remarksGuides}
+        <rect x="58" y="972" width="74" height="236" fill="none" stroke="#111827" stroke-width="1.8" />
+        <rect x="132" y="972" width="878" height="236" fill="none" stroke="#111827" stroke-width="1.8" />
+        <text x="95" y="1090" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="2" text-anchor="middle" transform="rotate(-90 95 1090)">NOTE</text>
       </g>
 
       <g>
-        <rect x="544" y="1120" width="462" height="316" fill="none" stroke="#111827" stroke-width="3" />
-        <text x="564" y="1148" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Captain Signature</text>
-        <rect x="564" y="1170" width="422" height="194" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+        <rect x="58" y="1232" width="458" height="190" fill="none" stroke="#111827" stroke-width="1.8" />
+        <text x="74" y="1260" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="1.1">REMARKS</text>
+      </g>
+
+      <g>
+        <rect x="548" y="1232" width="462" height="190" fill="none" stroke="#111827" stroke-width="1.8" />
+        <text x="564" y="1260" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="1.1">CAPTAIN SIGNATURE</text>
         ${signatureMarkup}
-        <line x1="564" y1="1392" x2="986" y2="1392" stroke="#111827" stroke-width="2" />
+        <line x1="566" y1="1390" x2="988" y2="1390" stroke="#111827" stroke-width="1.5" />
       </g>
     </svg>
   `.trim();
 }
 
-function tripInfoBuildSvgBox(x, y, width, height, label, value, options = {}) {
+function tripInfoBuildSvgUnderlineField(options) {
   const {
-    labelSize = 17,
-    valueSize = 28,
+    x,
+    y,
+    width,
+    label,
+    value,
+    labelSize = 15,
+    valueSize = 24,
     align = "start",
   } = options;
   const valueAnchor =
     align === "center" ? "middle" : align === "end" ? "end" : "start";
   const valueX =
-    align === "center" ? x + width / 2 : align === "end" ? x + width - 18 : x + 18;
+    align === "center" ? x + width / 2 : align === "end" ? x + width : x + 4;
 
   return `
     <g>
-      <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="#111827" stroke-width="3" />
-      <text x="${x + 18}" y="${y + 24}" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="${labelSize}" font-weight="700">${tripInfoEscapeXml(label)}</text>
-      <text x="${valueX}" y="${y + height - 18}" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="${valueSize}" font-weight="700" text-anchor="${valueAnchor}">${tripInfoEscapeXml(value)}</text>
+      <text x="${x}" y="${y}" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="${labelSize}" font-weight="700" letter-spacing="1.05">${tripInfoEscapeXml(label)}</text>
+      <text x="${valueX}" y="${y + 32}" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="${valueSize}" font-weight="700" text-anchor="${valueAnchor}">${tripInfoEscapeXml(value)}</text>
+      <line x1="${x}" y1="${y + 42}" x2="${x + width}" y2="${y + 42}" stroke="#111827" stroke-width="1.7" />
     </g>
   `.trim();
 }
 
-function tripInfoBuildSvgGuideLines(x, y, width, height, lineCount) {
-  const lines = [];
-  const spacing = height / (lineCount + 1);
-
-  for (let index = 1; index <= lineCount; index += 1) {
-    const yPosition = y + spacing * index;
-    lines.push(
-      `<line x1="${x + 18}" y1="${yPosition.toFixed(2)}" x2="${x + width - 18}" y2="${yPosition.toFixed(2)}" stroke="#cbd5e1" stroke-width="1.5" />`
-    );
-  }
-
-  return lines.join("");
+function tripInfoBuildSvgMetadataRow(x, y, label, value) {
+  return `
+    <g>
+      <text x="${x}" y="${y}" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" letter-spacing="0.8">${tripInfoEscapeXml(label)}</text>
+      <text x="856" y="${y}" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">${tripInfoEscapeXml(value)}</text>
+    </g>
+  `.trim();
 }
 
 async function tripInfoDownloadPng() {
@@ -1918,8 +2085,12 @@ function tripInfoBlobToDataUrl(blob) {
   });
 }
 
+function tripInfoUppercaseLiveValue(value) {
+  return typeof value === "string" ? value.toUpperCase() : "";
+}
+
 function tripInfoNormalizeText(value) {
-  return typeof value === "string" ? value.trim() : "";
+  return typeof value === "string" ? value.trim().toUpperCase() : "";
 }
 
 function tripInfoNormalizeIataCode(value) {
@@ -2062,7 +2233,7 @@ function tripInfoFormatKgValue(value) {
   return `${Math.round(value).toLocaleString("en-US", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  })} Kg`;
+  })} KG`;
 }
 
 function tripInfoFormatDoiValue(value) {
