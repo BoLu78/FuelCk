@@ -1,4 +1,4 @@
-const APP_VERSION = "5.0";
+const APP_VERSION = "5.1";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -139,9 +139,9 @@ const TRIP_INFO_LAYOUT = (() => {
         lineEndX: 51.6,
         lineY: row1Y + lineOffset,
         valueCenterX: 40.75,
-        valueX: 30.4,
+        valueX: 40.75,
         valueY: row1Y + lineOffset - valueBaselineOffset,
-        valueAnchor: "start",
+        valueAnchor: "middle",
       },
       from: {
         labelX: 52.6,
@@ -186,9 +186,9 @@ const TRIP_INFO_LAYOUT = (() => {
         lineEndX: 64.2,
         lineY: row3Y + lineOffset,
         valueCenterX: 48.25,
-        valueX: 32.8,
+        valueX: 48.25,
         valueY: row3Y + lineOffset - valueBaselineOffset,
-        valueAnchor: "start",
+        valueAnchor: "middle",
       },
       aircraftType: {
         labelX: 66.2,
