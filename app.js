@@ -1,4 +1,4 @@
-const APP_VERSION = "5.2";
+const APP_VERSION = "5.4";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -399,6 +399,7 @@ const TRIP_INFO_REGISTRATIONS = [
   "EI-NYE",
   "EI-XIN",
 ];
+const TRIP_INFO_PANTRY_CODES = ["Z", "SH", "MH", "LH", "CH"];
 const TRIP_INFO_DEFAULTS = {
   flightNumber: "",
   from: "",
@@ -406,6 +407,8 @@ const TRIP_INFO_DEFAULTS = {
   date: "",
   crew: "2+9",
   crewBag: "",
+  pantry: "",
+  includeFak: true,
   aircraftRegistration: TRIP_INFO_REGISTRATIONS[0],
   aircraftType: "B789",
   captainName: "",
@@ -1599,6 +1602,8 @@ function tripInfoGetFormValues() {
     date: tripInfoForm.elements.date.value,
     crew: tripInfoForm.elements.crew.value,
     crewBag: tripInfoForm.elements.crewBag.value,
+    pantry: tripInfoForm.elements.pantry.value,
+    includeFak: tripInfoForm.elements.includeFak.checked,
     aircraftRegistration: tripInfoForm.elements.aircraftRegistration.value,
     aircraftType: tripInfoForm.elements.aircraftType.value,
     captainName: tripInfoForm.elements.captainName.value,
@@ -1621,12 +1626,17 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
   Object.keys(TRIP_INFO_DEFAULTS).forEach((key) => {
     const field = tripInfoForm.elements[key];
     if (field) {
-      field.value = mergedValues[key];
+      if (field instanceof HTMLInputElement && field.type === "checkbox") {
+        field.checked = Boolean(mergedValues[key]);
+      } else {
+        field.value = mergedValues[key];
+      }
     }
   });
 
   tripInfoForm.elements.from.value = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
   tripInfoForm.elements.to.value = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
+  tripInfoForm.elements.pantry.value = mergedValues.pantry;
   tripInfoForm.elements.aircraftRegistration.value = mergedValues.aircraftRegistration;
   tripInfoForm.elements.aircraftType.value = "B789";
 }
@@ -1686,6 +1696,8 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const crew = tripInfoNormalizeCrewValue(rawValues.crew);
   const crewBagInput = tripInfoNormalizeCrewBagInput(rawValues.crewBag);
   const crewBagValue = crewBagInput === "" ? null : tripInfoParsePlainInteger(crewBagInput);
+  const pantryCode = tripInfoNormalizePantryValue(rawValues.pantry);
+  const includeFak = tripInfoNormalizeBooleanValue(rawValues.includeFak, true);
   const aircraftRegistration = tripInfoNormalizeText(rawValues.aircraftRegistration);
   const aircraftType = rawValues.aircraftType;
   const captainName = tripInfoNormalizeText(rawValues.captainName);
@@ -1804,6 +1816,10 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     crewBagValue,
     crewBagDisplay: crewBagValue === null ? "" : String(crewBagValue),
     showCrewBagNote: crewBagValue !== null && crewBagValue > 0,
+    pantryCode,
+    showPantryNote: pantryCode !== "",
+    includeFak,
+    showFakNote: includeFak,
     aircraftRegistration,
     aircraftType,
     captainName,
@@ -1842,12 +1858,16 @@ function tripInfoSanitizeStoredFormValues(values) {
   const normalizedCrewBag = tripInfoNormalizeCrewBagDisplayValue(
     String(mergedValues.crewBag || "")
   );
+  const normalizedPantry = tripInfoNormalizePantryValue(String(mergedValues.pantry || ""));
+  const normalizedIncludeFak = tripInfoNormalizeBooleanValue(mergedValues.includeFak, true);
 
   return {
     ...mergedValues,
     date: parsedStoredDate ? parsedStoredDate.iso : defaultValues.date,
     crew: normalizedCrew || defaultValues.crew,
     crewBag: normalizedCrewBag,
+    pantry: normalizedPantry,
+    includeFak: normalizedIncludeFak,
     aircraftRegistration: TRIP_INFO_REGISTRATIONS.includes(mergedValues.aircraftRegistration)
       ? mergedValues.aircraftRegistration
       : defaultValues.aircraftRegistration,
@@ -1871,7 +1891,9 @@ function tripInfoUpdateTakeOffFuelField() {
 }
 
 function tripInfoSyncCrewBagFromCrew() {
-  if (tripInfoState.crewBagManualOverride) {
+  const currentCrewBagValue = tripInfoNormalizeCrewBagInput(tripInfoForm.elements.crewBag.value);
+
+  if (tripInfoState.crewBagManualOverride && currentCrewBagValue !== "") {
     return;
   }
 
@@ -1894,7 +1916,7 @@ function tripInfoBuildPreviewSvg(data) {
   const valueFontSize = 10 * (25.4 / 72);
   const metadataFontSize = 4 * (25.4 / 72);
   const { page, header, topRows, noteBox, rows, bottomBoxes } = TRIP_INFO_LAYOUT;
-  const crewBagNoteMarkup = tripInfoBuildCrewBagNoteMarkup(
+  const noteBoxContentMarkup = tripInfoBuildNoteBoxContentMarkup(
     noteBox,
     data,
     bodyFontSize,
@@ -2020,7 +2042,7 @@ function tripInfoBuildPreviewSvg(data) {
         fontWeight: 400,
         letterSpacing: 0,
       })}
-      ${crewBagNoteMarkup}
+      ${noteBoxContentMarkup}
 
       ${buildSvgField(rows.captainName, tripInfoFitPreviewText(data.captainName, 22), {
         label: "Captain Name",
@@ -2132,45 +2154,91 @@ function tripInfoBuildPreviewSvg(data) {
   `.trim();
 }
 
-function tripInfoBuildCrewBagNoteMarkup(noteBox, data, bodyFontSize, valueFontSize) {
-  if (!data.showCrewBagNote) {
+function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFontSize) {
+  const sections = [];
+
+  if (data.showCrewBagNote) {
+    sections.push({
+      title: "CREW BAG",
+      lines: [
+        { text: data.crewBagDisplay, fontSize: valueFontSize, fontWeight: 600 },
+        { text: "HOLD 5", fontSize: bodyFontSize, fontWeight: 400 },
+      ],
+    });
+  }
+
+  if (data.showPantryNote) {
+    sections.push({
+      title: "PANTRY",
+      lines: [
+        { text: data.pantryCode, fontSize: valueFontSize, fontWeight: 600 },
+      ],
+    });
+  }
+
+  if (data.showFakNote) {
+    sections.push({
+      title: "FAK",
+      lines: [
+        { text: "802 Kg", fontSize: valueFontSize, fontWeight: 600 },
+        { text: "HOLD 4", fontSize: bodyFontSize, fontWeight: 400 },
+      ],
+    });
+  }
+
+  if (sections.length === 0) {
     return "";
   }
 
   const centerX = noteBox.x + (noteBox.width / 2);
-  const crewBagTitleY = noteBox.y + 12.2;
-  const crewBagValueY = crewBagTitleY + 7.1;
-  const holdY = crewBagValueY + 7.2;
+  const lineLeftX = noteBox.x + 2.2;
+  const lineRightX = noteBox.x + noteBox.width - 2.2;
+  const startY = noteBox.y + 12.2;
+  const titleToLineStep = 7.1;
+  const separatorOffset = 3.6;
+  const nextBlockOffset = 6.4;
+  const markup = [];
+  let cursorY = startY;
 
-  return `
-    ${tripInfoBuildSvgMmText({
-      x: centerX,
-      y: crewBagTitleY,
-      text: "CREW BAG",
-      textAnchor: "middle",
-      fontSize: bodyFontSize,
-      fontWeight: 600,
-      letterSpacing: 0,
-    })}
-    ${tripInfoBuildSvgMmText({
-      x: centerX,
-      y: crewBagValueY,
-      text: data.crewBagDisplay,
-      textAnchor: "middle",
-      fontSize: valueFontSize,
-      fontWeight: 600,
-      letterSpacing: 0,
-    })}
-    ${tripInfoBuildSvgMmText({
-      x: centerX,
-      y: holdY,
-      text: "HOLD 5",
-      textAnchor: "middle",
-      fontSize: bodyFontSize,
-      fontWeight: 400,
-      letterSpacing: 0,
-    })}
-  `.trim();
+  sections.forEach((section, index) => {
+    markup.push(
+      tripInfoBuildSvgMmText({
+        x: centerX,
+        y: cursorY,
+        text: section.title,
+        textAnchor: "middle",
+        fontSize: bodyFontSize,
+        fontWeight: 600,
+        letterSpacing: 0,
+      })
+    );
+
+    section.lines.forEach((line, lineIndex) => {
+      markup.push(
+        tripInfoBuildSvgMmText({
+          x: centerX,
+          y: cursorY + (titleToLineStep * (lineIndex + 1)),
+          text: line.text,
+          textAnchor: "middle",
+          fontSize: line.fontSize,
+          fontWeight: line.fontWeight,
+          letterSpacing: 0,
+        })
+      );
+    });
+
+    const sectionEndY = cursorY + (titleToLineStep * section.lines.length);
+
+    if (index < sections.length - 1) {
+      const separatorY = sectionEndY + separatorOffset;
+      markup.push(
+        tripInfoBuildSvgLine(lineLeftX, separatorY, lineRightX, separatorY)
+      );
+      cursorY = separatorY + nextBlockOffset;
+    }
+  });
+
+  return markup.join("\n");
 }
 
 function tripInfoBuildSvgInlineField(options) {
@@ -2577,6 +2645,31 @@ function tripInfoNormalizeCrewBagDisplayValue(value) {
   }
 
   return String(Number(normalizedValue));
+}
+
+function tripInfoNormalizePantryValue(value) {
+  const normalizedValue = tripInfoNormalizeText(String(value || ""));
+  return TRIP_INFO_PANTRY_CODES.includes(normalizedValue) ? normalizedValue : "";
+}
+
+function tripInfoNormalizeBooleanValue(value, fallback = false) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (normalizedValue === "true") {
+      return true;
+    }
+
+    if (normalizedValue === "false") {
+      return false;
+    }
+  }
+
+  return fallback;
 }
 
 function tripInfoCalculateCrewBagFromCrew(value) {

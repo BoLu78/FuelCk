@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="5.2">
+    <meta name="app-version" content="5.4">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -697,6 +697,30 @@
         background: rgba(255, 255, 255, 0.03);
       }
 
+      .tripInfoTopSideRow .field[aria-hidden="true"] {
+        visibility: hidden;
+      }
+
+      .tripInfoCheckboxControl {
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .tripInfoCheckboxControl input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--accent);
+      }
+
       .wrap-fuel-section {
         display: flex;
         flex-direction: column;
@@ -793,7 +817,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">5.2</span>
+          <span class="home-version">5.4</span>
         </div>
       </section>
 
@@ -1025,6 +1049,59 @@
                 >
               </div>
             </div>
+
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field">
+                <label for="tripInfo-crew-bag">Crew Bag</label>
+                <input
+                  id="tripInfo-crew-bag"
+                  name="crewBag"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  autocomplete="off"
+                >
+              </div>
+            </div>
+
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field">
+                <label for="tripInfo-pantry">Pantry</label>
+                <select
+                  id="tripInfo-pantry"
+                  name="pantry"
+                  class="select tripInfoUppercaseField"
+                >
+                  <option value="" selected></option>
+                  <option value="Z">Z - No Catering</option>
+                  <option value="SH">SH - SHORT Haul</option>
+                  <option value="MH">MH - MEDIUM Haul</option>
+                  <option value="LH">LH - LONG Haul</option>
+                  <option value="CH">CH - CHINA Flights</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field">
+                <label class="tripInfoCheckboxControl" for="tripInfo-include-fak">
+                  <input
+                    id="tripInfo-include-fak"
+                    name="includeFak"
+                    type="checkbox"
+                    checked
+                  >
+                  <span>Include FAK</span>
+                </label>
+              </div>
+            </div>
           </section>
 
           <section class="card stack tripInfoSectionCard">
@@ -1059,19 +1136,6 @@
                   <option value="B789" selected>B789</option>
                 </select>
               </div>
-            </div>
-
-            <div class="field">
-              <label for="tripInfo-crew-bag">Crew Bag</label>
-              <input
-                id="tripInfo-crew-bag"
-                name="crewBag"
-                class="input number-input"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                autocomplete="off"
-              >
             </div>
 
             <div class="field">
