@@ -1,4 +1,4 @@
-const APP_VERSION = "3.5";
+const APP_VERSION = "3.6";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1590,15 +1590,15 @@ function tripInfoBuildPreviewSvg(data) {
   const noteX = pageLeft;
   const noteY = 35;
   const noteWidth = 22;
-  const noteHeight = 53;
+  const noteHeight = 57;
   const mainX = noteX + noteWidth;
   const mainLabelX = mainX + 1.3;
   const mainRight = pageRight;
   const mainLineRight = mainRight - 0.6;
-  const mainRowStartY = noteY + 5.6;
-  const mainRowStep = 5.75;
-  const fieldLineOffset = 1.15;
-  const fieldValueOffset = 0.6;
+  const mainRowStartY = noteY + 5.3;
+  const mainRowStep = 6.15;
+  const fieldLineOffset = 1.1;
+  const fieldValueOffset = fieldLineOffset;
   const remarksX = pageLeft;
   const remarksY = noteY + noteHeight;
   const remarksWidth = 47;
@@ -1788,6 +1788,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 49.3,
         valueY: mainRowStartY + (mainRowStep * 0) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1802,6 +1803,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 37.5,
         valueY: mainRowStartY + (mainRowStep * 1) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1816,6 +1818,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 64.9,
         valueY: mainRowStartY + (mainRowStep * 1) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1830,6 +1833,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 44.4,
         valueY: mainRowStartY + (mainRowStep * 2) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1844,6 +1848,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 62.8,
         valueY: mainRowStartY + (mainRowStep * 3) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1858,6 +1863,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 62.8,
         valueY: mainRowStartY + (mainRowStep * 4) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1872,6 +1878,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 44.4,
         valueY: mainRowStartY + (mainRowStep * 5) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1886,6 +1893,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 57.4,
         valueY: mainRowStartY + (mainRowStep * 6) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1900,6 +1908,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 44.3,
         valueY: mainRowStartY + (mainRowStep * 7) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1914,6 +1923,7 @@ function tripInfoBuildPreviewSvg(data) {
         valueX: 74.8,
         valueY: mainRowStartY + (mainRowStep * 7) + fieldValueOffset,
         valueAnchor: "start",
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
@@ -1926,16 +1936,18 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         value: data.eetHours,
         valueY: mainRowStartY + (mainRowStep * 8) + fieldValueOffset,
+        valueDominantBaseline: "middle",
         labelFontSize: bodyFontSize,
         valueFontSize: valueFontSize,
       })}
       ${tripInfoBuildSvgMmText({
         x: 52.9,
-        y: mainRowStartY + (mainRowStep * 8),
+        y: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         text: "hrs",
         fontSize: bodyFontSize,
         fontWeight: 400,
         letterSpacing: 0,
+        dominantBaseline: "middle",
       })}
       ${tripInfoBuildSvgInlineField({
         label: "",
@@ -1946,15 +1958,17 @@ function tripInfoBuildPreviewSvg(data) {
         lineY: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         value: data.eetMinutes,
         valueY: mainRowStartY + (mainRowStep * 8) + fieldValueOffset,
+        valueDominantBaseline: "middle",
         valueFontSize: valueFontSize,
       })}
       ${tripInfoBuildSvgMmText({
-        x: 86,
-        y: mainRowStartY + (mainRowStep * 8),
+        x: 86.2,
+        y: mainRowStartY + (mainRowStep * 8) + fieldLineOffset,
         text: "min",
         fontSize: bodyFontSize,
         fontWeight: 400,
         letterSpacing: 0,
+        dominantBaseline: "middle",
       })}
 
       ${tripInfoBuildSvgRect(remarksX, remarksY, remarksWidth, bottomBoxHeight)}
@@ -1993,6 +2007,7 @@ function tripInfoBuildSvgInlineField(options) {
     valueX = (lineStartX + lineEndX) / 2,
     valueY = lineY - 0.55,
     valueAnchor = "middle",
+    valueDominantBaseline,
     labelFontSize = 9 * (25.4 / 72),
     valueFontSize = 10 * (25.4 / 72),
     labelFontWeight = 400,
@@ -2019,6 +2034,7 @@ function tripInfoBuildSvgInlineField(options) {
           fontSize: valueFontSize,
           fontWeight: valueFontWeight,
           letterSpacing: 0,
+          dominantBaseline: valueDominantBaseline,
         })
       : ""}
     ${tripInfoBuildSvgLine(lineStartX, lineY, lineEndX, lineY)}
@@ -2050,6 +2066,7 @@ function tripInfoBuildSvgMmText(options) {
     fontSize = 1.6,
     fontWeight = 400,
     letterSpacing = 0,
+    dominantBaseline,
   } = options;
 
   return `<text x="${tripInfoFormatSvgNumber(x)}" y="${tripInfoFormatSvgNumber(
@@ -2058,7 +2075,7 @@ function tripInfoBuildSvgMmText(options) {
     fontSize
   )}" font-weight="${fontWeight}" letter-spacing="${tripInfoFormatSvgNumber(
     letterSpacing
-  )}" text-anchor="${textAnchor}">${tripInfoEscapeXml(text)}</text>`;
+  )}" text-anchor="${textAnchor}"${dominantBaseline ? ` dominant-baseline="${dominantBaseline}"` : ""}>${tripInfoEscapeXml(text)}</text>`;
 }
 
 function tripInfoFormatSvgNumber(value) {
