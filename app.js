@@ -1,4 +1,4 @@
-const APP_VERSION = "4.5";
+const APP_VERSION = "4.6";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -119,9 +119,89 @@ const TRIP_INFO_LAYOUT = (() => {
   const pageLeft = 5;
   const pageRight = 95;
   const valueLift = 0.65;
-  const topRowBaseY = 18.2;
-  const topRowStep = 5.25;
-  const topRowLineOffset = 1.1;
+  const topRows = (() => {
+    const yStart = 17.7;
+    const rowStep = 5.4;
+    const lineOffset = 1.1;
+    const row1Y = yStart;
+    const row2Y = yStart + rowStep;
+    const row3Y = yStart + (rowStep * 2);
+
+    return {
+      yStart,
+      rowStep,
+      lineOffset,
+      flightNumber: {
+        labelX: pageLeft,
+        labelY: row1Y,
+        lineStartX: 29.9,
+        lineEndX: 51.6,
+        lineY: row1Y + lineOffset,
+        valueCenterX: 40.75,
+        valueX: 30.4,
+        valueY: row1Y + lineOffset - valueLift,
+        valueAnchor: "start",
+      },
+      from: {
+        labelX: 52.6,
+        labelY: row1Y,
+        lineStartX: 63.9,
+        lineEndX: 75.3,
+        lineY: row1Y + lineOffset,
+        valueCenterX: 69.6,
+        valueY: row1Y + lineOffset - valueLift,
+      },
+      to: {
+        labelX: 76.2,
+        labelY: row1Y,
+        lineStartX: 82.1,
+        lineEndX: pageRight,
+        lineY: row1Y + lineOffset,
+        valueCenterX: 88.55,
+        valueY: row1Y + lineOffset - valueLift,
+      },
+      date: {
+        labelX: pageLeft,
+        labelY: row2Y,
+        lineStartX: 16.6,
+        lineEndX: 40.6,
+        lineY: row2Y + lineOffset,
+        valueCenterX: 28.6,
+        valueY: row2Y + lineOffset - valueLift,
+      },
+      crew: {
+        labelX: 47.2,
+        labelY: row2Y,
+        lineStartX: 58.4,
+        lineEndX: 88.8,
+        lineY: row2Y + lineOffset,
+        valueCenterX: 73.6,
+        valueY: row2Y + lineOffset - valueLift,
+      },
+      registration: {
+        labelX: pageLeft,
+        labelY: row3Y,
+        lineStartX: 32.3,
+        lineEndX: 64.2,
+        lineY: row3Y + lineOffset,
+        valueCenterX: 48.25,
+        valueX: 32.8,
+        valueY: row3Y + lineOffset - valueLift,
+        valueAnchor: "start",
+      },
+      aircraftType: {
+        labelX: 67.2,
+        labelY: row3Y,
+        lineStartX: 81.2,
+        lineEndX: pageRight,
+        lineY: row3Y + lineOffset,
+        valueCenterX: 88.1,
+        valueX: 81.8,
+        valueY: row3Y + lineOffset - valueLift,
+        valueAnchor: "start",
+      },
+    };
+  })();
   const header = {
     x: pageLeft,
     y: 2,
@@ -138,77 +218,6 @@ const TRIP_INFO_LAYOUT = (() => {
     metadataLine2Y: 5.7,
     metadataLine3Y: 7.5,
     metadataLine4Y: 9.3,
-  };
-  const topRows = {
-    flightNumber: {
-      labelX: pageLeft,
-      labelY: topRowBaseY,
-      lineStartX: 29.9,
-      lineEndX: 51.6,
-      lineY: topRowBaseY + topRowLineOffset,
-      valueCenterX: 40.75,
-      valueX: 30.4,
-      valueY: topRowBaseY + topRowLineOffset - valueLift,
-      valueAnchor: "start",
-    },
-    from: {
-      labelX: 52.6,
-      labelY: topRowBaseY,
-      lineStartX: 63.9,
-      lineEndX: 75.3,
-      lineY: topRowBaseY + topRowLineOffset,
-      valueCenterX: 69.6,
-      valueY: topRowBaseY + topRowLineOffset - valueLift,
-    },
-    to: {
-      labelX: 76.2,
-      labelY: topRowBaseY,
-      lineStartX: 82.1,
-      lineEndX: pageRight,
-      lineY: topRowBaseY + topRowLineOffset,
-      valueCenterX: 88.55,
-      valueY: topRowBaseY + topRowLineOffset - valueLift,
-    },
-    date: {
-      labelX: pageLeft,
-      labelY: topRowBaseY + topRowStep,
-      lineStartX: 16.6,
-      lineEndX: 40.6,
-      lineY: topRowBaseY + topRowStep + topRowLineOffset,
-      valueCenterX: 28.6,
-      valueY: topRowBaseY + topRowStep + topRowLineOffset - valueLift,
-    },
-    crew: {
-      labelX: 47.2,
-      labelY: topRowBaseY + topRowStep,
-      lineStartX: 58.4,
-      lineEndX: 88.8,
-      lineY: topRowBaseY + topRowStep + topRowLineOffset,
-      valueCenterX: 73.6,
-      valueY: topRowBaseY + topRowStep + topRowLineOffset - valueLift,
-    },
-    registration: {
-      labelX: pageLeft,
-      labelY: topRowBaseY + (topRowStep * 2),
-      lineStartX: 32.3,
-      lineEndX: 64.2,
-      lineY: topRowBaseY + (topRowStep * 2) + topRowLineOffset,
-      valueCenterX: 48.25,
-      valueX: 32.8,
-      valueY: topRowBaseY + (topRowStep * 2) + topRowLineOffset - valueLift,
-      valueAnchor: "start",
-    },
-    aircraftType: {
-      labelX: 67.2,
-      labelY: topRowBaseY + (topRowStep * 2),
-      lineStartX: 81.2,
-      lineEndX: pageRight,
-      lineY: topRowBaseY + (topRowStep * 2) + topRowLineOffset,
-      valueCenterX: 88.1,
-      valueX: 81.8,
-      valueY: topRowBaseY + (topRowStep * 2) + topRowLineOffset - valueLift,
-      valueAnchor: "start",
-    },
   };
   const bottomBoxes = {
     remarks: {
