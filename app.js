@@ -1,4 +1,4 @@
-const APP_VERSION = "v1.27";
+const APP_VERSION = "v1.28";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -107,14 +107,57 @@ const ACN_DEFAULTS = {
   weightUnit: "KGS",
   actualWeight: "",
 };
+const TRIP_INFO_STORAGE_KEY = "rampcheck-trip-info";
+const TRIP_INFO_LOGO_SRC = "./assets/logo-lb.png";
+const TRIP_INFO_EXPORT_WIDTH = 1575;
+const TRIP_INFO_EXPORT_HEIGHT = 2220;
+const TRIP_INFO_A6_WIDTH_PT = (105 / 25.4) * 72;
+const TRIP_INFO_A6_HEIGHT_PT = (148 / 25.4) * 72;
+const TRIP_INFO_MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const TRIP_INFO_DEFAULTS = {
+  flightNumber: "",
+  from: "",
+  to: "",
+  date: "",
+  crew: "",
+  aircraftRegistration: "",
+  aircraftType: "B789",
+  captainName: "",
+  dow: "",
+  doi: "",
+  maxZfw: "",
+  maxTow: "",
+  maxLdw: "",
+  tripFuel: "",
+  taxiFuel: "",
+  blockFuel: "",
+  eetHours: "",
+  eetMinutes: "",
+};
 
 const homeView = document.getElementById("homeView");
 const fuelView = document.getElementById("fuelView");
+const tripInfoView = document.getElementById("tripInfoView");
 const acnView = document.getElementById("acnView");
 const openFuelBtn = document.getElementById("openFuelBtn");
 const openAcnBtn = document.getElementById("openAcnBtn");
+const openTripInfoBtn = document.getElementById("openTripInfoBtn");
 const backFromFuelBtn = document.getElementById("backFromFuelBtn");
 const backFromAcnBtn = document.getElementById("backFromAcnBtn");
+const backFromTripInfoBtn = document.getElementById("backFromTripInfoBtn");
 const form = document.getElementById("fuel-form");
 const inputScreen = document.getElementById("input-screen");
 const resultsScreen = document.getElementById("results-screen");
@@ -142,11 +185,32 @@ const acnReportSection = document.getElementById("acn-report-section");
 const acnDetailsList = document.getElementById("acn-details-list");
 const acnOverloadNote = document.getElementById("acn-overload-note");
 const acnComparisonDetail = document.getElementById("acn-comparison-detail");
+const tripInfoForm = document.getElementById("tripInfo-form");
+const tripInfoValidationMessage = document.getElementById("tripInfo-validation-message");
+const tripInfoResetButton = document.getElementById("tripInfo-reset-button");
+const tripInfoPreviewSection = document.getElementById("tripInfo-preview-section");
+const tripInfoPreviewMount = document.getElementById("tripInfo-preview-mount");
+const tripInfoDownloadPdfButton = document.getElementById("tripInfo-download-pdf-button");
+const tripInfoDownloadPngButton = document.getElementById("tripInfo-download-png-button");
+const tripInfoShareButton = document.getElementById("tripInfo-share-button");
+const tripInfoSignatureCanvas = document.getElementById("tripInfo-signature-canvas");
+const tripInfoClearSignatureButton = document.getElementById("tripInfo-clear-signature-button");
+const tripInfoTakeOffFuelInput = document.getElementById("tripInfo-takeoff-fuel");
+const tripInfoExportCanvas = document.getElementById("tripInfo-export-canvas");
+
+let tripInfoState = {
+  generatedData: null,
+  signatureDataUrl: "",
+};
+let tripInfoLogoDataUrl = "";
+let tripInfoSignaturePointerId = null;
+let tripInfoSignatureDrawing = false;
 
 registerServiceWorker();
 updateToleranceText();
 showHomeView();
 initializeAcnModule();
+initializeTripInfoModule();
 
 openFuelBtn.addEventListener("click", () => {
   showInputScreen();
@@ -158,11 +222,19 @@ openAcnBtn.addEventListener("click", () => {
   clearAcnModule();
 });
 
+openTripInfoBtn.addEventListener("click", () => {
+  showTripInfoView();
+});
+
 backFromFuelBtn.addEventListener("click", () => {
   showHomeView();
 });
 
 backFromAcnBtn.addEventListener("click", () => {
+  showHomeView();
+});
+
+backFromTripInfoBtn.addEventListener("click", () => {
   showHomeView();
 });
 
@@ -180,6 +252,14 @@ form.addEventListener("submit", (event) => {
   calculateAndRender();
 });
 
+tripInfoForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  generateTripInfoPreview();
+});
+
+tripInfoForm.addEventListener("input", handleTripInfoFormInput);
+tripInfoForm.addEventListener("change", handleTripInfoFormChange);
+
 aircraftInputs.forEach((input) => {
   input.addEventListener("change", updateToleranceText);
 });
@@ -192,6 +272,30 @@ clearButton.addEventListener("click", () => {
   form.elements.densityValue.value = "0.796";
   updateToleranceText();
   form.elements.rampFuel.focus();
+});
+
+tripInfoResetButton.addEventListener("click", () => {
+  resetTripInfoModule(true);
+});
+
+tripInfoClearSignatureButton.addEventListener("click", () => {
+  clearTripInfoSignature();
+});
+
+tripInfoDownloadPdfButton.addEventListener("click", () => {
+  void tripInfoDownloadPdf();
+});
+
+tripInfoDownloadPngButton.addEventListener("click", () => {
+  void tripInfoDownloadPng();
+});
+
+tripInfoShareButton.addEventListener("click", () => {
+  void tripInfoShare();
+});
+
+window.addEventListener("resize", () => {
+  tripInfoResizeSignatureCanvas(true);
 });
 
 function registerServiceWorker() {
@@ -446,7 +550,7 @@ function renderKeyValueList(container, rows) {
 }
 
 function showAppView(activeView) {
-  [homeView, fuelView, acnView].forEach((view) => {
+  [homeView, fuelView, tripInfoView, acnView].forEach((view) => {
     const isActive = view === activeView;
     view.hidden = !isActive;
     view.setAttribute("aria-hidden", String(!isActive));
@@ -464,6 +568,11 @@ function showFuelView() {
 
 function showAcnView() {
   showAppView(acnView);
+}
+
+function showTripInfoView() {
+  showAppView(tripInfoView);
+  tripInfoResizeSignatureCanvas(true);
 }
 
 function initializeAcnModule() {
@@ -879,6 +988,1104 @@ function showInputScreen() {
   resultsScreen.hidden = true;
   inputScreen.hidden = false;
   window.scrollTo(0, 0);
+}
+
+function initializeTripInfoModule() {
+  tripInfoSetupSignaturePad();
+  tripInfoRestoreState();
+  tripInfoUpdateTakeOffFuelField();
+  tripInfoUpdatePreviewVisibility();
+  void tripInfoLoadLogoData();
+}
+
+function handleTripInfoFormInput(event) {
+  const target = event.target;
+
+  if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  if (target.name === "from" || target.name === "to") {
+    target.value = tripInfoNormalizeIataCode(target.value);
+  }
+
+  if (target.name === "crew") {
+    target.value = target.value.replace(/[^\d+\s]/g, "");
+  }
+
+  if (target.name === "eetHours" || target.name === "eetMinutes") {
+    target.value = target.value.replace(/\D/g, "");
+  }
+
+  tripInfoClearValidation();
+  tripInfoUpdateTakeOffFuelField();
+  tripInfoSaveState();
+}
+
+function handleTripInfoFormChange(event) {
+  const target = event.target;
+
+  if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  if (target.name === "crew") {
+    const normalizedCrew = tripInfoNormalizeCrewValue(target.value);
+    if (normalizedCrew) {
+      target.value = normalizedCrew;
+    }
+  }
+
+  if (target.name === "date") {
+    const parsedDate = tripInfoParseDateInput(target.value);
+    if (parsedDate) {
+      target.value = parsedDate.display;
+    }
+  }
+
+  tripInfoUpdateTakeOffFuelField();
+  tripInfoSaveState();
+}
+
+function tripInfoSetupSignaturePad() {
+  tripInfoSignatureCanvas.addEventListener("pointerdown", handleTripInfoSignaturePointerDown);
+  tripInfoSignatureCanvas.addEventListener("pointermove", handleTripInfoSignaturePointerMove);
+  tripInfoSignatureCanvas.addEventListener("pointerup", handleTripInfoSignaturePointerUp);
+  tripInfoSignatureCanvas.addEventListener("pointerleave", handleTripInfoSignaturePointerUp);
+  tripInfoSignatureCanvas.addEventListener("pointercancel", handleTripInfoSignaturePointerUp);
+  tripInfoResizeSignatureCanvas(false);
+}
+
+function tripInfoResizeSignatureCanvas(preserveContent) {
+  const existingSignature = preserveContent ? tripInfoState.signatureDataUrl : "";
+  const rect = tripInfoSignatureCanvas.getBoundingClientRect();
+  const cssWidth = Math.max(320, Math.round(rect.width || 320));
+  const cssHeight = Math.max(180, Math.round(rect.height || 180));
+  const deviceScale = window.devicePixelRatio || 1;
+  const ctx = tripInfoSignatureCanvas.getContext("2d");
+
+  tripInfoSignatureCanvas.width = Math.round(cssWidth * deviceScale);
+  tripInfoSignatureCanvas.height = Math.round(cssHeight * deviceScale);
+  ctx.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+  tripInfoResetSignatureSurface();
+
+  if (existingSignature) {
+    void tripInfoDrawSignatureDataUrl(existingSignature);
+  }
+}
+
+function tripInfoResetSignatureSurface() {
+  const ctx = tripInfoSignatureCanvas.getContext("2d");
+  const deviceScale = window.devicePixelRatio || 1;
+  const width = tripInfoSignatureCanvas.width / deviceScale;
+  const height = tripInfoSignatureCanvas.height / deviceScale;
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "#111827";
+  ctx.lineWidth = 2.2;
+}
+
+function handleTripInfoSignaturePointerDown(event) {
+  if (event.pointerType === "mouse" && event.button !== 0) {
+    return;
+  }
+
+  event.preventDefault();
+  tripInfoSignatureDrawing = true;
+  tripInfoSignaturePointerId = event.pointerId;
+  tripInfoSignatureCanvas.setPointerCapture(event.pointerId);
+
+  const ctx = tripInfoSignatureCanvas.getContext("2d");
+  const point = tripInfoGetSignaturePoint(event);
+  ctx.beginPath();
+  ctx.moveTo(point.x, point.y);
+  ctx.lineTo(point.x + 0.01, point.y + 0.01);
+  ctx.stroke();
+}
+
+function handleTripInfoSignaturePointerMove(event) {
+  if (!tripInfoSignatureDrawing || event.pointerId !== tripInfoSignaturePointerId) {
+    return;
+  }
+
+  event.preventDefault();
+  const ctx = tripInfoSignatureCanvas.getContext("2d");
+  const point = tripInfoGetSignaturePoint(event);
+  ctx.lineTo(point.x, point.y);
+  ctx.stroke();
+}
+
+function handleTripInfoSignaturePointerUp(event) {
+  if (!tripInfoSignatureDrawing || event.pointerId !== tripInfoSignaturePointerId) {
+    return;
+  }
+
+  event.preventDefault();
+  tripInfoSignatureDrawing = false;
+
+  if (tripInfoSignatureCanvas.hasPointerCapture(event.pointerId)) {
+    tripInfoSignatureCanvas.releasePointerCapture(event.pointerId);
+  }
+
+  tripInfoSignaturePointerId = null;
+  tripInfoCommitSignature();
+}
+
+function tripInfoGetSignaturePoint(event) {
+  const rect = tripInfoSignatureCanvas.getBoundingClientRect();
+  return {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+  };
+}
+
+function tripInfoCommitSignature() {
+  tripInfoState.signatureDataUrl = tripInfoSignatureCanvas.toDataURL("image/png");
+
+  if (tripInfoState.generatedData) {
+    tripInfoState.generatedData = {
+      ...tripInfoState.generatedData,
+      signatureDataUrl: tripInfoState.signatureDataUrl,
+    };
+    renderTripInfoPreview(tripInfoState.generatedData);
+  }
+
+  tripInfoSaveState();
+}
+
+function clearTripInfoSignature() {
+  tripInfoResetSignatureSurface();
+  tripInfoState.signatureDataUrl = "";
+
+  if (tripInfoState.generatedData) {
+    tripInfoState.generatedData = {
+      ...tripInfoState.generatedData,
+      signatureDataUrl: "",
+    };
+    renderTripInfoPreview(tripInfoState.generatedData);
+  }
+
+  tripInfoSaveState();
+}
+
+function tripInfoDrawSignatureDataUrl(dataUrl) {
+  return new Promise((resolve) => {
+    if (!dataUrl) {
+      resolve();
+      return;
+    }
+
+    const image = new Image();
+    image.onload = () => {
+      const ctx = tripInfoSignatureCanvas.getContext("2d");
+      const deviceScale = window.devicePixelRatio || 1;
+      const width = tripInfoSignatureCanvas.width / deviceScale;
+      const height = tripInfoSignatureCanvas.height / deviceScale;
+      tripInfoResetSignatureSurface();
+      ctx.drawImage(image, 0, 0, width, height);
+      resolve();
+    };
+    image.onerror = () => {
+      resolve();
+    };
+    image.src = dataUrl;
+  });
+}
+
+function tripInfoRestoreState() {
+  const storedState = tripInfoReadStoredState();
+  tripInfoApplyFormValues(storedState.formValues);
+  tripInfoState.generatedData = storedState.generatedData;
+  tripInfoState.signatureDataUrl = storedState.signatureDataUrl;
+  tripInfoUpdateTakeOffFuelField();
+  tripInfoClearValidation();
+  tripInfoResizeSignatureCanvas(false);
+
+  if (tripInfoState.signatureDataUrl) {
+    void tripInfoDrawSignatureDataUrl(tripInfoState.signatureDataUrl);
+  }
+
+  if (tripInfoState.generatedData) {
+    tripInfoState.generatedData = {
+      ...tripInfoState.generatedData,
+      signatureDataUrl:
+        tripInfoState.signatureDataUrl || tripInfoState.generatedData.signatureDataUrl || "",
+    };
+    renderTripInfoPreview(tripInfoState.generatedData);
+  } else {
+    tripInfoPreviewMount.textContent = "";
+  }
+}
+
+function tripInfoReadStoredState() {
+  const emptyState = {
+    formValues: { ...TRIP_INFO_DEFAULTS },
+    generatedData: null,
+    signatureDataUrl: "",
+  };
+
+  try {
+    const rawState = localStorage.getItem(TRIP_INFO_STORAGE_KEY);
+    if (!rawState) {
+      return emptyState;
+    }
+
+    const parsedState = JSON.parse(rawState);
+    return {
+      formValues: {
+        ...TRIP_INFO_DEFAULTS,
+        ...(parsedState?.formValues && typeof parsedState.formValues === "object"
+          ? parsedState.formValues
+          : {}),
+      },
+      generatedData:
+        parsedState?.generatedData && typeof parsedState.generatedData === "object"
+          ? parsedState.generatedData
+          : null,
+      signatureDataUrl:
+        typeof parsedState?.signatureDataUrl === "string" ? parsedState.signatureDataUrl : "",
+    };
+  } catch {
+    return emptyState;
+  }
+}
+
+function tripInfoSaveState() {
+  try {
+    localStorage.setItem(
+      TRIP_INFO_STORAGE_KEY,
+      JSON.stringify({
+        formValues: tripInfoGetFormValues(),
+        generatedData: tripInfoState.generatedData,
+        signatureDataUrl: tripInfoState.signatureDataUrl,
+      })
+    );
+  } catch {
+    // Keep the app stable if storage is unavailable.
+  }
+}
+
+function tripInfoGetFormValues() {
+  return {
+    flightNumber: tripInfoForm.elements.flightNumber.value,
+    from: tripInfoForm.elements.from.value,
+    to: tripInfoForm.elements.to.value,
+    date: tripInfoForm.elements.date.value,
+    crew: tripInfoForm.elements.crew.value,
+    aircraftRegistration: tripInfoForm.elements.aircraftRegistration.value,
+    aircraftType: tripInfoForm.elements.aircraftType.value,
+    captainName: tripInfoForm.elements.captainName.value,
+    dow: tripInfoForm.elements.dow.value,
+    doi: tripInfoForm.elements.doi.value,
+    maxZfw: tripInfoForm.elements.maxZfw.value,
+    maxTow: tripInfoForm.elements.maxTow.value,
+    maxLdw: tripInfoForm.elements.maxLdw.value,
+    tripFuel: tripInfoForm.elements.tripFuel.value,
+    taxiFuel: tripInfoForm.elements.taxiFuel.value,
+    blockFuel: tripInfoForm.elements.blockFuel.value,
+    eetHours: tripInfoForm.elements.eetHours.value,
+    eetMinutes: tripInfoForm.elements.eetMinutes.value,
+  };
+}
+
+function tripInfoApplyFormValues(values = TRIP_INFO_DEFAULTS) {
+  const mergedValues = {
+    ...TRIP_INFO_DEFAULTS,
+    ...(values && typeof values === "object" ? values : {}),
+  };
+
+  Object.keys(TRIP_INFO_DEFAULTS).forEach((key) => {
+    const field = tripInfoForm.elements[key];
+    if (field) {
+      field.value = mergedValues[key];
+    }
+  });
+
+  tripInfoForm.elements.from.value = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
+  tripInfoForm.elements.to.value = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
+}
+
+function resetTripInfoModule(shouldFocus) {
+  tripInfoApplyFormValues(TRIP_INFO_DEFAULTS);
+  tripInfoState.generatedData = null;
+  tripInfoState.signatureDataUrl = "";
+  tripInfoPreviewMount.textContent = "";
+  tripInfoUpdatePreviewVisibility();
+  tripInfoClearValidation();
+  tripInfoResizeSignatureCanvas(false);
+  tripInfoUpdateTakeOffFuelField();
+
+  try {
+    localStorage.removeItem(TRIP_INFO_STORAGE_KEY);
+  } catch {
+    // Ignore storage removal issues to preserve app stability.
+  }
+
+  if (shouldFocus) {
+    tripInfoForm.elements.flightNumber.focus();
+  }
+}
+
+function tripInfoShowValidation(message) {
+  tripInfoValidationMessage.textContent = message;
+  tripInfoValidationMessage.hidden = false;
+}
+
+function tripInfoClearValidation() {
+  tripInfoValidationMessage.textContent = "";
+  tripInfoValidationMessage.hidden = true;
+}
+
+function generateTripInfoPreview() {
+  tripInfoClearValidation();
+  const normalizedData = tripInfoReadAndNormalizeValues();
+
+  if (!normalizedData) {
+    return;
+  }
+
+  tripInfoState.generatedData = normalizedData;
+  renderTripInfoPreview(normalizedData);
+  tripInfoSaveState();
+}
+
+function tripInfoReadAndNormalizeValues() {
+  const rawValues = tripInfoGetFormValues();
+  const flightNumber = tripInfoNormalizeText(rawValues.flightNumber);
+  const from = tripInfoNormalizeIataCode(rawValues.from);
+  const to = tripInfoNormalizeIataCode(rawValues.to);
+  const parsedDate = tripInfoParseDateInput(rawValues.date);
+  const crew = tripInfoNormalizeCrewValue(rawValues.crew);
+  const aircraftRegistration = tripInfoNormalizeText(rawValues.aircraftRegistration);
+  const aircraftType = rawValues.aircraftType;
+  const captainName = tripInfoNormalizeText(rawValues.captainName);
+  const dowKg = tripInfoParseIntegerField(rawValues.dow);
+  const doiValue = tripInfoParseDecimalField(rawValues.doi);
+  const maxZfwKg = tripInfoParseIntegerField(rawValues.maxZfw);
+  const maxTowKg = tripInfoParseIntegerField(rawValues.maxTow);
+  const maxLdwKg = tripInfoParseIntegerField(rawValues.maxLdw);
+  const tripFuelKg = tripInfoParseIntegerField(rawValues.tripFuel);
+  const taxiFuelKg = tripInfoParseIntegerField(rawValues.taxiFuel);
+  const blockFuelKg = tripInfoParseIntegerField(rawValues.blockFuel);
+  const eetHoursValue = tripInfoParsePlainInteger(rawValues.eetHours);
+  const eetMinutesValue = tripInfoParsePlainInteger(rawValues.eetMinutes);
+  const errors = [];
+
+  if (!flightNumber) {
+    errors.push("Enter a flight number.");
+  }
+
+  if (!/^[A-Z]{3}$/.test(from)) {
+    errors.push("From must be a valid 3-letter IATA code.");
+  }
+
+  if (!/^[A-Z]{3}$/.test(to)) {
+    errors.push("To must be a valid 3-letter IATA code.");
+  }
+
+  if (!parsedDate) {
+    errors.push("Enter a valid date.");
+  }
+
+  if (!crew) {
+    errors.push("Crew must be in the format 2+9.");
+  }
+
+  if (!aircraftRegistration) {
+    errors.push("Enter the aircraft registration.");
+  }
+
+  if (aircraftType !== "B789" && aircraftType !== "B737") {
+    errors.push("Select a valid aircraft type.");
+  }
+
+  if (!captainName) {
+    errors.push("Enter the captain name.");
+  }
+
+  if (dowKg === null) {
+    errors.push("Enter a valid non-negative DOW.");
+  }
+
+  if (doiValue === null) {
+    errors.push("Enter a valid non-negative DOI.");
+  }
+
+  if (maxZfwKg === null) {
+    errors.push("Enter a valid non-negative Max ZFW.");
+  }
+
+  if (maxTowKg === null) {
+    errors.push("Enter a valid non-negative Max or Restricted TOW.");
+  }
+
+  if (maxLdwKg === null) {
+    errors.push("Enter a valid non-negative Max or Restricted LDW.");
+  }
+
+  if (tripFuelKg === null) {
+    errors.push("Enter a valid non-negative Trip Fuel.");
+  }
+
+  if (taxiFuelKg === null) {
+    errors.push("Enter a valid non-negative Taxi Fuel.");
+  }
+
+  if (blockFuelKg === null) {
+    errors.push("Enter a valid non-negative Block Fuel.");
+  }
+
+  if (eetHoursValue === null || eetMinutesValue === null) {
+    errors.push("Enter valid non-negative EET hours and minutes.");
+  }
+
+  if (eetMinutesValue !== null && eetMinutesValue > 59) {
+    errors.push("EET minutes must be between 0 and 59.");
+  }
+
+  if (
+    blockFuelKg !== null &&
+    taxiFuelKg !== null &&
+    blockFuelKg - taxiFuelKg < 0
+  ) {
+    errors.push("Take Off Fuel cannot be negative.");
+  }
+
+  if (errors.length > 0) {
+    tripInfoShowValidation(errors[0]);
+    return null;
+  }
+
+  const takeOffFuelKg = blockFuelKg - taxiFuelKg;
+
+  return {
+    flightNumber,
+    from,
+    to,
+    dateDisplay: parsedDate.display,
+    dateIso: parsedDate.iso,
+    crew,
+    aircraftRegistration,
+    aircraftType,
+    captainName,
+    dowKg,
+    doiValue,
+    maxZfwKg,
+    maxTowKg,
+    maxLdwKg,
+    tripFuelKg,
+    takeOffFuelKg,
+    taxiFuelKg,
+    blockFuelKg,
+    eetHours: String(eetHoursValue).padStart(2, "0"),
+    eetMinutes: String(eetMinutesValue).padStart(2, "0"),
+    dowDisplay: tripInfoFormatKgValue(dowKg),
+    doiDisplay: tripInfoFormatDoiValue(doiValue),
+    maxZfwDisplay: tripInfoFormatKgValue(maxZfwKg),
+    maxTowDisplay: tripInfoFormatKgValue(maxTowKg),
+    maxLdwDisplay: tripInfoFormatKgValue(maxLdwKg),
+    tripFuelDisplay: tripInfoFormatKgValue(tripFuelKg),
+    takeOffFuelDisplay: tripInfoFormatKgValue(takeOffFuelKg),
+    taxiFuelDisplay: tripInfoFormatKgValue(taxiFuelKg),
+    blockFuelDisplay: tripInfoFormatKgValue(blockFuelKg),
+    signatureDataUrl: tripInfoState.signatureDataUrl,
+  };
+}
+
+function tripInfoUpdateTakeOffFuelField() {
+  const blockFuelKg = tripInfoParseIntegerField(tripInfoForm.elements.blockFuel.value);
+  const taxiFuelKg = tripInfoParseIntegerField(tripInfoForm.elements.taxiFuel.value);
+
+  if (blockFuelKg === null || taxiFuelKg === null || blockFuelKg - taxiFuelKg < 0) {
+    tripInfoTakeOffFuelInput.value = "";
+    return;
+  }
+
+  tripInfoTakeOffFuelInput.value = tripInfoFormatKgValue(blockFuelKg - taxiFuelKg);
+}
+
+function renderTripInfoPreview(data) {
+  tripInfoPreviewMount.innerHTML = tripInfoBuildPreviewSvg(data);
+  tripInfoUpdatePreviewVisibility();
+}
+
+function tripInfoUpdatePreviewVisibility() {
+  tripInfoPreviewSection.hidden = !tripInfoState.generatedData;
+}
+
+function tripInfoBuildPreviewSvg(data) {
+  const logoMarkup = tripInfoLogoDataUrl
+    ? `<image href="${tripInfoEscapeAttribute(tripInfoLogoDataUrl)}" x="62" y="60" width="184" height="58" preserveAspectRatio="xMinYMin meet" />`
+    : `<text x="62" y="101" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">RampCheck</text>`;
+  const signatureMarkup = data.signatureDataUrl
+    ? `<image href="${tripInfoEscapeAttribute(data.signatureDataUrl)}" x="570" y="1188" width="410" height="170" preserveAspectRatio="none" />`
+    : "";
+  const noteGuides = tripInfoBuildSvgGuideLines(140, 730, 866, 390, 5);
+  const remarksGuides = tripInfoBuildSvgGuideLines(44, 1146, 500, 290, 3);
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1480" role="img" aria-label="Trip Info A6 preview">
+      <rect x="0" y="0" width="1050" height="1480" fill="#ffffff" />
+      <rect x="22" y="22" width="1006" height="1436" rx="16" ry="16" fill="none" stroke="#111827" stroke-width="4" />
+      ${logoMarkup}
+      <text x="525" y="94" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" text-anchor="middle">TRIP INFO</text>
+      <text x="525" y="126" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="middle">A6 TRIP FORM</text>
+
+      <g>
+        <rect x="742" y="46" width="264" height="112" fill="none" stroke="#111827" stroke-width="3" />
+        <line x1="742" y1="74" x2="1006" y2="74" stroke="#111827" stroke-width="2" />
+        <line x1="742" y1="102" x2="1006" y2="102" stroke="#111827" stroke-width="2" />
+        <line x1="742" y1="130" x2="1006" y2="130" stroke="#111827" stroke-width="2" />
+        <line x1="840" y1="46" x2="840" y2="158" stroke="#111827" stroke-width="2" />
+        <text x="758" y="66" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">SN</text>
+        <text x="856" y="66" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">FO-FO-008</text>
+        <text x="758" y="94" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">Revision</text>
+        <text x="856" y="94" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">03</text>
+        <text x="758" y="122" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">Date</text>
+        <text x="856" y="122" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">30.Jun.05</text>
+        <text x="758" y="150" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">Edited by</text>
+        <text x="856" y="150" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">FOPH</text>
+      </g>
+
+      ${tripInfoBuildSvgBox(44, 190, 350, 86, "Flight Number", tripInfoFitPreviewText(data.flightNumber, 18))}
+      ${tripInfoBuildSvgBox(394, 190, 118, 86, "From", data.from, { valueSize: 34, align: "center" })}
+      ${tripInfoBuildSvgBox(512, 190, 118, 86, "To", data.to, { valueSize: 34, align: "center" })}
+      ${tripInfoBuildSvgBox(630, 190, 206, 86, "Date", data.dateDisplay, { valueSize: 26, align: "center" })}
+      ${tripInfoBuildSvgBox(836, 190, 170, 86, "Crew", data.crew, { valueSize: 30, align: "center" })}
+
+      ${tripInfoBuildSvgBox(44, 276, 350, 86, "A/C Registration", tripInfoFitPreviewText(data.aircraftRegistration, 18))}
+      ${tripInfoBuildSvgBox(394, 276, 170, 86, "A/C Type", data.aircraftType, { valueSize: 32, align: "center" })}
+      ${tripInfoBuildSvgBox(564, 276, 442, 86, "Captain Name", tripInfoFitPreviewText(data.captainName, 28))}
+
+      ${tripInfoBuildSvgBox(44, 362, 300, 82, "DOW", data.dowDisplay)}
+      ${tripInfoBuildSvgBox(344, 362, 190, 82, "DOI", data.doiDisplay, { valueSize: 30, align: "center" })}
+      ${tripInfoBuildSvgBox(534, 362, 472, 82, "Max ZFW", data.maxZfwDisplay)}
+      ${tripInfoBuildSvgBox(44, 444, 482, 82, "Max or Restricted TOW", data.maxTowDisplay)}
+      ${tripInfoBuildSvgBox(526, 444, 480, 82, "Max or Restricted LDW", data.maxLdwDisplay)}
+      ${tripInfoBuildSvgBox(44, 526, 300, 82, "Trip Fuel", data.tripFuelDisplay)}
+      ${tripInfoBuildSvgBox(344, 526, 300, 82, "Taxi Fuel", data.taxiFuelDisplay)}
+      ${tripInfoBuildSvgBox(644, 526, 362, 82, "Block Fuel", data.blockFuelDisplay)}
+      ${tripInfoBuildSvgBox(44, 608, 420, 82, "Take Off Fuel", data.takeOffFuelDisplay)}
+      ${tripInfoBuildSvgBox(464, 608, 271, 82, "EET hrs", data.eetHours, { valueSize: 34, align: "center" })}
+      ${tripInfoBuildSvgBox(735, 608, 271, 82, "EET min", data.eetMinutes, { valueSize: 34, align: "center" })}
+
+      <g>
+        <rect x="44" y="730" width="96" height="390" fill="none" stroke="#111827" stroke-width="3" />
+        <rect x="140" y="730" width="866" height="390" fill="none" stroke="#111827" stroke-width="3" />
+        <text x="92" y="925" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="middle" transform="rotate(-90 92 925)">NOTE</text>
+        ${noteGuides}
+      </g>
+
+      <g>
+        <rect x="44" y="1120" width="500" height="316" fill="none" stroke="#111827" stroke-width="3" />
+        <text x="64" y="1148" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Remarks</text>
+        ${remarksGuides}
+      </g>
+
+      <g>
+        <rect x="544" y="1120" width="462" height="316" fill="none" stroke="#111827" stroke-width="3" />
+        <text x="564" y="1148" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Captain Signature</text>
+        <rect x="564" y="1170" width="422" height="194" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+        ${signatureMarkup}
+        <line x1="564" y1="1392" x2="986" y2="1392" stroke="#111827" stroke-width="2" />
+      </g>
+    </svg>
+  `.trim();
+}
+
+function tripInfoBuildSvgBox(x, y, width, height, label, value, options = {}) {
+  const {
+    labelSize = 17,
+    valueSize = 28,
+    align = "start",
+  } = options;
+  const valueAnchor =
+    align === "center" ? "middle" : align === "end" ? "end" : "start";
+  const valueX =
+    align === "center" ? x + width / 2 : align === "end" ? x + width - 18 : x + 18;
+
+  return `
+    <g>
+      <rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" stroke="#111827" stroke-width="3" />
+      <text x="${x + 18}" y="${y + 24}" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="${labelSize}" font-weight="700">${tripInfoEscapeXml(label)}</text>
+      <text x="${valueX}" y="${y + height - 18}" fill="#0f172a" font-family="Arial, Helvetica, sans-serif" font-size="${valueSize}" font-weight="700" text-anchor="${valueAnchor}">${tripInfoEscapeXml(value)}</text>
+    </g>
+  `.trim();
+}
+
+function tripInfoBuildSvgGuideLines(x, y, width, height, lineCount) {
+  const lines = [];
+  const spacing = height / (lineCount + 1);
+
+  for (let index = 1; index <= lineCount; index += 1) {
+    const yPosition = y + spacing * index;
+    lines.push(
+      `<line x1="${x + 18}" y1="${yPosition.toFixed(2)}" x2="${x + width - 18}" y2="${yPosition.toFixed(2)}" stroke="#cbd5e1" stroke-width="1.5" />`
+    );
+  }
+
+  return lines.join("");
+}
+
+async function tripInfoDownloadPng() {
+  await tripInfoRunExport(async () => {
+    const pngBlob = await tripInfoCreatePngBlob();
+    tripInfoTriggerDownload(
+      pngBlob,
+      `${tripInfoBuildFilenameBase(tripInfoState.generatedData)}.png`
+    );
+  });
+}
+
+async function tripInfoDownloadPdf() {
+  await tripInfoRunExport(async () => {
+    const pdfBlob = await tripInfoCreatePdfBlob();
+    tripInfoTriggerDownload(
+      pdfBlob,
+      `${tripInfoBuildFilenameBase(tripInfoState.generatedData)}.pdf`
+    );
+  });
+}
+
+async function tripInfoShare() {
+  await tripInfoRunExport(async () => {
+    const pngBlob = await tripInfoCreatePngBlob();
+    const pdfBlob = await tripInfoCreatePdfBlob();
+    const baseFilename = tripInfoBuildFilenameBase(tripInfoState.generatedData);
+
+    if (typeof File === "function" && navigator.share && navigator.canShare) {
+      const pngFile = new File([pngBlob], `${baseFilename}.png`, { type: "image/png" });
+      const pdfFile = new File([pdfBlob], `${baseFilename}.pdf`, {
+        type: "application/pdf",
+      });
+
+      if (navigator.canShare({ files: [pdfFile, pngFile] })) {
+        await navigator.share({
+          title: `Trip Info ${tripInfoState.generatedData.flightNumber}`,
+          files: [pdfFile, pngFile],
+        });
+        return;
+      }
+
+      if (navigator.canShare({ files: [pngFile] })) {
+        await navigator.share({
+          title: `Trip Info ${tripInfoState.generatedData.flightNumber}`,
+          files: [pngFile],
+        });
+        return;
+      }
+    }
+
+    tripInfoTriggerDownload(pngBlob, `${baseFilename}.png`);
+  });
+}
+
+async function tripInfoRunExport(task) {
+  if (!tripInfoState.generatedData) {
+    return;
+  }
+
+  tripInfoSetExportButtonsDisabled(true);
+  tripInfoClearValidation();
+
+  try {
+    await task();
+  } catch (error) {
+    if (error?.name !== "AbortError") {
+      tripInfoShowValidation("Unable to complete the Trip Info export.");
+    }
+  } finally {
+    tripInfoSetExportButtonsDisabled(false);
+  }
+}
+
+function tripInfoSetExportButtonsDisabled(disabled) {
+  tripInfoDownloadPdfButton.disabled = disabled;
+  tripInfoDownloadPngButton.disabled = disabled;
+  tripInfoShareButton.disabled = disabled;
+}
+
+async function tripInfoCreatePngBlob() {
+  const canvas = await tripInfoRenderExportCanvas();
+  return tripInfoCanvasToBlob(canvas, "image/png");
+}
+
+async function tripInfoCreatePdfBlob() {
+  const canvas = await tripInfoRenderExportCanvas();
+  return tripInfoCanvasToPdfBlob(canvas);
+}
+
+async function tripInfoRenderExportCanvas() {
+  await tripInfoLoadLogoData();
+
+  const svgMarkup = tripInfoBuildPreviewSvg({
+    ...tripInfoState.generatedData,
+    signatureDataUrl: tripInfoState.signatureDataUrl,
+  });
+  const svgBlob = new Blob([svgMarkup], { type: "image/svg+xml;charset=utf-8" });
+  const svgUrl = URL.createObjectURL(svgBlob);
+  const ctx = tripInfoExportCanvas.getContext("2d");
+
+  try {
+    const image = await tripInfoLoadImage(svgUrl);
+    tripInfoExportCanvas.width = TRIP_INFO_EXPORT_WIDTH;
+    tripInfoExportCanvas.height = TRIP_INFO_EXPORT_HEIGHT;
+    ctx.clearRect(0, 0, TRIP_INFO_EXPORT_WIDTH, TRIP_INFO_EXPORT_HEIGHT);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, TRIP_INFO_EXPORT_WIDTH, TRIP_INFO_EXPORT_HEIGHT);
+    ctx.drawImage(image, 0, 0, TRIP_INFO_EXPORT_WIDTH, TRIP_INFO_EXPORT_HEIGHT);
+  } finally {
+    URL.revokeObjectURL(svgUrl);
+  }
+
+  return tripInfoExportCanvas;
+}
+
+function tripInfoLoadImage(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Unable to load export image."));
+    image.src = source;
+  });
+}
+
+function tripInfoCanvasToBlob(canvas, type) {
+  return new Promise((resolve, reject) => {
+    if (typeof canvas.toBlob !== "function") {
+      try {
+        const dataUrl = canvas.toDataURL(type);
+        resolve(new Blob([tripInfoDataUrlToBytes(dataUrl)], { type }));
+      } catch (error) {
+        reject(error);
+      }
+      return;
+    }
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+
+      reject(new Error("Unable to export canvas."));
+    }, type);
+  });
+}
+
+function tripInfoCanvasToPdfBlob(canvas) {
+  const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.95);
+  const encoder = new TextEncoder();
+  const imageBytes = tripInfoDataUrlToBytes(jpegDataUrl);
+  const contentStream = `q\n${TRIP_INFO_A6_WIDTH_PT.toFixed(2)} 0 0 ${TRIP_INFO_A6_HEIGHT_PT.toFixed(2)} 0 0 cm\n/Im0 Do\nQ\n`;
+  const contentBytes = encoder.encode(contentStream);
+  const chunks = [];
+  const offsets = [0];
+  let byteOffset = 0;
+
+  const appendBytes = (bytes) => {
+    chunks.push(bytes);
+    byteOffset += bytes.length;
+  };
+
+  const appendText = (text) => {
+    appendBytes(encoder.encode(text));
+  };
+
+  appendText("%PDF-1.3\n");
+  offsets.push(byteOffset);
+  appendText("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  offsets.push(byteOffset);
+  appendText("2 0 obj\n<< /Type /Pages /Count 1 /Kids [3 0 R] >>\nendobj\n");
+  offsets.push(byteOffset);
+  appendText(
+    `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${TRIP_INFO_A6_WIDTH_PT.toFixed(
+      2
+    )} ${TRIP_INFO_A6_HEIGHT_PT.toFixed(
+      2
+    )}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`
+  );
+  offsets.push(byteOffset);
+  appendText(
+    `4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n`
+  );
+  appendBytes(imageBytes);
+  appendText("\nendstream\nendobj\n");
+  offsets.push(byteOffset);
+  appendText(`5 0 obj\n<< /Length ${contentBytes.length} >>\nstream\n`);
+  appendBytes(contentBytes);
+  appendText("endstream\nendobj\n");
+
+  const xrefOffset = byteOffset;
+  appendText(`xref\n0 ${offsets.length}\n`);
+  appendText("0000000000 65535 f \n");
+  offsets.slice(1).forEach((offset) => {
+    appendText(`${String(offset).padStart(10, "0")} 00000 n \n`);
+  });
+  appendText(
+    `trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
+  );
+
+  return new Blob(chunks, { type: "application/pdf" });
+}
+
+function tripInfoDataUrlToBytes(dataUrl) {
+  const base64 = dataUrl.split(",")[1] || "";
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+
+  for (let index = 0; index < binaryString.length; index += 1) {
+    bytes[index] = binaryString.charCodeAt(index);
+  }
+
+  return bytes;
+}
+
+function tripInfoTriggerDownload(blob, filename) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 1000);
+}
+
+function tripInfoBuildFilenameBase(data) {
+  const flightNumber = tripInfoSanitizeFilenamePart(data?.flightNumber || "TRIP");
+  const datePart = tripInfoSanitizeFilenamePart(
+    data?.dateIso || new Date().toISOString().slice(0, 10)
+  );
+
+  return `TRIPINFO_${flightNumber}_${datePart}`;
+}
+
+function tripInfoSanitizeFilenamePart(value) {
+  const sanitized = String(value)
+    .trim()
+    .replace(/[^A-Za-z0-9_-]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return sanitized || "NA";
+}
+
+async function tripInfoLoadLogoData() {
+  if (tripInfoLogoDataUrl) {
+    return tripInfoLogoDataUrl;
+  }
+
+  try {
+    const response = await fetch(TRIP_INFO_LOGO_SRC);
+
+    if (!response.ok) {
+      throw new Error("Logo not available.");
+    }
+
+    const logoBlob = await response.blob();
+    tripInfoLogoDataUrl = await tripInfoBlobToDataUrl(logoBlob);
+
+    if (tripInfoState.generatedData) {
+      renderTripInfoPreview(tripInfoState.generatedData);
+    }
+  } catch {
+    tripInfoLogoDataUrl = "";
+  }
+
+  return tripInfoLogoDataUrl;
+}
+
+function tripInfoBlobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("Unable to read logo."));
+    };
+    reader.onerror = () => {
+      reject(new Error("Unable to read logo."));
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+function tripInfoNormalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function tripInfoNormalizeIataCode(value) {
+  return tripInfoNormalizeText(value)
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "")
+    .slice(0, 3);
+}
+
+function tripInfoNormalizeCrewValue(value) {
+  const compactValue = tripInfoNormalizeText(value).replace(/\s+/g, "");
+  return /^\d+\+\d+$/.test(compactValue) ? compactValue : null;
+}
+
+function tripInfoParseDateInput(value) {
+  const trimmedValue = tripInfoNormalizeText(value);
+
+  if (!trimmedValue) {
+    return null;
+  }
+
+  let year;
+  let month;
+  let day;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedValue)) {
+    const [isoYear, isoMonth, isoDay] = trimmedValue.split("-").map(Number);
+    year = isoYear;
+    month = isoMonth;
+    day = isoDay;
+  } else {
+    const match = trimmedValue.match(
+      /^(\d{1,2})[\/.\-\s]([A-Za-z]{3,}|\d{1,2})[\/.\-\s](\d{2}|\d{4})$/
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    day = Number(match[1]);
+    month = tripInfoParseMonthToken(match[2]);
+    year = tripInfoParseYearToken(match[3]);
+  }
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return {
+    iso: `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+    display: `${String(day).padStart(2, "0")}/${TRIP_INFO_MONTHS[month - 1]}/${String(
+      year
+    ).slice(-2)}`,
+  };
+}
+
+function tripInfoParseMonthToken(token) {
+  if (/^\d{1,2}$/.test(token)) {
+    const numericMonth = Number(token);
+    return numericMonth >= 1 && numericMonth <= 12 ? numericMonth : null;
+  }
+
+  const normalizedToken = token.slice(0, 3).toLowerCase();
+  const monthIndex = TRIP_INFO_MONTHS.findIndex(
+    (month) => month.toLowerCase() === normalizedToken
+  );
+
+  return monthIndex >= 0 ? monthIndex + 1 : null;
+}
+
+function tripInfoParseYearToken(token) {
+  if (!/^\d{2}(\d{2})?$/.test(token)) {
+    return null;
+  }
+
+  if (token.length === 4) {
+    return Number(token);
+  }
+
+  return 2000 + Number(token);
+}
+
+function tripInfoParseIntegerField(value) {
+  const compactValue = tripInfoNormalizeText(value).replace(/\s+/g, "");
+
+  if (!compactValue) {
+    return null;
+  }
+
+  if (/^\d+$/.test(compactValue)) {
+    return Number(compactValue);
+  }
+
+  if (/^\d{1,3}([.,]\d{3})+$/.test(compactValue)) {
+    return Number(compactValue.replace(/[.,]/g, ""));
+  }
+
+  return null;
+}
+
+function tripInfoParseDecimalField(value) {
+  const compactValue = tripInfoNormalizeText(value).replace(/\s+/g, "");
+
+  if (!compactValue) {
+    return null;
+  }
+
+  if (/^\d+$/.test(compactValue)) {
+    return Number(compactValue);
+  }
+
+  if (/^\d+[.,]\d+$/.test(compactValue)) {
+    return Number(compactValue.replace(",", "."));
+  }
+
+  return null;
+}
+
+function tripInfoParsePlainInteger(value) {
+  const trimmedValue = tripInfoNormalizeText(value);
+
+  if (!/^\d+$/.test(trimmedValue)) {
+    return null;
+  }
+
+  return Number(trimmedValue);
+}
+
+function tripInfoFormatKgValue(value) {
+  return `${Math.round(value).toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })} Kg`;
+}
+
+function tripInfoFormatDoiValue(value) {
+  return Number(value).toLocaleString("it-IT", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+}
+
+function tripInfoEscapeXml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function tripInfoEscapeAttribute(value) {
+  return tripInfoEscapeXml(value).replace(/"/g, "&quot;");
+}
+
+function tripInfoFitPreviewText(value, maxLength) {
+  const text = String(value);
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
 }
 
 function percentage(value, base) {

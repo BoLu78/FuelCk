@@ -653,6 +653,78 @@
       #acn-report-section .kv-value {
         max-width: 58%;
       }
+
+      #tripInfoView {
+        gap: 16px;
+      }
+
+      #tripInfoView .card {
+        width: 100%;
+      }
+
+      .tripInfoSectionCard {
+        align-content: start;
+      }
+
+      .tripInfoReadonlyInput {
+        color: rgba(245, 247, 251, 0.86);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .tripInfoEetRow {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .tripInfoSignatureCanvas {
+        display: block;
+        width: 100%;
+        height: 180px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #ffffff;
+        touch-action: none;
+      }
+
+      .tripInfoPreviewSection {
+        gap: 16px;
+      }
+
+      .tripInfoPreviewCard {
+        gap: 16px;
+      }
+
+      .tripInfoPreviewMount {
+        width: min(100%, 390px);
+        margin: 0 auto;
+        padding: 12px;
+        border-radius: 20px;
+        background: #e7ebf3;
+      }
+
+      .tripInfoPreviewMount svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 16px 30px rgba(15, 18, 28, 0.16);
+      }
+
+      .tripInfoExportActions {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      @media (min-width: 440px) {
+        .tripInfoExportActions {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      .tripInfoExportCanvas {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -673,11 +745,15 @@
             <span class="menu-button-title">ACN-PCN</span>
             <span class="menu-button-note">Pavement compatibility module</span>
           </button>
+          <button class="menu-button" type="button" id="openTripInfoBtn">
+            <span class="menu-button-title">TRIP INFO</span>
+            <span class="menu-button-note">A6 trip form generator</span>
+          </button>
         </section>
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="assets/logo-lb.png" alt="">
-          <span class="home-version">v1.27</span>
+          <span class="home-version">v1.28</span>
         </div>
       </section>
 
@@ -824,6 +900,363 @@
             </div>
           </section>
 
+        </section>
+      </section>
+
+      <section class="screen app-view" id="tripInfoView" hidden aria-hidden="true">
+        <div class="module-nav">
+          <button class="button module-back" type="button" id="backFromTripInfoBtn">Back</button>
+        </div>
+
+        <header class="hero">
+          <h1>TRIP INFO</h1>
+          <p class="subtitle">A6 trip form generator</p>
+        </header>
+
+        <form id="tripInfo-form" class="stack" novalidate>
+          <section class="card stack tripInfoSectionCard">
+            <h2>Flight / Routing</h2>
+
+            <div class="field">
+              <label for="tripInfo-flight-number">Flight Number</label>
+              <input
+                id="tripInfo-flight-number"
+                name="flightNumber"
+                class="input"
+                type="text"
+                autocomplete="off"
+                required
+              >
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfo-from">From</label>
+                <input
+                  id="tripInfo-from"
+                  name="from"
+                  class="input mono"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  maxlength="3"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfo-to">To</label>
+                <input
+                  id="tripInfo-to"
+                  name="to"
+                  class="input mono"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  maxlength="3"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfo-date">Date</label>
+                <input
+                  id="tripInfo-date"
+                  name="date"
+                  class="input mono"
+                  type="text"
+                  inputmode="text"
+                  placeholder="05/Apr/26"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfo-crew">Crew</label>
+                <input
+                  id="tripInfo-crew"
+                  name="crew"
+                  class="input mono"
+                  type="text"
+                  inputmode="text"
+                  placeholder="2+9"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+          </section>
+
+          <section class="card stack tripInfoSectionCard">
+            <h2>Aircraft / Crew</h2>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfo-aircraft-registration">A/C Registration</label>
+                <input
+                  id="tripInfo-aircraft-registration"
+                  name="aircraftRegistration"
+                  class="input"
+                  type="text"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfo-aircraft-type">A/C Type</label>
+                <select
+                  id="tripInfo-aircraft-type"
+                  name="aircraftType"
+                  class="select"
+                  required
+                >
+                  <option value="B789" selected>B789</option>
+                  <option value="B737">B737</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="tripInfo-captain-name">Captain Name</label>
+              <input
+                id="tripInfo-captain-name"
+                name="captainName"
+                class="input"
+                type="text"
+                autocomplete="off"
+                required
+              >
+            </div>
+          </section>
+
+          <section class="card stack tripInfoSectionCard">
+            <h2>Weights</h2>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfo-dow">DOW</label>
+                <input
+                  id="tripInfo-dow"
+                  name="dow"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfo-doi">DOI</label>
+                <input
+                  id="tripInfo-doi"
+                  name="doi"
+                  class="input number-input"
+                  type="text"
+                  inputmode="decimal"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfo-max-zfw">Max ZFW</label>
+                <input
+                  id="tripInfo-max-zfw"
+                  name="maxZfw"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfo-max-tow">Max or Restricted TOW</label>
+                <input
+                  id="tripInfo-max-tow"
+                  name="maxTow"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="tripInfo-max-ldw">Max or Restricted LDW</label>
+              <input
+                id="tripInfo-max-ldw"
+                name="maxLdw"
+                class="input number-input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9., ]*"
+                autocomplete="off"
+                required
+              >
+            </div>
+          </section>
+
+          <section class="card stack tripInfoSectionCard">
+            <h2>Fuel / Time</h2>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfo-trip-fuel">Trip Fuel</label>
+                <input
+                  id="tripInfo-trip-fuel"
+                  name="tripFuel"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfo-taxi-fuel">Taxi Fuel</label>
+                <input
+                  id="tripInfo-taxi-fuel"
+                  name="taxiFuel"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfo-block-fuel">Block Fuel</label>
+                <input
+                  id="tripInfo-block-fuel"
+                  name="blockFuel"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfo-takeoff-fuel">Take Off Fuel</label>
+                <input
+                  id="tripInfo-takeoff-fuel"
+                  name="takeOffFuel"
+                  class="input number-input tripInfoReadonlyInput mono"
+                  type="text"
+                  autocomplete="off"
+                  readonly
+                  aria-readonly="true"
+                >
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="field-title">EET</span>
+              <div class="tripInfoEetRow">
+                <div class="field">
+                  <label for="tripInfo-eet-hours">hrs</label>
+                  <input
+                    id="tripInfo-eet-hours"
+                    name="eetHours"
+                    class="input number-input"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    autocomplete="off"
+                    required
+                  >
+                </div>
+
+                <div class="field">
+                  <label for="tripInfo-eet-minutes">min</label>
+                  <input
+                    id="tripInfo-eet-minutes"
+                    name="eetMinutes"
+                    class="input number-input"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    autocomplete="off"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card stack tripInfoSectionCard">
+            <h2>Captain Signature</h2>
+            <canvas
+              id="tripInfo-signature-canvas"
+              class="tripInfoSignatureCanvas"
+              aria-label="Captain signature pad"
+            ></canvas>
+            <button
+              class="button"
+              type="button"
+              id="tripInfo-clear-signature-button"
+            >
+              Clear Signature
+            </button>
+          </section>
+
+          <p
+            id="tripInfo-validation-message"
+            class="inline-message"
+            aria-live="polite"
+            hidden
+          ></p>
+
+          <div class="actions">
+            <button class="button" type="button" id="tripInfo-reset-button">RESET</button>
+            <button class="button primary" type="submit" id="tripInfo-generate-button">
+              GENERATE
+            </button>
+          </div>
+        </form>
+
+        <section class="screen tripInfoPreviewSection" id="tripInfo-preview-section" hidden>
+          <section class="card tripInfoPreviewCard">
+            <h2>A6 Preview</h2>
+            <div id="tripInfo-preview-mount" class="tripInfoPreviewMount"></div>
+          </section>
+
+          <div class="actions tripInfoExportActions">
+            <button class="button" type="button" id="tripInfo-download-pdf-button">
+              Download PDF
+            </button>
+            <button class="button" type="button" id="tripInfo-download-png-button">
+              Download PNG
+            </button>
+            <button class="button primary" type="button" id="tripInfo-share-button">
+              Share
+            </button>
+          </div>
+
+          <canvas id="tripInfo-export-canvas" class="tripInfoExportCanvas" hidden></canvas>
         </section>
       </section>
 
