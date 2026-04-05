@@ -1,4 +1,4 @@
-const APP_VERSION = "3.8";
+const APP_VERSION = "3.9";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1596,7 +1596,7 @@ function tripInfoBuildPreviewSvg(data) {
   const mainRight = pageRight;
   const mainLineRight = mainRight - 0.6;
   const mainRowStartY = noteY + 5.7;
-  const mainRowStep = 6;
+  const mainRowStep = 8;
   const fieldLineOffset = 1.1;
   const inlineUnitBaselineOffset = 0.15;
   const remarksX = pageLeft;
