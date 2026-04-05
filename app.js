@@ -1,4 +1,4 @@
-const APP_VERSION = "4.7";
+const APP_VERSION = "4.8";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -120,7 +120,7 @@ const TRIP_INFO_LAYOUT = (() => {
   const pageRight = 95;
   const valueLift = 0.65;
   const topRows = (() => {
-    const yStart = 17.7;
+    const yStart = 17.3;
     const rowStep = 5.4;
     const lineOffset = 1.1;
     const row1Y = yStart;
@@ -145,19 +145,19 @@ const TRIP_INFO_LAYOUT = (() => {
       from: {
         labelX: 52.6,
         labelY: row1Y,
-        lineStartX: 63.9,
-        lineEndX: 75.3,
+        lineStartX: 63.6,
+        lineEndX: 76.1,
         lineY: row1Y + lineOffset,
-        valueCenterX: 69.6,
+        valueCenterX: 69.85,
         valueY: row1Y + lineOffset - valueLift,
       },
       to: {
         labelX: 76.2,
         labelY: row1Y,
-        lineStartX: 82.1,
+        lineStartX: 81.2,
         lineEndX: pageRight,
         lineY: row1Y + lineOffset,
-        valueCenterX: 88.55,
+        valueCenterX: 88.1,
         valueY: row1Y + lineOffset - valueLift,
       },
       date: {
@@ -170,12 +170,12 @@ const TRIP_INFO_LAYOUT = (() => {
         valueY: row2Y + lineOffset - valueLift,
       },
       crew: {
-        labelX: 47.2,
+        labelX: 48.8,
         labelY: row2Y,
-        lineStartX: 58.4,
-        lineEndX: 88.8,
+        lineStartX: 61,
+        lineEndX: 84.2,
         lineY: row2Y + lineOffset,
-        valueCenterX: 73.6,
+        valueCenterX: 72.6,
         valueY: row2Y + lineOffset - valueLift,
       },
       registration: {
@@ -190,13 +190,13 @@ const TRIP_INFO_LAYOUT = (() => {
         valueAnchor: "start",
       },
       aircraftType: {
-        labelX: 67.2,
+        labelX: 66.2,
         labelY: row3Y,
-        lineStartX: 81.2,
-        lineEndX: pageRight,
+        lineStartX: 79.8,
+        lineEndX: 94.2,
         lineY: row3Y + lineOffset,
-        valueCenterX: 88.1,
-        valueX: 81.8,
+        valueCenterX: 87,
+        valueX: 80.4,
         valueY: row3Y + lineOffset - valueLift,
         valueAnchor: "start",
       },
@@ -251,7 +251,7 @@ const TRIP_INFO_LAYOUT = (() => {
   };
   const mainArea = {
     x: noteBox.x + noteBox.width,
-    y: 40.8,
+    y: 40.2,
     width: pageRight - (noteBox.x + noteBox.width),
     rightX: pageRight,
     labelX: noteBox.x + noteBox.width + 1.3,
