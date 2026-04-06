@@ -1,4 +1,4 @@
-const APP_VERSION = "7.6";
+const APP_VERSION = "7.7";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -2514,9 +2514,9 @@ function tripInfoBuildPreviewSvg(data) {
       )}
       ${tripInfoBuildSvgMmText({
         x: bottomBoxes.remarks.labelX,
-        y: bottomBoxes.remarks.labelY - 0.45,
+        y: bottomBoxes.remarks.labelY - 0.7,
         text: "Remarks",
-        fontSize: bodyFontSize * 0.9,
+        fontSize: bodyFontSize * 0.84,
         fontWeight: 400,
         letterSpacing: 0,
       })}
@@ -2740,13 +2740,14 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
     return "";
   }
 
-  const waterHeadlineFontSize = bodyFontSize * 0.81;
-  const waterDetailFontSize = bodyFontSize * 0.69;
+  const waterHeadlineFontSize = bodyFontSize * 0.82;
+  const waterDetailFontSize = bodyFontSize * 0.68;
   const remarksBodyFontSize = bodyFontSize * 0.75;
   const textX = remarksBox.x + 2.1;
-  const textY = remarksBox.y + 5.2;
-  const lineStep = 2.3;
-  const groupGap = 1.05;
+  const textY = remarksBox.y + 4.95;
+  const lineStep = 2.28;
+  const waterDetailGap = 0.34;
+  const groupGap = 1.08;
   const maxY = remarksBox.y + remarksBox.height - 1.1;
   const markup = [];
   let cursorY = textY;
@@ -2815,6 +2816,7 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
 
   if (data.showRemarksCorrection) {
     pushPlainTextLine(data.remarksWaterTransitionText, waterHeadlineFontSize, 700);
+    cursorY += waterDetailGap;
     pushSegmentedTextLine([
       { text: "*DOW " },
       {
@@ -2840,7 +2842,7 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
       35,
       Math.max(0, Math.floor((maxY - cursorY) / lineStep) + 1)
     ).forEach((line) => {
-      pushPlainTextLine(line, remarksBodyFontSize, 600);
+      pushPlainTextLine(line, remarksBodyFontSize, 400);
     });
   }
 
