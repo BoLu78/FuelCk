@@ -1,4 +1,4 @@
-const APP_VERSION = "7.0";
+const APP_VERSION = "7.1";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -486,6 +486,18 @@ const tripInfoSignatureCanvas = document.getElementById("tripInfo-signature-canv
 const tripInfoClearSignatureButton = document.getElementById("tripInfo-clear-signature-button");
 const tripInfoTakeOffFuelInput = document.getElementById("tripInfo-takeoff-fuel");
 const tripInfoExportCanvas = document.getElementById("tripInfo-export-canvas");
+const tripInfoDebugToggleButton = document.getElementById("tripInfo-debug-toggle");
+const tripInfoDebugPanel = document.getElementById("tripInfo-debug-panel");
+const tripInfoDebugVersion = document.getElementById("tripInfo-debug-version");
+const tripInfoDebugFrom = document.getElementById("tripInfo-debug-from");
+const tripInfoDebugTo = document.getElementById("tripInfo-debug-to");
+const tripInfoDebugPantry = document.getElementById("tripInfo-debug-pantry");
+const tripInfoDebugFakDefault = document.getElementById("tripInfo-debug-fak-default");
+const tripInfoDebugFakChecked = document.getElementById("tripInfo-debug-fak-checked");
+const tripInfoDebugFakManual = document.getElementById("tripInfo-debug-fak-manual");
+const tripInfoDebugWaterMode = document.getElementById("tripInfo-debug-water-mode");
+const tripInfoDebugWaterManual = document.getElementById("tripInfo-debug-water-manual");
+const tripInfoDebugWaterRequired = document.getElementById("tripInfo-debug-water-required");
 
 let tripInfoState = {
   generatedData: null,
@@ -571,6 +583,11 @@ tripInfoResetButton.addEventListener("click", () => {
 
 tripInfoClearSignatureButton.addEventListener("click", () => {
   clearTripInfoSignature();
+});
+
+tripInfoDebugToggleButton.addEventListener("click", () => {
+  tripInfoDebugPanel.hidden = !tripInfoDebugPanel.hidden;
+  tripInfoUpdateDebugPanel();
 });
 
 tripInfoDownloadPdfButton.addEventListener("click", () => {
@@ -1286,6 +1303,7 @@ function initializeTripInfoModule() {
   tripInfoRestoreState();
   tripInfoUpdateTakeOffFuelField();
   tripInfoUpdatePreviewVisibility();
+  tripInfoUpdateDebugPanel();
   void tripInfoLoadLogoData();
 }
 
@@ -1354,6 +1372,7 @@ function handleTripInfoFormInput(event) {
 
   tripInfoClearValidation();
   tripInfoUpdateTakeOffFuelField();
+  tripInfoUpdateDebugPanel();
   tripInfoSaveState();
 }
 
@@ -1408,6 +1427,7 @@ function handleTripInfoFormChange(event) {
   }
 
   tripInfoUpdateTakeOffFuelField();
+  tripInfoUpdateDebugPanel();
   tripInfoSaveState();
 }
 
@@ -1699,6 +1719,8 @@ function tripInfoRestoreState() {
   if (routeRuleChanged) {
     tripInfoSaveState();
   }
+
+  tripInfoUpdateDebugPanel();
 }
 
 function tripInfoReadStoredState() {
@@ -1835,6 +1857,7 @@ function resetTripInfoModule(shouldFocus) {
   tripInfoClearValidation();
   tripInfoResizeSignatureCanvas(false);
   tripInfoUpdateTakeOffFuelField();
+  tripInfoUpdateDebugPanel();
 
   try {
     localStorage.removeItem(TRIP_INFO_STORAGE_KEY);
@@ -2141,6 +2164,25 @@ function tripInfoUpdateTakeOffFuelField() {
   }
 
   tripInfoTakeOffFuelInput.value = tripInfoFormatKgValue(blockFuelKg - taxiFuelKg);
+}
+
+function tripInfoUpdateDebugPanel() {
+  const from = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
+  const to = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
+  const pantryCode = tripInfoNormalizePantryValue(tripInfoForm.elements.pantry.value);
+  const selectedWaterMode = tripInfoGetSelectedWaterMode();
+  const includeFakDefault = tripInfoShouldIncludeFakForRoute(from, to);
+
+  tripInfoDebugVersion.textContent = APP_VERSION;
+  tripInfoDebugFrom.textContent = from || "—";
+  tripInfoDebugTo.textContent = to || "—";
+  tripInfoDebugPantry.textContent = pantryCode || "—";
+  tripInfoDebugFakDefault.textContent = includeFakDefault ? "checked" : "unchecked";
+  tripInfoDebugFakChecked.textContent = tripInfoForm.elements.includeFak.checked ? "checked" : "unchecked";
+  tripInfoDebugFakManual.textContent = tripInfoState.fakManualOverride ? "true" : "false";
+  tripInfoDebugWaterMode.textContent = selectedWaterMode || "—";
+  tripInfoDebugWaterManual.textContent = tripInfoState.userInteractedWater ? "true" : "false";
+  tripInfoDebugWaterRequired.textContent = tripInfoRequiresWaterCorrection(to) ? "true" : "false";
 }
 
 function tripInfoSyncCrewBagFromCrew() {
