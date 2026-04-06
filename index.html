@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="5.5">
+    <meta name="app-version" content="5.6">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -734,10 +734,8 @@
         font-size: 1rem;
       }
 
-      .tripInfoRemarksInput {
-        min-height: 92px;
-        resize: none;
-        line-height: 1.4;
+      .tripInfoCompactOption {
+        width: 100%;
       }
 
       .wrap-fuel-section {
@@ -836,7 +834,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">5.5</span>
+          <span class="home-version">5.6</span>
         </div>
       </section>
 
@@ -1128,20 +1126,22 @@
               <div class="field">
                 <span class="field-title">Flight Type</span>
                 <div class="tripInfoCheckboxGroup">
-                  <label class="tripInfoCheckboxControl" for="tripInfo-schedule-flight">
+                  <label class="tripInfoCheckboxControl" for="flt-schedule">
                     <input
-                      id="tripInfo-schedule-flight"
-                      name="scheduleFlight"
-                      type="checkbox"
+                      id="flt-schedule"
+                      name="flightType"
+                      type="radio"
+                      value="SCHEDULE"
                     >
                     <span>SCHEDULE FLT</span>
                   </label>
 
-                  <label class="tripInfoCheckboxControl" for="tripInfo-charter-flight">
+                  <label class="tripInfoCheckboxControl" for="flt-charter">
                     <input
-                      id="tripInfo-charter-flight"
-                      name="charterFlight"
-                      type="checkbox"
+                      id="flt-charter"
+                      name="flightType"
+                      type="radio"
+                      value="CHARTER"
                     >
                     <span>CHARTER FLT</span>
                   </label>
@@ -1150,14 +1150,15 @@
             </div>
 
             <div class="field">
-              <label for="tripInfo-remarks">Remarks</label>
-              <textarea
-                id="tripInfo-remarks"
-                name="remarks"
-                class="input tripInfoUppercaseField tripInfoRemarksInput"
-                rows="4"
-                autocomplete="off"
-              ></textarea>
+              <span class="field-title">Water</span>
+              <label class="tripInfoCheckboxControl tripInfoCompactOption" for="water-full">
+                <input
+                  id="water-full"
+                  name="waterFull"
+                  type="checkbox"
+                >
+                <span>100%</span>
+              </label>
             </div>
           </section>
 
