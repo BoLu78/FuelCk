@@ -1,4 +1,4 @@
-const APP_VERSION = "6.8";
+const APP_VERSION = "6.9";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -491,6 +491,7 @@ let tripInfoState = {
   generatedData: null,
   signatureDataUrl: "",
   crewBagManualOverride: false,
+  fakManualOverride: false,
   userInteractedWater: false,
 };
 let tripInfoLogoDataUrl = "";
@@ -1344,7 +1345,7 @@ function handleTripInfoFormInput(event) {
   }
 
   if (target.name === "includeFak") {
-    tripInfoApplyRouteRules();
+    tripInfoState.fakManualOverride = true;
   }
 
   if (target.name === "eetHours" || target.name === "eetMinutes") {
@@ -1395,7 +1396,7 @@ function handleTripInfoFormChange(event) {
   }
 
   if (target.name === "includeFak") {
-    tripInfoApplyRouteRules();
+    tripInfoState.fakManualOverride = true;
   }
 
   if (target.name === "pantry") {
@@ -1498,6 +1499,10 @@ function tripInfoApplyRouteRules() {
   const from = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
   const to = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
   const shouldIncludeFak = tripInfoShouldIncludeFakForRoute(from, to);
+
+  if (tripInfoState.fakManualOverride) {
+    return false;
+  }
 
   if (tripInfoForm.elements.includeFak.checked !== shouldIncludeFak) {
     tripInfoForm.elements.includeFak.checked = shouldIncludeFak;
@@ -1658,6 +1663,7 @@ function tripInfoDrawSignatureDataUrl(dataUrl) {
 function tripInfoRestoreState() {
   const storedState = tripInfoReadStoredState();
   tripInfoState.crewBagManualOverride = storedState.crewBagManualOverride;
+  tripInfoState.fakManualOverride = storedState.fakManualOverride;
   tripInfoState.userInteractedWater = storedState.userInteractedWater;
   tripInfoApplyFormValues(storedState.formValues);
   const routeRuleChanged = tripInfoApplyRouteRules();
@@ -1701,6 +1707,7 @@ function tripInfoReadStoredState() {
     generatedData: null,
     signatureDataUrl: "",
     crewBagManualOverride: false,
+    fakManualOverride: false,
     userInteractedWater: false,
   };
 
@@ -1728,6 +1735,10 @@ function tripInfoReadStoredState() {
         typeof parsedState?.crewBagManualOverride === "boolean"
           ? parsedState.crewBagManualOverride
           : inferredCrewBagManualOverride,
+      fakManualOverride:
+        typeof parsedState?.fakManualOverride === "boolean"
+          ? parsedState.fakManualOverride
+          : false,
       userInteractedWater:
         typeof parsedState?.userInteractedWater === "boolean"
           ? parsedState.userInteractedWater
@@ -1747,6 +1758,7 @@ function tripInfoSaveState() {
         generatedData: tripInfoState.generatedData,
         signatureDataUrl: tripInfoState.signatureDataUrl,
         crewBagManualOverride: tripInfoState.crewBagManualOverride,
+        fakManualOverride: tripInfoState.fakManualOverride,
         userInteractedWater: tripInfoState.userInteractedWater,
       })
     );
@@ -1812,6 +1824,7 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
 
 function resetTripInfoModule(shouldFocus) {
   tripInfoState.crewBagManualOverride = false;
+  tripInfoState.fakManualOverride = false;
   tripInfoState.userInteractedWater = false;
   tripInfoApplyFormValues(tripInfoGetDefaultFormValues());
   tripInfoSyncCrewBagFromCrew();
@@ -1867,7 +1880,10 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const crewBagInput = tripInfoNormalizeCrewBagInput(rawValues.crewBag);
   const crewBagValue = crewBagInput === "" ? null : tripInfoParsePlainInteger(crewBagInput);
   const pantryCode = tripInfoNormalizePantryValue(rawValues.pantry);
-  const includeFak = tripInfoShouldIncludeFakForRoute(from, to);
+  const includeFak = tripInfoNormalizeBooleanValue(
+    rawValues.includeFak,
+    tripInfoShouldIncludeFakForRoute(from, to)
+  );
   const flightType = tripInfoNormalizeFlightTypeValue(rawValues.flightType);
   const selectedWaterMode = tripInfoNormalizeWaterModeValue(rawValues.waterMode);
   const effectiveWaterMode = tripInfoGetEffectiveWaterMode(to, selectedWaterMode, pantryCode);
@@ -2077,7 +2093,10 @@ function tripInfoSanitizeStoredFormValues(values) {
     String(mergedValues.crewBag || "")
   );
   const normalizedPantry = tripInfoNormalizePantryValue(String(mergedValues.pantry || ""));
-  const normalizedIncludeFak = tripInfoShouldIncludeFakForRoute(normalizedFrom, normalizedTo);
+  const normalizedIncludeFak = tripInfoNormalizeBooleanValue(
+    mergedValues.includeFak,
+    tripInfoShouldIncludeFakForRoute(normalizedFrom, normalizedTo)
+  );
   const normalizedFlightType =
     tripInfoNormalizeFlightTypeValue(String(mergedValues.flightType || ""))
     || (tripInfoNormalizeBooleanValue(mergedValues.scheduleFlight, false)
