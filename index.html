@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="5.6">
+    <meta name="app-version" content="5.7">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -834,7 +834,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">5.6</span>
+          <span class="home-version">5.7</span>
         </div>
       </section>
 
@@ -1149,16 +1149,19 @@
               </div>
             </div>
 
-            <div class="field">
-              <span class="field-title">Water</span>
-              <label class="tripInfoCheckboxControl tripInfoCompactOption" for="water-full">
-                <input
-                  id="water-full"
-                  name="waterFull"
-                  type="checkbox"
-                >
-                <span>100%</span>
-              </label>
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field">
+                <label class="tripInfoCheckboxControl tripInfoCompactOption" for="auto-water">
+                  <input
+                    id="auto-water"
+                    name="waterFull"
+                    type="checkbox"
+                  >
+                  <span>AUTO WATER</span>
+                </label>
+              </div>
             </div>
           </section>
 

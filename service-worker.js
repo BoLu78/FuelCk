@@ -1,4 +1,4 @@
-const CACHE_NAME = "tripinfo-v5.6";
+const CACHE_NAME = "tripinfo-v5.7";
 const APP_FILES = [
   "./",
   "./index.html",
