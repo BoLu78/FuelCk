@@ -1,4 +1,4 @@
-const APP_VERSION = "6.9";
+const APP_VERSION = "7.0";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1489,9 +1489,9 @@ function tripInfoMaybeAutoSelectWaterMode() {
 }
 
 function tripInfoShouldIncludeFakForRoute(from, to) {
-  return !(
-    tripInfoNormalizeIataCode(from) === "JFK"
-    && tripInfoNormalizeIataCode(to) === "JFK"
+  return (
+    tripInfoNormalizeIataCode(from) !== "JFK"
+    && tripInfoNormalizeIataCode(to) !== "JFK"
   );
 }
 
