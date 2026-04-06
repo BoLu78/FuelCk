@@ -1,4 +1,4 @@
-const APP_VERSION = "7.9";
+const APP_VERSION = "8.0";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -3014,34 +3014,45 @@ async function tripInfoDownloadPdf() {
 
 async function tripInfoShare() {
   await tripInfoRunExport(async () => {
-    const pngBlob = await tripInfoCreatePngBlob();
-    const pdfBlob = await tripInfoCreatePdfBlob();
     const baseFilename = tripInfoBuildFilenameBase(tripInfoState.generatedData);
+    const shareTitle = `Trip Info ${tripInfoState.generatedData.flightNumber}`;
+    let pdfBlob = null;
 
     if (typeof File === "function" && navigator.share && navigator.canShare) {
-      const pngFile = new File([pngBlob], `${baseFilename}.png`, { type: "image/png" });
+      pdfBlob = await tripInfoCreatePdfBlob();
       const pdfFile = new File([pdfBlob], `${baseFilename}.pdf`, {
         type: "application/pdf",
       });
 
-      if (navigator.canShare({ files: [pdfFile, pngFile] })) {
+      if (navigator.canShare({ files: [pdfFile] })) {
         await navigator.share({
-          title: `Trip Info ${tripInfoState.generatedData.flightNumber}`,
-          files: [pdfFile, pngFile],
+          title: shareTitle,
+          files: [pdfFile],
         });
         return;
       }
 
+      const pngBlob = await tripInfoCreatePngBlob();
+      const pngFile = new File([pngBlob], `${baseFilename}.png`, { type: "image/png" });
+
       if (navigator.canShare({ files: [pngFile] })) {
         await navigator.share({
-          title: `Trip Info ${tripInfoState.generatedData.flightNumber}`,
+          title: shareTitle,
           files: [pngFile],
         });
         return;
       }
     }
 
-    tripInfoTriggerDownload(pngBlob, `${baseFilename}.png`);
+    try {
+      tripInfoTriggerDownload(
+        pdfBlob || await tripInfoCreatePdfBlob(),
+        `${baseFilename}.pdf`
+      );
+    } catch (error) {
+      const pngBlob = await tripInfoCreatePngBlob();
+      tripInfoTriggerDownload(pngBlob, `${baseFilename}.png`);
+    }
   });
 }
 
