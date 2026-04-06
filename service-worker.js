@@ -1,13 +1,13 @@
-const CACHE_NAME = "rampcheck-v7.7";
+const CACHE_NAME = "rampcheck-v7.9";
 const OFFLINE_FALLBACK_URL = "./index.html";
 const APP_FILES = [
   "./",
-  "./?v=7.7",
+  "./?v=7.9",
   "./index.html",
   "./app.js",
-  "./app.js?v=7.7",
+  "./app.js?v=7.9",
   "./manifest.json",
-  "./manifest.json?v=7.7",
+  "./manifest.json?v=7.9",
   "./service-worker.js",
   "./assets/logo-lb.png",
   "./assets/tripinfo-logo-neos.png",
@@ -20,7 +20,7 @@ async function matchOfflineShell(cache) {
     await cache.match(OFFLINE_FALLBACK_URL)
   ) || (
     await cache.match("./")
-  ) || await cache.match("./?v=7.7");
+  ) || await cache.match("./?v=7.9");
 }
 
 async function precacheAppShell() {
@@ -40,7 +40,7 @@ async function precacheAppShell() {
   );
 
   const hasOfflineShell = await matchOfflineShell(cache);
-  const hasAppScript = (await cache.match("./app.js?v=7.7")) || await cache.match("./app.js");
+  const hasAppScript = (await cache.match("./app.js?v=7.9")) || await cache.match("./app.js");
 
   if (!hasOfflineShell || !hasAppScript) {
     throw new Error("Core app shell is unavailable for offline use.");

@@ -1,4 +1,4 @@
-const APP_VERSION = "7.7";
+const APP_VERSION = "7.9";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -2744,10 +2744,10 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
   const waterDetailFontSize = bodyFontSize * 0.68;
   const remarksBodyFontSize = bodyFontSize * 0.75;
   const textX = remarksBox.x + 2.1;
-  const textY = remarksBox.y + 4.95;
-  const lineStep = 2.28;
-  const waterDetailGap = 0.34;
-  const groupGap = 1.08;
+  const textY = remarksBox.y + 5.45;
+  const lineStep = 2.24;
+  const waterDetailGap = 0;
+  const groupGap = 0.74;
   const maxY = remarksBox.y + remarksBox.height - 1.1;
   const markup = [];
   let cursorY = textY;
