@@ -1,4 +1,4 @@
-const APP_VERSION = "5.9";
+const APP_VERSION = "6.0";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -2279,13 +2279,6 @@ function tripInfoBuildPreviewSvg(data) {
 function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFontSize) {
   const sections = [];
 
-  if (!data.showPantryNote && data.showFlightTypeNote) {
-    sections.push({
-      title: data.flightTypeNote,
-      lines: [],
-    });
-  }
-
   if (data.showCrewBagNote) {
     sections.push({
       title: "CREW BAG",
@@ -2305,13 +2298,6 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
     });
   }
 
-  if (data.showPantryNote && data.showFlightTypeNote) {
-    sections.push({
-      title: data.flightTypeNote,
-      lines: [],
-    });
-  }
-
   if (data.showFakNote) {
     sections.push({
       title: "FAK",
@@ -2322,17 +2308,41 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
     });
   }
 
+  if (data.showFlightTypeNote) {
+    sections.push({
+      title: data.flightTypeNote,
+      lines: [],
+    });
+  }
+
   if (sections.length === 0) {
     return "";
   }
 
   const centerX = noteBox.x + (noteBox.width / 2);
-  const lineLeftX = noteBox.x + 2.2;
-  const lineRightX = noteBox.x + noteBox.width - 2.2;
-  const startY = noteBox.y + 10.6;
-  const titleToLineStep = 5.45;
-  const separatorOffset = 2.15;
-  const nextBlockOffset = 3.55;
+  const separatorText = "======";
+  const titleToLineStep = 4.95;
+  const baseStartY = noteBox.y + 12.2;
+  const separatorCount = sections.length - 1;
+  const sectionHeights = sections.map((section) => titleToLineStep * section.lines.length);
+  const baseBlockToSeparator = 4.1;
+  const baseSeparatorToNextBlock = 4.95;
+  const bottomPadding = 9.2;
+  const initialSectionOffset = Math.min((4 - sections.length) * 4.2, 12.6);
+  const baseContentHeight =
+    sectionHeights.reduce((total, height) => total + height, 0)
+    + (separatorCount * (baseBlockToSeparator + baseSeparatorToNextBlock));
+  const availableExtraSpace = Math.max(
+    0,
+    (noteBox.y + noteBox.height - bottomPadding) - (baseStartY + initialSectionOffset + baseContentHeight)
+  );
+  const extraTopOffset = Math.min(availableExtraSpace * 0.28, 4.8);
+  const extraGapPerSeparator = separatorCount > 0
+    ? Math.min((availableExtraSpace - extraTopOffset) / separatorCount, 3.1)
+    : 0;
+  const startY = baseStartY + initialSectionOffset + extraTopOffset;
+  const blockToSeparator = baseBlockToSeparator + (extraGapPerSeparator * 0.42);
+  const separatorToNextBlock = baseSeparatorToNextBlock + (extraGapPerSeparator * 0.58);
   const markup = [];
   let cursorY = startY;
 
@@ -2371,11 +2381,19 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
         : cursorY;
 
     if (index < sections.length - 1) {
-      const separatorY = sectionEndY + separatorOffset;
+      const separatorY = sectionEndY + blockToSeparator;
       markup.push(
-        tripInfoBuildSvgLine(lineLeftX, separatorY, lineRightX, separatorY)
+        tripInfoBuildSvgMmText({
+          x: centerX,
+          y: separatorY,
+          text: separatorText,
+          textAnchor: "middle",
+          fontSize: bodyFontSize * 0.95,
+          fontWeight: 600,
+          letterSpacing: 0,
+        })
       );
-      cursorY = separatorY + nextBlockOffset;
+      cursorY = separatorY + separatorToNextBlock;
     }
   });
 
