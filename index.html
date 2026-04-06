@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="7.4">
+    <meta name="app-version" content="7.5">
     <title>RampCheck</title>
-    <link rel="manifest" href="manifest.json?v=7.4">
+    <link rel="manifest" href="manifest.json?v=7.5">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <style>
       :root {
@@ -792,6 +792,49 @@
         font-size: 0.78rem;
       }
 
+      .tripInfoSecondaryField {
+        gap: 6px;
+      }
+
+      .tripInfoSecondaryLabel {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+
+      .tripInfoSecondaryInputWrap {
+        position: relative;
+      }
+
+      .tripInfoSecondaryInput {
+        min-height: 40px;
+        border-radius: 12px;
+        padding: 10px 40px 10px 12px;
+        font-size: 0.92rem;
+      }
+
+      .tripInfoSecondarySuffix {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 600;
+        pointer-events: none;
+      }
+
+      .tripInfoRemarksTextarea {
+        min-height: 92px;
+        resize: vertical;
+      }
+
+      .tripInfoPresetRemarkOption {
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+
       .tripInfoSignatureCanvas {
         display: block;
         width: 100%;
@@ -869,7 +912,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">7.4</span>
+          <span class="home-version">7.5</span>
         </div>
       </section>
 
@@ -882,7 +925,7 @@
           <header class="hero fuel-header">
             <div class="module-header-row">
               <h1>FuelCk</h1>
-              <span class="module-version-badge">7.4</span>
+              <span class="module-version-badge">7.5</span>
             </div>
             <div class="card" id="toleranceCard">
               <h2>Tolerance Rule</h2>
@@ -1030,7 +1073,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>TRIP INFO</h1>
-            <span class="module-version-badge">7.4</span>
+            <span class="module-version-badge">7.5</span>
           </div>
         </header>
 
@@ -1145,6 +1188,23 @@
                   pattern="[0-9]*"
                   autocomplete="off"
                 >
+
+                <div class="field tripInfoSecondaryField">
+                  <label class="tripInfoSecondaryLabel" for="tripInfo-crew-bag-weight">Bag weight</label>
+                  <div class="tripInfoSecondaryInputWrap">
+                    <input
+                      id="tripInfo-crew-bag-weight"
+                      name="crewBagWeight"
+                      class="input number-input tripInfoSecondaryInput"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      step="1"
+                      autocomplete="off"
+                    >
+                    <span class="tripInfoSecondarySuffix">kg</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1236,6 +1296,49 @@
                     <span>50 &rarr; 100</span>
                   </label>
                 </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="tripInfo-remarks-free-text">Remarks</label>
+              <textarea
+                id="tripInfo-remarks-free-text"
+                name="remarksFreeText"
+                class="input tripInfoRemarksTextarea"
+                autocomplete="off"
+              ></textarea>
+            </div>
+
+            <div class="field tripInfoControlField">
+              <div class="field-title">Quick presets</div>
+              <div class="tripInfoCheckboxGroup">
+                <label class="tripInfoCheckboxControl tripInfoCompactOption tripInfoPresetRemarkOption" for="tripInfo-remarks-preset-mac">
+                  <input
+                    id="tripInfo-remarks-preset-mac"
+                    name="remarksPresetSelections"
+                    type="checkbox"
+                    value="Provide MAC >= 27%"
+                  >
+                  <span>Provide MAC &gt;= 27%</span>
+                </label>
+                <label class="tripInfoCheckboxControl tripInfoCompactOption tripInfoPresetRemarkOption" for="tripInfo-remarks-preset-water">
+                  <input
+                    id="tripInfo-remarks-preset-water"
+                    name="remarksPresetSelections"
+                    type="checkbox"
+                    value="Extra water loaded"
+                  >
+                  <span>Extra water loaded</span>
+                </label>
+                <label class="tripInfoCheckboxControl tripInfoCompactOption tripInfoPresetRemarkOption" for="tripInfo-remarks-preset-baggage">
+                  <input
+                    id="tripInfo-remarks-preset-baggage"
+                    name="remarksPresetSelections"
+                    type="checkbox"
+                    value="Crew baggage included"
+                  >
+                  <span>Crew baggage included</span>
+                </label>
               </div>
             </div>
           </section>
@@ -1516,7 +1619,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>ACN-PCN</h1>
-            <span class="module-version-badge">7.4</span>
+            <span class="module-version-badge">7.5</span>
           </div>
           <p class="subtitle">Pavement compatibility</p>
         </header>
@@ -1662,6 +1765,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=7.4" defer></script>
+    <script src="app.js?v=7.5" defer></script>
   </body>
 </html>
