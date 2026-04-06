@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="6.6">
+    <meta name="app-version" content="6.7">
     <title>RampCheck</title>
-    <link rel="manifest" href="manifest.json?v=6.6">
+    <link rel="manifest" href="manifest.json?v=6.7">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <style>
       :root {
@@ -727,6 +727,10 @@
         gap: 8px;
       }
 
+      .tripInfoControlField {
+        gap: 8px;
+      }
+
       .tripInfoAlignedField .input,
       .tripInfoAlignedField .select {
         min-height: 52px;
@@ -834,7 +838,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">6.6</span>
+          <span class="home-version">6.7</span>
         </div>
       </section>
 
@@ -1107,7 +1111,8 @@
             <div class="row two-col tripInfoTopSideRow">
               <div class="field" aria-hidden="true"></div>
 
-              <div class="field">
+              <div class="field tripInfoControlField">
+                <div class="field-title">FAK</div>
                 <label class="tripInfoCheckboxControl" for="tripInfo-include-fak">
                   <input
                     id="tripInfo-include-fak"
@@ -1140,7 +1145,8 @@
             <div class="row two-col tripInfoTopSideRow">
               <div class="field" aria-hidden="true"></div>
 
-              <div class="field">
+              <div class="field tripInfoControlField">
+                <div class="field-title">Water Correction</div>
                 <div class="tripInfoCheckboxGroup">
                   <label class="tripInfoCheckboxControl tripInfoCompactOption tripInfoWaterModeOption" for="water-standard">
                     <input
@@ -1319,20 +1325,13 @@
               >
             </div>
 
-            <div class="wrap-fuel-section">
-              <div class="field">
-                <label for="tripInfo-takeoff-fuel">Take Off Fuel</label>
-                <input
-                  id="tripInfo-takeoff-fuel"
-                  name="takeOffFuel"
-                  class="input number-input tripInfoReadonlyInput mono"
-                  type="text"
-                  autocomplete="off"
-                  readonly
-                  aria-readonly="true"
-                >
-              </div>
+            <input
+              id="tripInfo-takeoff-fuel"
+              name="takeOffFuel"
+              type="hidden"
+            >
 
+            <div class="wrap-fuel-section">
               <div class="field">
                 <label for="tripInfo-taxi-fuel">Taxi Fuel</label>
                 <input
@@ -1600,6 +1599,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=6.6" defer></script>
+    <script src="app.js?v=6.7" defer></script>
   </body>
 </html>
