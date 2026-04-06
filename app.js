@@ -1,4 +1,4 @@
-const APP_VERSION = "7.2";
+const APP_VERSION = "7.3";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1444,43 +1444,34 @@ function tripInfoGetAutoWaterModeFromContext(to, pantryCode) {
 }
 
 function tripInfoGetEffectiveWaterMode(to, selectedWaterMode, pantryCode) {
-  if (!tripInfoRequiresWaterCorrection(to)) {
+  const normalizedSelectedWaterMode = tripInfoNormalizeWaterModeValue(selectedWaterMode);
+
+  if (normalizedSelectedWaterMode === "50" || normalizedSelectedWaterMode === "80") {
+    return normalizedSelectedWaterMode;
+  }
+
+  if (normalizedSelectedWaterMode === "STANDARD") {
     return "STANDARD";
   }
 
-  const normalizedSelectedWaterMode = tripInfoNormalizeWaterModeValue(selectedWaterMode);
-  return normalizedSelectedWaterMode || tripInfoGetAutoWaterModeFromContext(to, pantryCode);
+  if (tripInfoRequiresWaterCorrection(to)) {
+    return tripInfoGetAutoWaterModeFromContext(to, pantryCode);
+  }
+
+  return "STANDARD";
 }
 
 function tripInfoMaybeAutoSelectWaterMode() {
-  const to = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
-  const currentWaterMode = tripInfoGetSelectedWaterMode();
-
-  if (!tripInfoRequiresWaterCorrection(to)) {
-    const shouldResetSelection = currentWaterMode !== "STANDARD";
-    const shouldResetInteraction = tripInfoState.userInteractedWater;
-
-    if (shouldResetSelection) {
-      tripInfoSetSelectedWaterMode("STANDARD");
-    }
-
-    if (shouldResetInteraction) {
-      tripInfoState.userInteractedWater = false;
-    }
-
-    if (shouldResetSelection || shouldResetInteraction) {
-      tripInfoSaveState();
-    }
-
-    return;
-  }
-
   if (tripInfoState.userInteractedWater) {
     return;
   }
 
+  const to = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
+  const currentWaterMode = tripInfoGetSelectedWaterMode();
   const pantryCode = tripInfoNormalizePantryValue(tripInfoForm.elements.pantry.value);
-  const nextWaterMode = tripInfoGetAutoWaterModeFromContext(to, pantryCode);
+  const nextWaterMode = tripInfoRequiresWaterCorrection(to)
+    ? tripInfoGetAutoWaterModeFromContext(to, pantryCode)
+    : "STANDARD";
 
   if (currentWaterMode !== nextWaterMode) {
     tripInfoSetSelectedWaterMode(nextWaterMode);
