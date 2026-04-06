@@ -1,4 +1,4 @@
-const APP_VERSION = "5.8";
+const APP_VERSION = "5.9";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1879,6 +1879,11 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   }
 
   const takeOffFuelKg = blockFuelKg - taxiFuelKg;
+  const hasWaterCorrection = waterCorrection !== null;
+  const correctedDowKg = hasWaterCorrection ? dowKg + waterCorrection.dowKg : dowKg;
+  const correctedDoiValue = hasWaterCorrection ? doiValue + waterCorrection.doiValue : doiValue;
+  const correctedDowKgDisplay = tripInfoBuildPrintedKgDisplay(correctedDowKg, hasWaterCorrection);
+  const correctedDoiDisplay = tripInfoBuildPrintedDoiDisplay(correctedDoiValue, hasWaterCorrection);
 
   return {
     flightNumber,
@@ -1904,12 +1909,28 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     waterCorrection,
     remarksWaterTransitionText,
     remarksCorrectionText,
-    showRemarksCorrection: remarksCorrectionText !== "",
+    showRemarksCorrection: hasWaterCorrection,
     aircraftRegistration,
     aircraftType,
     captainName,
+    originalDowKg: dowKg,
+    originalDoiValue: doiValue,
     dowKg,
     doiValue,
+    correctedDowKg,
+    correctedDoiValue,
+    correctedDowKgDisplay,
+    correctedDoiDisplay,
+    showCorrectedDowAsterisk: hasWaterCorrection,
+    showCorrectedDoiAsterisk: hasWaterCorrection,
+    remarksDowOriginalDisplay: hasWaterCorrection ? tripInfoFormatKgIntegerValue(dowKg) : "",
+    remarksDowCorrectionDisplay: hasWaterCorrection
+      ? tripInfoFormatKgIntegerValue(waterCorrection.dowKg)
+      : "",
+    remarksDoiOriginalDisplay: hasWaterCorrection ? tripInfoFormatDoiValue(doiValue) : "",
+    remarksDoiCorrectionDisplay: hasWaterCorrection
+      ? tripInfoFormatDoiCorrectionValue(waterCorrection.doiValue)
+      : "",
     maxZfwKg,
     maxTowKg,
     maxLdwKg,
@@ -1919,8 +1940,8 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     blockFuelKg,
     eetHours: String(eetHoursValue).padStart(2, "0"),
     eetMinutes: String(eetMinutesValue).padStart(2, "0"),
-    dowDisplay: tripInfoFormatKgValue(dowKg),
-    doiDisplay: tripInfoFormatDoiValue(doiValue),
+    dowDisplay: correctedDowKgDisplay,
+    doiDisplay: correctedDoiDisplay,
     maxZfwDisplay: tripInfoFormatKgValue(maxZfwKg),
     maxTowDisplay: tripInfoFormatKgValue(maxTowKg),
     maxLdwDisplay: tripInfoFormatKgValue(maxLdwKg),
@@ -2147,10 +2168,10 @@ function tripInfoBuildPreviewSvg(data) {
       ${buildSvgField(rows.captainName, tripInfoFitPreviewText(data.captainName, 22), {
         label: "Captain Name",
       })}
-      ${buildSvgField(rows.dow, data.dowDisplay, {
+      ${buildSvgField(rows.dow, data.correctedDowKgDisplay, {
         label: "DOW",
       })}
-      ${buildSvgField(rows.doi, data.doiDisplay, {
+      ${buildSvgField(rows.doi, data.correctedDoiDisplay, {
         label: "DOI",
       })}
       ${buildSvgField(rows.maxZfw, data.maxZfwDisplay, {
@@ -2257,27 +2278,12 @@ function tripInfoBuildPreviewSvg(data) {
 
 function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFontSize) {
   const sections = [];
-  let waterInserted = false;
-  const pushWaterSectionIfNeeded = (shouldInsert) => {
-    if (!shouldInsert || waterInserted || !data.showWaterNote) {
-      return;
-    }
-
-    sections.push({
-      title: "WATER",
-      lines: [
-        { text: "100%", fontSize: valueFontSize, fontWeight: 600 },
-      ],
-    });
-    waterInserted = true;
-  };
 
   if (!data.showPantryNote && data.showFlightTypeNote) {
     sections.push({
       title: data.flightTypeNote,
       lines: [],
     });
-    pushWaterSectionIfNeeded(!data.showFakNote);
   }
 
   if (data.showCrewBagNote) {
@@ -2304,7 +2310,6 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
       title: data.flightTypeNote,
       lines: [],
     });
-    pushWaterSectionIfNeeded(!data.showFakNote);
   }
 
   if (data.showFakNote) {
@@ -2315,10 +2320,7 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
         { text: "HOLD 4", fontSize: bodyFontSize, fontWeight: 400 },
       ],
     });
-    pushWaterSectionIfNeeded(true);
   }
-
-  pushWaterSectionIfNeeded(true);
 
   if (sections.length === 0) {
     return "";
@@ -2328,9 +2330,9 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
   const lineLeftX = noteBox.x + 2.2;
   const lineRightX = noteBox.x + noteBox.width - 2.2;
   const startY = noteBox.y + 10.6;
-  const titleToLineStep = 5.15;
-  const separatorOffset = 1.75;
-  const nextBlockOffset = 3.15;
+  const titleToLineStep = 5.45;
+  const separatorOffset = 2.15;
+  const nextBlockOffset = 3.55;
   const markup = [];
   let cursorY = startY;
 
@@ -2388,7 +2390,7 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
   const remarksFontSize = bodyFontSize * 0.84;
   const textX = remarksBox.x + 1.9;
   const textY = remarksBox.labelY + 3.2;
-  const lineStep = 3.15;
+  const lineStep = 3.35;
 
   return [
     tripInfoBuildSvgMmText({
@@ -2396,18 +2398,78 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
       y: textY,
       text: data.remarksWaterTransitionText,
       fontSize: remarksFontSize,
-      fontWeight: 400,
+      fontWeight: 700,
       letterSpacing: 0,
     }),
-    tripInfoBuildSvgMmText({
+    tripInfoBuildSvgSegmentedText({
       x: textX,
       y: textY + lineStep,
-      text: data.remarksCorrectionText,
       fontSize: remarksFontSize,
       fontWeight: 400,
-      letterSpacing: 0,
+      segments: [
+        { text: "*DOW " },
+        {
+          text: data.remarksDowOriginalDisplay,
+          textDecoration: "underline",
+        },
+        { text: ` + ${data.remarksDowCorrectionDisplay}` },
+      ],
+    }),
+    tripInfoBuildSvgSegmentedText({
+      x: textX,
+      y: textY + (lineStep * 2),
+      fontSize: remarksFontSize,
+      fontWeight: 400,
+      segments: [
+        { text: "*DOI " },
+        {
+          text: data.remarksDoiOriginalDisplay,
+          textDecoration: "underline",
+        },
+        { text: ` + ${data.remarksDoiCorrectionDisplay}` },
+      ],
     }),
   ].join("\n");
+}
+
+function tripInfoBuildSvgSegmentedText(options) {
+  const {
+    x,
+    y,
+    segments,
+    textAnchor = "start",
+    fontSize = 1.6,
+    fontWeight = 400,
+    letterSpacing = 0,
+  } = options;
+
+  const segmentsMarkup = segments
+    .map((segment) => {
+      const attributes = [];
+
+      if (segment.fontWeight) {
+        attributes.push(`font-weight="${tripInfoEscapeAttribute(String(segment.fontWeight))}"`);
+      }
+
+      if (segment.textDecoration) {
+        attributes.push(
+          `text-decoration="${tripInfoEscapeAttribute(segment.textDecoration)}"`
+        );
+      }
+
+      return `<tspan${attributes.length > 0 ? ` ${attributes.join(" ")}` : ""}>${tripInfoEscapeXml(
+        segment.text
+      )}</tspan>`;
+    })
+    .join("");
+
+  return `<text x="${tripInfoFormatSvgNumber(x)}" y="${tripInfoFormatSvgNumber(
+    y
+  )}" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="${tripInfoFormatSvgNumber(
+    fontSize
+  )}" font-weight="${fontWeight}" letter-spacing="${tripInfoFormatSvgNumber(
+    letterSpacing
+  )}" text-anchor="${textAnchor}" xml:space="preserve">${segmentsMarkup}</text>`;
 }
 
 function tripInfoBuildSvgInlineField(options) {
@@ -2883,6 +2945,14 @@ function tripInfoBuildWaterTransitionText(baseWaterLevel, finalWaterLevel) {
   return `Water ${baseWaterLevel}% to ${finalWaterLevel}%`;
 }
 
+function tripInfoBuildPrintedKgDisplay(value, withAsterisk = false) {
+  return `${tripInfoFormatKgValue(value)}${withAsterisk ? "*" : ""}`;
+}
+
+function tripInfoBuildPrintedDoiDisplay(value, withAsterisk = false) {
+  return `${tripInfoFormatDoiValue(value)}${withAsterisk ? "*" : ""}`;
+}
+
 function tripInfoBuildWaterCorrectionText(waterCorrection) {
   return `${tripInfoFormatSignedKgValue(waterCorrection.dowKg)} DOW / ${tripInfoFormatSignedDecimalValue(
     waterCorrection.doiValue,
@@ -3033,6 +3103,13 @@ function tripInfoFormatKgValue(value) {
   })} KG`;
 }
 
+function tripInfoFormatKgIntegerValue(value) {
+  return Math.round(value).toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
+
 function tripInfoFormatSignedKgValue(value) {
   return `${value >= 0 ? "+" : "-"}${Math.round(Math.abs(value)).toLocaleString("en-US", {
     minimumFractionDigits: 0,
@@ -3051,6 +3128,13 @@ function tripInfoFormatDoiValue(value) {
   return Number(value).toLocaleString("it-IT", {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
+  });
+}
+
+function tripInfoFormatDoiCorrectionValue(value) {
+  return Number(value).toLocaleString("it-IT", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }
 
