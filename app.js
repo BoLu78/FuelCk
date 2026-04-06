@@ -1,4 +1,4 @@
-const APP_VERSION = "7.5";
+const APP_VERSION = "7.6";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -413,8 +413,6 @@ const TRIP_INFO_WATER_CORRECTIONS = {
 };
 const TRIP_INFO_REMARKS_PRESETS = [
   "Provide MAC >= 27%",
-  "Extra water loaded",
-  "Crew baggage included",
 ];
 const TRIP_INFO_DEFAULTS = {
   flightNumber: "",
@@ -1977,9 +1975,10 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const remarksPresetSelections = tripInfoNormalizeRemarksPresetSelections(
     rawValues.remarksPresetSelections
   );
-  const remarksUserLines = tripInfoBuildFinalRemarksLines(
-    remarksPresetSelections,
-    remarksFreeText
+  const remarksPresetLines = tripInfoGetUniqueRemarkLines(remarksPresetSelections);
+  const remarksFreeTextLines = tripInfoGetUniqueRemarkLines(
+    tripInfoGetRemarksFreeTextLines(remarksFreeText),
+    new Set(remarksPresetLines.map((line) => tripInfoGetRemarkLineKey(line)))
   );
   const aircraftRegistration = tripInfoNormalizeText(rawValues.aircraftRegistration);
   const aircraftType = rawValues.aircraftType;
@@ -2134,9 +2133,10 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     showRemarksCorrection: hasWaterCorrection,
     remarksFreeText,
     remarksPresetSelections,
-    remarksUserLines,
-    remarksUserText: remarksUserLines.join("\n"),
-    showRemarksContent: hasWaterCorrection || remarksUserLines.length > 0,
+    remarksPresetLines,
+    remarksFreeTextLines,
+    showRemarksContent:
+      hasWaterCorrection || remarksPresetLines.length > 0 || remarksFreeTextLines.length > 0,
     aircraftRegistration,
     aircraftType,
     captainName,
@@ -2514,9 +2514,9 @@ function tripInfoBuildPreviewSvg(data) {
       )}
       ${tripInfoBuildSvgMmText({
         x: bottomBoxes.remarks.labelX,
-        y: bottomBoxes.remarks.labelY,
+        y: bottomBoxes.remarks.labelY - 0.45,
         text: "Remarks",
-        fontSize: bodyFontSize,
+        fontSize: bodyFontSize * 0.9,
         fontWeight: 400,
         letterSpacing: 0,
       })}
@@ -2740,51 +2740,81 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
     return "";
   }
 
-  const remarksFontSize = bodyFontSize * 0.74;
-  const textX = remarksBox.x + 1.9;
-  const textY = remarksBox.labelY + 2.7;
-  const lineStep = 2.15;
-  const maxLines = 7;
+  const waterHeadlineFontSize = bodyFontSize * 0.81;
+  const waterDetailFontSize = bodyFontSize * 0.69;
+  const remarksBodyFontSize = bodyFontSize * 0.75;
+  const textX = remarksBox.x + 2.1;
+  const textY = remarksBox.y + 5.2;
+  const lineStep = 2.3;
+  const groupGap = 1.05;
+  const maxY = remarksBox.y + remarksBox.height - 1.1;
   const markup = [];
-  let lineIndex = 0;
-  const pushPlainTextLine = (text, fontWeight = 400) => {
-    if (!text || lineIndex >= maxLines) {
+  let cursorY = textY;
+  const pushPlainTextLine = (text, fontSize, fontWeight = 400) => {
+    if (!text || cursorY > maxY) {
       return false;
     }
 
     markup.push(
       tripInfoBuildSvgMmText({
         x: textX,
-        y: textY + (lineStep * lineIndex),
+        y: cursorY,
         text,
-        fontSize: remarksFontSize,
+        fontSize,
         fontWeight,
         letterSpacing: 0,
       })
     );
-    lineIndex += 1;
+    cursorY += lineStep;
     return true;
   };
-  const pushSegmentedTextLine = (segments) => {
-    if (lineIndex >= maxLines) {
+  const pushSegmentedTextLine = (segments, fontSize) => {
+    if (cursorY > maxY) {
       return false;
     }
 
     markup.push(
       tripInfoBuildSvgSegmentedText({
         x: textX,
-        y: textY + (lineStep * lineIndex),
-        fontSize: remarksFontSize,
+        y: cursorY,
+        fontSize,
         fontWeight: 400,
         segments,
       })
     );
-    lineIndex += 1;
+    cursorY += lineStep;
     return true;
   };
+  const addGroupGap = () => {
+    if (markup.length === 0) {
+      return;
+    }
+
+    cursorY += groupGap;
+  };
+  const waterRemarkLineKeys = new Set();
 
   if (data.showRemarksCorrection) {
-    pushPlainTextLine(data.remarksWaterTransitionText, 700);
+    waterRemarkLineKeys.add(tripInfoGetRemarkLineKey(data.remarksWaterTransitionText));
+    waterRemarkLineKeys.add(
+      tripInfoGetRemarkLineKey(`*DOW ${data.remarksDowOriginalDisplay} + ${data.remarksDowCorrectionDisplay}`)
+    );
+    waterRemarkLineKeys.add(
+      tripInfoGetRemarkLineKey(`*DOI ${data.remarksDoiOriginalDisplay} + ${data.remarksDoiCorrectionDisplay}`)
+    );
+  }
+
+  const remarksPresetLines = tripInfoGetUniqueRemarkLines(
+    data.remarksPresetLines,
+    waterRemarkLineKeys
+  );
+  const remarksFreeTextLines = tripInfoGetUniqueRemarkLines(
+    data.remarksFreeTextLines,
+    waterRemarkLineKeys
+  );
+
+  if (data.showRemarksCorrection) {
+    pushPlainTextLine(data.remarksWaterTransitionText, waterHeadlineFontSize, 700);
     pushSegmentedTextLine([
       { text: "*DOW " },
       {
@@ -2792,7 +2822,7 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
         textDecoration: "underline",
       },
       { text: ` + ${data.remarksDowCorrectionDisplay}` },
-    ]);
+    ], waterDetailFontSize);
     pushSegmentedTextLine([
       { text: "*DOI " },
       {
@@ -2800,12 +2830,30 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
         textDecoration: "underline",
       },
       { text: ` + ${data.remarksDoiCorrectionDisplay}` },
-    ]);
+    ], waterDetailFontSize);
   }
 
-  tripInfoWrapRemarksLines(data.remarksUserLines, 34, maxLines - lineIndex).forEach((line) => {
-    pushPlainTextLine(line, 400);
-  });
+  if (remarksPresetLines.length > 0) {
+    addGroupGap();
+    tripInfoWrapRemarksLines(
+      remarksPresetLines,
+      35,
+      Math.max(0, Math.floor((maxY - cursorY) / lineStep) + 1)
+    ).forEach((line) => {
+      pushPlainTextLine(line, remarksBodyFontSize, 600);
+    });
+  }
+
+  if (remarksFreeTextLines.length > 0) {
+    addGroupGap();
+    tripInfoWrapRemarksLines(
+      remarksFreeTextLines,
+      35,
+      Math.max(0, Math.floor((maxY - cursorY) / lineStep) + 1)
+    ).forEach((line) => {
+      pushPlainTextLine(line, remarksBodyFontSize, 400);
+    });
+  }
 
   return markup.join("\n");
 }
@@ -3370,16 +3418,34 @@ function tripInfoNormalizeRemarksFreeText(value) {
     .join("\n");
 }
 
-function tripInfoBuildFinalRemarksLines(remarksPresetSelections, remarksFreeText) {
-  return [
-    ...tripInfoNormalizeRemarksPresetSelections(remarksPresetSelections),
-    ...tripInfoNormalizeRemarksFreeText(remarksFreeText)
-      .split("\n")
-      .filter(Boolean),
-  ];
+function tripInfoGetRemarksFreeTextLines(value) {
+  return tripInfoNormalizeRemarksFreeText(value)
+    .split("\n")
+    .filter(Boolean);
+}
+
+function tripInfoGetRemarkLineKey(value) {
+  return tripInfoNormalizeText(String(value || "")).replace(/\s+/g, " ");
+}
+
+function tripInfoGetUniqueRemarkLines(lines, seenLineKeys = new Set()) {
+  return lines.filter((line) => {
+    const remarkLineKey = tripInfoGetRemarkLineKey(line);
+
+    if (!remarkLineKey || seenLineKeys.has(remarkLineKey)) {
+      return false;
+    }
+
+    seenLineKeys.add(remarkLineKey);
+    return true;
+  });
 }
 
 function tripInfoWrapRemarksLines(lines, maxCharsPerLine, maxLines = Number.POSITIVE_INFINITY) {
+  if (maxLines <= 0) {
+    return [];
+  }
+
   const wrappedLines = [];
 
   lines.forEach((line) => {
