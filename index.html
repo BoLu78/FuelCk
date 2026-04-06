@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="5.4">
+    <meta name="app-version" content="5.5">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -57,7 +57,8 @@
 
       button,
       input,
-      select {
+      select,
+      textarea {
         font: inherit;
       }
 
@@ -721,6 +722,24 @@
         accent-color: var(--accent);
       }
 
+      .tripInfoCheckboxGroup {
+        display: grid;
+        gap: 8px;
+      }
+
+      .tripInfoAlignedField .input,
+      .tripInfoAlignedField .select {
+        min-height: 52px;
+        border-radius: 16px;
+        font-size: 1rem;
+      }
+
+      .tripInfoRemarksInput {
+        min-height: 92px;
+        resize: vertical;
+        line-height: 1.4;
+      }
+
       .wrap-fuel-section {
         display: flex;
         flex-direction: column;
@@ -817,7 +836,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">5.4</span>
+          <span class="home-version">5.5</span>
         </div>
       </section>
 
@@ -1053,7 +1072,7 @@
             <div class="row two-col tripInfoTopSideRow">
               <div class="field" aria-hidden="true"></div>
 
-              <div class="field">
+              <div class="field tripInfoAlignedField">
                 <label for="tripInfo-crew-bag">Crew Bag</label>
                 <input
                   id="tripInfo-crew-bag"
@@ -1070,7 +1089,7 @@
             <div class="row two-col tripInfoTopSideRow">
               <div class="field" aria-hidden="true"></div>
 
-              <div class="field">
+              <div class="field tripInfoAlignedField">
                 <label for="tripInfo-pantry">Pantry</label>
                 <select
                   id="tripInfo-pantry"
@@ -1098,9 +1117,47 @@
                     type="checkbox"
                     checked
                   >
-                  <span>Include FAK</span>
+                  <span>FAK</span>
                 </label>
               </div>
+            </div>
+
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field">
+                <span class="field-title">Flight Type</span>
+                <div class="tripInfoCheckboxGroup">
+                  <label class="tripInfoCheckboxControl" for="tripInfo-schedule-flight">
+                    <input
+                      id="tripInfo-schedule-flight"
+                      name="scheduleFlight"
+                      type="checkbox"
+                    >
+                    <span>SCHEDULE FLT</span>
+                  </label>
+
+                  <label class="tripInfoCheckboxControl" for="tripInfo-charter-flight">
+                    <input
+                      id="tripInfo-charter-flight"
+                      name="charterFlight"
+                      type="checkbox"
+                    >
+                    <span>CHARTER FLT</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="tripInfo-remarks">Remarks</label>
+              <textarea
+                id="tripInfo-remarks"
+                name="remarks"
+                class="input tripInfoUppercaseField tripInfoRemarksInput"
+                rows="4"
+                autocomplete="off"
+              ></textarea>
             </div>
           </section>
 
