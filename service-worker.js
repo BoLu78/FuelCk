@@ -1,25 +1,53 @@
-const CACHE_NAME = "rampcheck-v7.1";
+const CACHE_NAME = "rampcheck-v7.2";
 const OFFLINE_FALLBACK_URL = "./index.html";
 const APP_FILES = [
   "./",
-  "./?v=7.1",
+  "./?v=7.2",
   "./index.html",
   "./app.js",
-  "./app.js?v=7.1",
+  "./app.js?v=7.2",
   "./manifest.json",
-  "./manifest.json?v=7.1",
+  "./manifest.json?v=7.2",
   "./service-worker.js",
   "./assets/tripinfo-logo-neos.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
-      cache.addAll(APP_FILES.map((url) => new Request(url, { cache: "reload" })))
-    )
+async function matchOfflineShell(cache) {
+  return (
+    await cache.match(OFFLINE_FALLBACK_URL)
+  ) || (
+    await cache.match("./")
+  ) || await cache.match("./?v=7.2");
+}
+
+async function precacheAppShell() {
+  const cache = await caches.open(CACHE_NAME);
+
+  await Promise.allSettled(
+    APP_FILES.map(async (url) => {
+      const request = new Request(url, { cache: "reload" });
+      const response = await fetch(request);
+
+      if (!response || !response.ok) {
+        throw new Error(`Failed to cache ${url}`);
+      }
+
+      await cache.put(request, response);
+    })
   );
+
+  const hasOfflineShell = await matchOfflineShell(cache);
+  const hasAppScript = (await cache.match("./app.js?v=7.2")) || await cache.match("./app.js");
+
+  if (!hasOfflineShell || !hasAppScript) {
+    throw new Error("Core app shell is unavailable for offline use.");
+  }
+}
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(precacheAppShell());
   self.skipWaiting();
 });
 
@@ -55,12 +83,20 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(async () => {
+      (async () => {
         const cache = await caches.open(CACHE_NAME);
-        return (
-          await cache.match(OFFLINE_FALLBACK_URL)
-        ) || await cache.match("./");
-      })
+        try {
+          const networkResponse = await fetch(request);
+
+          if (networkResponse && networkResponse.ok) {
+            await cache.put(OFFLINE_FALLBACK_URL, networkResponse.clone());
+          }
+
+          return networkResponse;
+        } catch {
+          return (await matchOfflineShell(cache)) || Response.error();
+        }
+      })()
     );
     return;
   }
@@ -85,9 +121,7 @@ self.addEventListener("fetch", (event) => {
       try {
         return await networkResponsePromise;
       } catch {
-        return (
-          await cache.match(OFFLINE_FALLBACK_URL)
-        ) || await cache.match("./");
+        return Response.error();
       }
     })()
   );
