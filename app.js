@@ -1,4 +1,4 @@
-const APP_VERSION = "6.0";
+const APP_VERSION = "6.1";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -285,17 +285,17 @@ const TRIP_INFO_LAYOUT = (() => {
       lineStartX: 48.7,
     }),
     dow: buildRow(1, {
-      lineStartX: 35.4,
-      lineEndX: 62.6,
-      valueX: 62.2,
-      valueAnchor: "end",
+      lineStartX: 35.1,
+      lineEndX: 63.1,
+      valueX: 49.1,
+      valueAnchor: "middle",
     }),
     doi: buildRow(1, {
       labelX: 65.8,
-      lineStartX: 71.2,
-      lineEndX: 86.8,
-      valueX: 86.4,
-      valueAnchor: "end",
+      lineStartX: 70.6,
+      lineEndX: 88.8,
+      valueX: 79.7,
+      valueAnchor: "middle",
     }),
     maxZfw: buildRow(2, {
       lineStartX: 43.8,
@@ -2283,7 +2283,13 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
     sections.push({
       title: "CREW BAG",
       lines: [
-        { text: data.crewBagDisplay, fontSize: valueFontSize, fontWeight: 600 },
+        {
+          text: data.crewBagDisplay,
+          fontSize: valueFontSize,
+          fontWeight: 600,
+          circled: true,
+          circleType: "crewBag",
+        },
         { text: "HOLD 5", fontSize: bodyFontSize, fontWeight: 400 },
       ],
     });
@@ -2293,7 +2299,13 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
     sections.push({
       title: "PANTRY",
       lines: [
-        { text: data.pantryCode, fontSize: valueFontSize, fontWeight: 600 },
+        {
+          text: data.pantryCode,
+          fontSize: valueFontSize,
+          fontWeight: 600,
+          circled: true,
+          circleType: "pantry",
+        },
       ],
     });
   }
@@ -2302,16 +2314,30 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
     sections.push({
       title: "FAK",
       lines: [
-        { text: "802 KG", fontSize: valueFontSize, fontWeight: 600 },
+        {
+          text: "802 KG",
+          fontSize: valueFontSize,
+          fontWeight: 600,
+          circled: true,
+          circleType: "fakWeight",
+        },
         { text: "HOLD 4", fontSize: bodyFontSize, fontWeight: 400 },
       ],
     });
   }
 
   if (data.showFlightTypeNote) {
+    const flightTypeLines = tripInfoBuildFlightTypeNoteLines(data.flightType);
     sections.push({
-      title: data.flightTypeNote,
-      lines: [],
+      title: "",
+      lineStartOffset: 0,
+      lineStep: 4.35,
+      lines: flightTypeLines.map((text) => ({
+        text,
+        fontSize: bodyFontSize * 0.98,
+        fontWeight: 600,
+        circled: false,
+      })),
     });
   }
 
@@ -2321,10 +2347,20 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
 
   const centerX = noteBox.x + (noteBox.width / 2);
   const separatorText = "======";
-  const titleToLineStep = 4.95;
+  const titleToLineStep = 5.05;
   const baseStartY = noteBox.y + 12.2;
   const separatorCount = sections.length - 1;
-  const sectionHeights = sections.map((section) => titleToLineStep * section.lines.length);
+  const getSectionLineStartOffset = (section) =>
+    section.lineStartOffset ?? (section.title ? titleToLineStep : 0);
+  const getSectionLineStep = (section) => section.lineStep ?? titleToLineStep;
+  const sectionHeights = sections.map((section) => {
+    if (section.lines.length === 0) {
+      return 0;
+    }
+
+    return getSectionLineStartOffset(section)
+      + (getSectionLineStep(section) * (section.lines.length - 1));
+  });
   const baseBlockToSeparator = 4.1;
   const baseSeparatorToNextBlock = 4.95;
   const bottomPadding = 9.2;
@@ -2347,6 +2383,9 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
   let cursorY = startY;
 
   sections.forEach((section, index) => {
+    const lineStartOffset = getSectionLineStartOffset(section);
+    const lineStep = getSectionLineStep(section);
+
     if (section.title) {
       markup.push(
         tripInfoBuildSvgMmText({
@@ -2362,10 +2401,18 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
     }
 
     section.lines.forEach((line, lineIndex) => {
+      const lineY = cursorY + lineStartOffset + (lineStep * lineIndex);
+
+      if (line.circled) {
+        markup.push(
+          tripInfoBuildNoteCircleMarkup(centerX, lineY, line.circleType)
+        );
+      }
+
       markup.push(
         tripInfoBuildSvgMmText({
           x: centerX,
-          y: cursorY + (titleToLineStep * (lineIndex + 1)),
+          y: lineY,
           text: line.text,
           textAnchor: "middle",
           fontSize: line.fontSize,
@@ -2377,7 +2424,7 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
 
     const sectionEndY =
       section.lines.length > 0
-        ? cursorY + (titleToLineStep * section.lines.length)
+        ? cursorY + lineStartOffset + (lineStep * (section.lines.length - 1))
         : cursorY;
 
     if (index < sections.length - 1) {
@@ -2398,6 +2445,25 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
   });
 
   return markup.join("\n");
+}
+
+function tripInfoBuildNoteCircleMarkup(centerX, baselineY, circleType) {
+  const circleDimensions = {
+    crewBag: { rx: 4.35, ry: 2.55, baselineOffsetY: 1.2 },
+    pantry: { rx: 4.55, ry: 2.55, baselineOffsetY: 1.2 },
+    fakWeight: { rx: 7.95, ry: 2.7, baselineOffsetY: 1.2 },
+  }[circleType];
+
+  if (!circleDimensions) {
+    return "";
+  }
+
+  return tripInfoBuildSvgEllipse(
+    centerX,
+    baselineY - circleDimensions.baselineOffsetY,
+    circleDimensions.rx,
+    circleDimensions.ry
+  );
 }
 
 function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
@@ -2539,6 +2605,14 @@ function tripInfoBuildSvgRect(x, y, width, height, strokeWidth = 0.22) {
     y
   )}" width="${tripInfoFormatSvgNumber(width)}" height="${tripInfoFormatSvgNumber(
     height
+  )}" fill="none" stroke="#111827" stroke-width="${tripInfoFormatSvgNumber(strokeWidth)}" />`;
+}
+
+function tripInfoBuildSvgEllipse(cx, cy, rx, ry, strokeWidth = 0.22) {
+  return `<ellipse cx="${tripInfoFormatSvgNumber(cx)}" cy="${tripInfoFormatSvgNumber(
+    cy
+  )}" rx="${tripInfoFormatSvgNumber(rx)}" ry="${tripInfoFormatSvgNumber(
+    ry
   )}" fill="none" stroke="#111827" stroke-width="${tripInfoFormatSvgNumber(strokeWidth)}" />`;
 }
 
@@ -2949,7 +3023,7 @@ function tripInfoGetWaterCorrection(baseWaterLevel, finalWaterLevel) {
 
 function tripInfoBuildFlightTypeNoteText(flightType) {
   if (flightType === "SCHED") {
-    return "SCHED. FLT";
+    return "SCHEDULE FLT";
   }
 
   if (flightType === "CHARTER") {
@@ -2957,6 +3031,18 @@ function tripInfoBuildFlightTypeNoteText(flightType) {
   }
 
   return "";
+}
+
+function tripInfoBuildFlightTypeNoteLines(flightType) {
+  if (flightType === "SCHED") {
+    return ["SCHEDULE", "FLT"];
+  }
+
+  if (flightType === "CHARTER") {
+    return ["CHARTER", "FLT"];
+  }
+
+  return [];
 }
 
 function tripInfoBuildWaterTransitionText(baseWaterLevel, finalWaterLevel) {
