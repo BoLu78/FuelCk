@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="5.7">
+    <meta name="app-version" content="5.8">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -834,7 +834,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">5.7</span>
+          <span class="home-version">5.8</span>
         </div>
       </section>
 
@@ -1123,29 +1123,17 @@
             <div class="row two-col tripInfoTopSideRow">
               <div class="field" aria-hidden="true"></div>
 
-              <div class="field">
-                <span class="field-title">Flight Type</span>
-                <div class="tripInfoCheckboxGroup">
-                  <label class="tripInfoCheckboxControl" for="flt-schedule">
-                    <input
-                      id="flt-schedule"
-                      name="flightType"
-                      type="radio"
-                      value="SCHEDULE"
-                    >
-                    <span>SCHEDULE FLT</span>
-                  </label>
-
-                  <label class="tripInfoCheckboxControl" for="flt-charter">
-                    <input
-                      id="flt-charter"
-                      name="flightType"
-                      type="radio"
-                      value="CHARTER"
-                    >
-                    <span>CHARTER FLT</span>
-                  </label>
-                </div>
+              <div class="field tripInfoAlignedField">
+                <label for="flight-type">Flight Type</label>
+                <select
+                  id="flight-type"
+                  name="flightType"
+                  class="select tripInfoUppercaseField"
+                >
+                  <option value="" selected>-- SELECT --</option>
+                  <option value="SCHED">SCHEDULE FLT</option>
+                  <option value="CHARTER">CHARTER FLT</option>
+                </select>
               </div>
             </div>
 

@@ -1,4 +1,4 @@
-const APP_VERSION = "5.7";
+const APP_VERSION = "5.8";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1286,7 +1286,6 @@ function showInputScreen() {
 }
 
 function initializeTripInfoModule() {
-  tripInfoSetupFlightTypeControls();
   tripInfoSetupSignaturePad();
   tripInfoRestoreState();
   tripInfoUpdateTakeOffFuelField();
@@ -1386,53 +1385,6 @@ function handleTripInfoFormChange(event) {
   }
 
   tripInfoUpdateTakeOffFuelField();
-  tripInfoSaveState();
-}
-
-function tripInfoSetupFlightTypeControls() {
-  tripInfoForm.querySelectorAll('input[name="flightType"]').forEach((input) => {
-    input.addEventListener("pointerdown", handleTripInfoFlightTypePointerDown);
-    input.addEventListener("keydown", handleTripInfoFlightTypeKeyDown);
-    input.addEventListener("click", handleTripInfoFlightTypeClick);
-  });
-}
-
-function handleTripInfoFlightTypePointerDown(event) {
-  const target = event.currentTarget;
-
-  if (target instanceof HTMLInputElement) {
-    target.dataset.wasChecked = target.checked ? "true" : "false";
-  }
-}
-
-function handleTripInfoFlightTypeKeyDown(event) {
-  const target = event.currentTarget;
-
-  if (!(target instanceof HTMLInputElement)) {
-    return;
-  }
-
-  if (event.key === " " || event.key === "Enter") {
-    target.dataset.wasChecked = target.checked ? "true" : "false";
-  }
-}
-
-function handleTripInfoFlightTypeClick(event) {
-  const target = event.currentTarget;
-
-  if (!(target instanceof HTMLInputElement)) {
-    return;
-  }
-
-  const wasChecked = target.dataset.wasChecked === "true";
-  delete target.dataset.wasChecked;
-
-  if (!wasChecked) {
-    return;
-  }
-
-  target.checked = false;
-  tripInfoClearValidation();
   tripInfoSaveState();
 }
 
@@ -1701,8 +1653,6 @@ function tripInfoSaveState() {
 }
 
 function tripInfoGetFormValues() {
-  const selectedFlightTypeInput = document.querySelector('input[name="flightType"]:checked');
-
   return {
     flightNumber: tripInfoForm.elements.flightNumber.value,
     from: tripInfoForm.elements.from.value,
@@ -1712,8 +1662,7 @@ function tripInfoGetFormValues() {
     crewBag: tripInfoForm.elements.crewBag.value,
     pantry: tripInfoForm.elements.pantry.value,
     includeFak: tripInfoForm.elements.includeFak.checked,
-    flightType:
-      selectedFlightTypeInput instanceof HTMLInputElement ? selectedFlightTypeInput.value : "",
+    flightType: tripInfoForm.elements.flightType.value,
     waterFull: tripInfoForm.elements.waterFull.checked,
     aircraftRegistration: tripInfoForm.elements.aircraftRegistration.value,
     aircraftType: tripInfoForm.elements.aircraftType.value,
@@ -1748,9 +1697,7 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
   tripInfoForm.elements.from.value = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
   tripInfoForm.elements.to.value = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
   tripInfoForm.elements.pantry.value = mergedValues.pantry;
-  tripInfoForm.querySelectorAll('input[name="flightType"]').forEach((input) => {
-    input.checked = input.value === mergedValues.flightType;
-  });
+  tripInfoForm.elements.flightType.value = mergedValues.flightType;
   tripInfoForm.elements.aircraftRegistration.value = mergedValues.aircraftRegistration;
   tripInfoForm.elements.aircraftType.value = "B789";
 }
@@ -1819,6 +1766,9 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const finalWaterLevel = waterFull ? 100 : baseWaterLevel;
   const waterCorrection = tripInfoGetWaterCorrection(baseWaterLevel, finalWaterLevel);
   const flightTypeNote = tripInfoBuildFlightTypeNoteText(flightType);
+  const remarksWaterTransitionText = waterCorrection
+    ? tripInfoBuildWaterTransitionText(baseWaterLevel, finalWaterLevel)
+    : "";
   const remarksCorrectionText = waterCorrection
     ? tripInfoBuildWaterCorrectionText(waterCorrection)
     : "";
@@ -1952,6 +1902,7 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     waterFull,
     showWaterNote: waterFull,
     waterCorrection,
+    remarksWaterTransitionText,
     remarksCorrectionText,
     showRemarksCorrection: remarksCorrectionText !== "",
     aircraftRegistration,
@@ -2437,15 +2388,26 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
   const remarksFontSize = bodyFontSize * 0.84;
   const textX = remarksBox.x + 1.9;
   const textY = remarksBox.labelY + 3.2;
+  const lineStep = 3.15;
 
-  return tripInfoBuildSvgMmText({
-    x: textX,
-    y: textY,
-    text: data.remarksCorrectionText,
-    fontSize: remarksFontSize,
-    fontWeight: 400,
-    letterSpacing: 0,
-  });
+  return [
+    tripInfoBuildSvgMmText({
+      x: textX,
+      y: textY,
+      text: data.remarksWaterTransitionText,
+      fontSize: remarksFontSize,
+      fontWeight: 400,
+      letterSpacing: 0,
+    }),
+    tripInfoBuildSvgMmText({
+      x: textX,
+      y: textY + lineStep,
+      text: data.remarksCorrectionText,
+      fontSize: remarksFontSize,
+      fontWeight: 400,
+      letterSpacing: 0,
+    }),
+  ].join("\n");
 }
 
 function tripInfoBuildSvgInlineField(options) {
@@ -2881,7 +2843,16 @@ function tripInfoNormalizeBooleanValue(value, fallback = false) {
 
 function tripInfoNormalizeFlightTypeValue(value) {
   const normalizedValue = tripInfoNormalizeText(String(value || ""));
-  return normalizedValue === "SCHEDULE" || normalizedValue === "CHARTER" ? normalizedValue : "";
+
+  if (normalizedValue === "SCHEDULE" || normalizedValue === "SCHED") {
+    return "SCHED";
+  }
+
+  if (normalizedValue === "CHARTER") {
+    return "CHARTER";
+  }
+
+  return "";
 }
 
 function tripInfoGetBaseWaterLevel(pantryCode) {
@@ -2897,8 +2868,8 @@ function tripInfoGetWaterCorrection(baseWaterLevel, finalWaterLevel) {
 }
 
 function tripInfoBuildFlightTypeNoteText(flightType) {
-  if (flightType === "SCHEDULE") {
-    return "SCHEDULE FLT";
+  if (flightType === "SCHED") {
+    return "SCHED. FLT";
   }
 
   if (flightType === "CHARTER") {
@@ -2906,6 +2877,10 @@ function tripInfoBuildFlightTypeNoteText(flightType) {
   }
 
   return "";
+}
+
+function tripInfoBuildWaterTransitionText(baseWaterLevel, finalWaterLevel) {
+  return `Water ${baseWaterLevel}% to ${finalWaterLevel}%`;
 }
 
 function tripInfoBuildWaterCorrectionText(waterCorrection) {
