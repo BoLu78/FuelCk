@@ -1,4 +1,4 @@
-const APP_VERSION = "6.1";
+const APP_VERSION = "6.3";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -400,11 +400,6 @@ const TRIP_INFO_REGISTRATIONS = [
   "EI-XIN",
 ];
 const TRIP_INFO_PANTRY_CODES = ["Z", "SH", "MH", "LH", "CH"];
-const TRIP_INFO_AUTO_WATER_AIRPORTS = [
-  "CUN", "MBJ", "PUJ", "POP", "LRM", "SDQ",
-  "HAV", "VRA", "SNU",
-  "MIA", "FLL", "JFK", "EWR", "YYZ",
-];
 const TRIP_INFO_WATER_CORRECTIONS = {
   50: {
     dowKg: 487,
@@ -425,7 +420,7 @@ const TRIP_INFO_DEFAULTS = {
   pantry: "",
   includeFak: true,
   flightType: "",
-  waterFull: false,
+  waterMode: "STANDARD",
   aircraftRegistration: TRIP_INFO_REGISTRATIONS[0],
   aircraftType: "B789",
   captainName: "",
@@ -551,7 +546,6 @@ tripInfoForm.addEventListener("submit", (event) => {
   event.preventDefault();
   generateTripInfoPreview();
 });
-
 tripInfoForm.addEventListener("input", handleTripInfoFormInput);
 tripInfoForm.addEventListener("change", handleTripInfoFormChange);
 
@@ -1328,7 +1322,11 @@ function handleTripInfoFormInput(event) {
 
   if (target.name === "from" || target.name === "to") {
     target.value = tripInfoNormalizeIataCode(target.value);
-    tripInfoMaybeAutoEnableWater();
+    tripInfoApplyRouteRules();
+  }
+
+  if (target.name === "pantry") {
+    tripInfoMaybeAutoSelectWaterMode();
   }
 
   if (target.name === "crew") {
@@ -1339,6 +1337,10 @@ function handleTripInfoFormInput(event) {
   if (target.name === "crewBag") {
     target.value = tripInfoNormalizeCrewBagInput(target.value);
     tripInfoState.crewBagManualOverride = true;
+  }
+
+  if (target.name === "includeFak") {
+    tripInfoApplyRouteRules();
   }
 
   if (target.name === "eetHours" || target.name === "eetMinutes") {
@@ -1367,6 +1369,11 @@ function handleTripInfoFormChange(event) {
     target.value = tripInfoNormalizeText(target.value);
   }
 
+  if (target.name === "from" || target.name === "to") {
+    target.value = tripInfoNormalizeIataCode(target.value);
+    tripInfoApplyRouteRules();
+  }
+
   if (target.name === "crew") {
     const normalizedCrew = tripInfoNormalizeCrewValue(target.value);
     if (normalizedCrew) {
@@ -1380,7 +1387,15 @@ function handleTripInfoFormChange(event) {
     tripInfoState.crewBagManualOverride = true;
   }
 
-  if (target.name === "waterFull") {
+  if (target.name === "includeFak") {
+    tripInfoApplyRouteRules();
+  }
+
+  if (target.name === "pantry") {
+    tripInfoMaybeAutoSelectWaterMode();
+  }
+
+  if (target.name === "waterMode") {
     tripInfoState.userInteractedWater = true;
   }
 
@@ -1388,25 +1403,56 @@ function handleTripInfoFormChange(event) {
   tripInfoSaveState();
 }
 
-function tripInfoMaybeAutoEnableWater() {
+function tripInfoGetSelectedWaterMode() {
+  const selectedWaterMode = tripInfoForm.querySelector('input[name="waterMode"]:checked');
+  return selectedWaterMode instanceof HTMLInputElement ? selectedWaterMode.value : "";
+}
+
+function tripInfoSetSelectedWaterMode(value) {
+  const normalizedWaterMode = tripInfoNormalizeWaterModeValue(value);
+  tripInfoForm.querySelectorAll('input[name="waterMode"]').forEach((radio) => {
+    if (radio instanceof HTMLInputElement) {
+      radio.checked = normalizedWaterMode !== "" && radio.value === normalizedWaterMode;
+    }
+  });
+}
+
+function tripInfoGetAutoWaterModeFromPantry(pantryCode) {
+  if (pantryCode === "LH" || pantryCode === "CH") {
+    return "80";
+  }
+
+  if (pantryCode === "SH" || pantryCode === "MH" || pantryCode === "Z") {
+    return "50";
+  }
+
+  return "STANDARD";
+}
+
+function tripInfoMaybeAutoSelectWaterMode() {
   if (tripInfoState.userInteractedWater) {
     return;
   }
 
+  const pantryCode = tripInfoNormalizePantryValue(tripInfoForm.elements.pantry.value);
+  const nextWaterMode = tripInfoGetAutoWaterModeFromPantry(pantryCode);
+
+  if (tripInfoGetSelectedWaterMode() !== nextWaterMode) {
+    tripInfoSetSelectedWaterMode(nextWaterMode);
+    tripInfoSaveState();
+  }
+}
+
+function tripInfoApplyRouteRules() {
   const from = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
   const to = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
 
-  if (
-    !TRIP_INFO_AUTO_WATER_AIRPORTS.includes(from)
-    && !TRIP_INFO_AUTO_WATER_AIRPORTS.includes(to)
-  ) {
-    return;
+  if (from === "JFK" && to === "JFK" && tripInfoForm.elements.includeFak.checked) {
+    tripInfoForm.elements.includeFak.checked = false;
+    return true;
   }
 
-  if (!tripInfoForm.elements.waterFull.checked) {
-    tripInfoForm.elements.waterFull.checked = true;
-    tripInfoSaveState();
-  }
+  return false;
 }
 
 function tripInfoSetupSignaturePad() {
@@ -1562,7 +1608,8 @@ function tripInfoRestoreState() {
   tripInfoState.crewBagManualOverride = storedState.crewBagManualOverride;
   tripInfoState.userInteractedWater = storedState.userInteractedWater;
   tripInfoApplyFormValues(storedState.formValues);
-  tripInfoMaybeAutoEnableWater();
+  const routeRuleChanged = tripInfoApplyRouteRules();
+  tripInfoMaybeAutoSelectWaterMode();
   tripInfoSyncCrewBagFromCrew();
   tripInfoState.signatureDataUrl = storedState.signatureDataUrl;
   tripInfoUpdateTakeOffFuelField();
@@ -1589,6 +1636,10 @@ function tripInfoRestoreState() {
     renderTripInfoPreview(tripInfoState.generatedData);
   } else {
     tripInfoPreviewMount.textContent = "";
+  }
+
+  if (routeRuleChanged) {
+    tripInfoSaveState();
   }
 }
 
@@ -1663,7 +1714,7 @@ function tripInfoGetFormValues() {
     pantry: tripInfoForm.elements.pantry.value,
     includeFak: tripInfoForm.elements.includeFak.checked,
     flightType: tripInfoForm.elements.flightType.value,
-    waterFull: tripInfoForm.elements.waterFull.checked,
+    waterMode: tripInfoGetSelectedWaterMode(),
     aircraftRegistration: tripInfoForm.elements.aircraftRegistration.value,
     aircraftType: tripInfoForm.elements.aircraftType.value,
     captainName: tripInfoForm.elements.captainName.value,
@@ -1684,6 +1735,10 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
   const mergedValues = tripInfoSanitizeStoredFormValues(values);
 
   Object.keys(TRIP_INFO_DEFAULTS).forEach((key) => {
+    if (key === "waterMode") {
+      return;
+    }
+
     const field = tripInfoForm.elements[key];
     if (field) {
       if (field instanceof HTMLInputElement && field.type === "checkbox") {
@@ -1698,6 +1753,7 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
   tripInfoForm.elements.to.value = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
   tripInfoForm.elements.pantry.value = mergedValues.pantry;
   tripInfoForm.elements.flightType.value = mergedValues.flightType;
+  tripInfoSetSelectedWaterMode(mergedValues.waterMode);
   tripInfoForm.elements.aircraftRegistration.value = mergedValues.aircraftRegistration;
   tripInfoForm.elements.aircraftType.value = "B789";
 }
@@ -1761,9 +1817,9 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const pantryCode = tripInfoNormalizePantryValue(rawValues.pantry);
   const includeFak = tripInfoNormalizeBooleanValue(rawValues.includeFak, true);
   const flightType = tripInfoNormalizeFlightTypeValue(rawValues.flightType);
-  const waterFull = tripInfoNormalizeBooleanValue(rawValues.waterFull, false);
-  const baseWaterLevel = tripInfoGetBaseWaterLevel(pantryCode);
-  const finalWaterLevel = waterFull ? 100 : baseWaterLevel;
+  const waterMode = tripInfoNormalizeWaterModeValue(rawValues.waterMode);
+  const baseWaterLevel = tripInfoGetBaseWaterLevelFromWaterMode(waterMode);
+  const finalWaterLevel = baseWaterLevel === null ? null : 100;
   const waterCorrection = tripInfoGetWaterCorrection(baseWaterLevel, finalWaterLevel);
   const flightTypeNote = tripInfoBuildFlightTypeNoteText(flightType);
   const remarksWaterTransitionText = waterCorrection
@@ -1904,8 +1960,7 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     showFlightTypeNote: flightTypeNote !== "",
     baseWaterLevel,
     finalWaterLevel,
-    waterFull,
-    showWaterNote: waterFull,
+    waterMode,
     waterCorrection,
     remarksWaterTransitionText,
     remarksCorrectionText,
@@ -1973,7 +2028,11 @@ function tripInfoSanitizeStoredFormValues(values) {
       : tripInfoNormalizeBooleanValue(mergedValues.charterFlight, false)
         ? "CHARTER"
         : "");
-  const normalizedWaterFull = tripInfoNormalizeBooleanValue(mergedValues.waterFull, false);
+  const normalizedWaterMode =
+    tripInfoNormalizeWaterModeValue(String(mergedValues.waterMode || ""))
+    || (tripInfoNormalizeBooleanValue(mergedValues.waterFull, false)
+      ? tripInfoGetAutoWaterModeFromPantry(normalizedPantry)
+      : "STANDARD");
 
   return {
     ...mergedValues,
@@ -1983,7 +2042,7 @@ function tripInfoSanitizeStoredFormValues(values) {
     pantry: normalizedPantry,
     includeFak: normalizedIncludeFak,
     flightType: normalizedFlightType,
-    waterFull: normalizedWaterFull,
+    waterMode: normalizedWaterMode,
     aircraftRegistration: TRIP_INFO_REGISTRATIONS.includes(mergedValues.aircraftRegistration)
       ? mergedValues.aircraftRegistration
       : defaultValues.aircraftRegistration,
@@ -3009,12 +3068,23 @@ function tripInfoNormalizeFlightTypeValue(value) {
   return "";
 }
 
-function tripInfoGetBaseWaterLevel(pantryCode) {
-  return pantryCode === "LH" || pantryCode === "CH" ? 80 : 50;
+function tripInfoNormalizeWaterModeValue(value) {
+  const normalizedValue = tripInfoNormalizeText(String(value || ""));
+  return normalizedValue === "STANDARD" || normalizedValue === "80" || normalizedValue === "50"
+    ? normalizedValue
+    : "";
+}
+
+function tripInfoGetBaseWaterLevelFromWaterMode(waterMode) {
+  if (waterMode === "80" || waterMode === "50") {
+    return Number(waterMode);
+  }
+
+  return null;
 }
 
 function tripInfoGetWaterCorrection(baseWaterLevel, finalWaterLevel) {
-  if (finalWaterLevel !== 100 || baseWaterLevel === 100) {
+  if (baseWaterLevel === null || finalWaterLevel !== 100 || baseWaterLevel === 100) {
     return null;
   }
 

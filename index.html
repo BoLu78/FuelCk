@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="6.1">
+    <meta name="app-version" content="6.3">
     <title>RampCheck</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -834,7 +834,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">6.1</span>
+          <span class="home-version">6.3</span>
         </div>
       </section>
 
@@ -1141,14 +1141,35 @@
               <div class="field" aria-hidden="true"></div>
 
               <div class="field">
-                <label class="tripInfoCheckboxControl tripInfoCompactOption" for="auto-water">
-                  <input
-                    id="auto-water"
-                    name="waterFull"
-                    type="checkbox"
-                  >
-                  <span>AUTO WATER</span>
-                </label>
+                <div class="tripInfoCheckboxGroup">
+                  <label class="tripInfoCheckboxControl tripInfoCompactOption tripInfoWaterModeOption" for="water-standard">
+                    <input
+                      id="water-standard"
+                      name="waterMode"
+                      type="radio"
+                      value="STANDARD"
+                    >
+                    <span>STANDARD</span>
+                  </label>
+                  <label class="tripInfoCheckboxControl tripInfoCompactOption tripInfoWaterModeOption" for="water-80">
+                    <input
+                      id="water-80"
+                      name="waterMode"
+                      type="radio"
+                      value="80"
+                    >
+                    <span>80 &rarr; 100</span>
+                  </label>
+                  <label class="tripInfoCheckboxControl tripInfoCompactOption tripInfoWaterModeOption" for="water-50">
+                    <input
+                      id="water-50"
+                      name="waterMode"
+                      type="radio"
+                      value="50"
+                    >
+                    <span>50 &rarr; 100</span>
+                  </label>
+                </div>
               </div>
             </div>
           </section>
