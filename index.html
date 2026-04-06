@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="7.3">
+    <meta name="app-version" content="7.4">
     <title>RampCheck</title>
-    <link rel="manifest" href="manifest.json?v=7.3">
+    <link rel="manifest" href="manifest.json?v=7.4">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <style>
       :root {
@@ -778,6 +778,20 @@
         text-align: center;
       }
 
+      .tripInfoCrewInputs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .tripInfoCrewSubField {
+        gap: 6px;
+      }
+
+      .tripInfoCrewSubLabel {
+        font-size: 0.78rem;
+      }
+
       .tripInfoSignatureCanvas {
         display: block;
         width: 100%;
@@ -855,7 +869,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">7.3</span>
+          <span class="home-version">7.4</span>
         </div>
       </section>
 
@@ -868,7 +882,7 @@
           <header class="hero fuel-header">
             <div class="module-header-row">
               <h1>FuelCk</h1>
-              <span class="module-version-badge">7.3</span>
+              <span class="module-version-badge">7.4</span>
             </div>
             <div class="card" id="toleranceCard">
               <h2>Tolerance Rule</h2>
@@ -1016,7 +1030,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>TRIP INFO</h1>
-            <span class="module-version-badge">7.3</span>
+            <span class="module-version-badge">7.4</span>
           </div>
         </header>
 
@@ -1080,17 +1094,40 @@
               </div>
 
               <div class="field">
-                <label for="tripInfo-crew">Crew</label>
-                <input
-                  id="tripInfo-crew"
-                  name="crew"
-                  class="input mono tripInfoUppercaseField"
-                  type="text"
-                  inputmode="text"
-                  value="2+9"
-                  autocomplete="off"
-                  required
-                >
+                <span class="field-title">Crew</span>
+                <div class="tripInfoCrewInputs">
+                  <div class="field tripInfoCrewSubField">
+                    <label class="tripInfoCrewSubLabel" for="tripInfo-crew-pilots">Pilots</label>
+                    <input
+                      id="tripInfo-crew-pilots"
+                      name="crewPilots"
+                      class="input number-input mono"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      step="1"
+                      value="2"
+                      autocomplete="off"
+                      required
+                    >
+                  </div>
+
+                  <div class="field tripInfoCrewSubField">
+                    <label class="tripInfoCrewSubLabel" for="tripInfo-crew-cabin">Cabin</label>
+                    <input
+                      id="tripInfo-crew-cabin"
+                      name="crewCabin"
+                      class="input number-input mono"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      step="1"
+                      value="9"
+                      autocomplete="off"
+                      required
+                    >
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1479,7 +1516,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>ACN-PCN</h1>
-            <span class="module-version-badge">7.3</span>
+            <span class="module-version-badge">7.4</span>
           </div>
           <p class="subtitle">Pavement compatibility</p>
         </header>
@@ -1625,6 +1662,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=7.3" defer></script>
+    <script src="app.js?v=7.4" defer></script>
   </body>
 </html>

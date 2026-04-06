@@ -1,4 +1,4 @@
-const APP_VERSION = "7.3";
+const APP_VERSION = "7.4";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -416,7 +416,10 @@ const TRIP_INFO_DEFAULTS = {
   from: "",
   to: "",
   date: "",
-  crew: "2+9",
+  crew: {
+    pilots: 2,
+    cabin: 9,
+  },
   crewBag: "",
   pantry: "",
   includeFak: true,
@@ -1301,7 +1304,15 @@ function tripInfoGetTodayIsoDate() {
 function tripInfoGetDefaultFormValues() {
   return {
     ...TRIP_INFO_DEFAULTS,
+    crew: tripInfoGetDefaultCrewValue(),
     date: tripInfoGetTodayIsoDate(),
+  };
+}
+
+function tripInfoGetDefaultCrewValue() {
+  return {
+    pilots: TRIP_INFO_DEFAULTS.crew.pilots,
+    cabin: TRIP_INFO_DEFAULTS.crew.cabin,
   };
 }
 
@@ -1334,8 +1345,8 @@ function handleTripInfoFormInput(event) {
     tripInfoMaybeAutoSelectWaterMode();
   }
 
-  if (target.name === "crew") {
-    target.value = target.value.replace(/[^\d+\s]/g, "");
+  if (target.name === "crewPilots" || target.name === "crewCabin") {
+    target.value = tripInfoNormalizeCrewCountInput(target.value);
     tripInfoSyncCrewBagFromCrew();
   }
 
@@ -1382,11 +1393,8 @@ function handleTripInfoFormChange(event) {
     }
   }
 
-  if (target.name === "crew") {
-    const normalizedCrew = tripInfoNormalizeCrewValue(target.value);
-    if (normalizedCrew) {
-      target.value = normalizedCrew;
-    }
+  if (target.name === "crewPilots" || target.name === "crewCabin") {
+    target.value = tripInfoNormalizeCrewCountDisplayValue(target.value);
     tripInfoSyncCrewBagFromCrew();
   }
 
@@ -1745,7 +1753,7 @@ function tripInfoSaveState() {
     localStorage.setItem(
       TRIP_INFO_STORAGE_KEY,
       JSON.stringify({
-        formValues: tripInfoGetFormValues(),
+        formValues: tripInfoGetStoredFormValues(),
         generatedData: tripInfoState.generatedData,
         signatureDataUrl: tripInfoState.signatureDataUrl,
         crewBagManualOverride: tripInfoState.crewBagManualOverride,
@@ -1764,7 +1772,7 @@ function tripInfoGetFormValues() {
     from: tripInfoForm.elements.from.value,
     to: tripInfoForm.elements.to.value,
     date: tripInfoForm.elements.date.value,
-    crew: tripInfoForm.elements.crew.value,
+    crew: tripInfoGetCrewValueFromForm(),
     crewBag: tripInfoForm.elements.crewBag.value,
     pantry: tripInfoForm.elements.pantry.value,
     includeFak: tripInfoForm.elements.includeFak.checked,
@@ -1786,11 +1794,33 @@ function tripInfoGetFormValues() {
   };
 }
 
+function tripInfoGetStoredFormValues() {
+  const formValues = tripInfoGetFormValues();
+
+  return {
+    ...formValues,
+    crew: tripInfoNormalizeCrewValue(formValues.crew) || tripInfoGetDefaultCrewValue(),
+  };
+}
+
+function tripInfoGetCrewValueFromForm() {
+  return {
+    pilots: tripInfoForm.elements.crewPilots.value,
+    cabin: tripInfoForm.elements.crewCabin.value,
+  };
+}
+
+function tripInfoApplyCrewValue(value) {
+  const normalizedCrew = tripInfoNormalizeCrewValue(value) || tripInfoGetDefaultCrewValue();
+  tripInfoForm.elements.crewPilots.value = String(normalizedCrew.pilots);
+  tripInfoForm.elements.crewCabin.value = String(normalizedCrew.cabin);
+}
+
 function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
   const mergedValues = tripInfoSanitizeStoredFormValues(values);
 
   Object.keys(TRIP_INFO_DEFAULTS).forEach((key) => {
-    if (key === "waterMode") {
+    if (key === "waterMode" || key === "crew") {
       return;
     }
 
@@ -1806,6 +1836,7 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
 
   tripInfoForm.elements.from.value = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
   tripInfoForm.elements.to.value = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
+  tripInfoApplyCrewValue(mergedValues.crew);
   tripInfoForm.elements.pantry.value = mergedValues.pantry;
   tripInfoForm.elements.flightType.value = mergedValues.flightType;
   tripInfoSetSelectedWaterMode(mergedValues.waterMode);
@@ -1867,7 +1898,8 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const from = tripInfoNormalizeIataCode(rawValues.from);
   const to = tripInfoNormalizeIataCode(rawValues.to);
   const parsedDate = tripInfoParseDateInput(rawValues.date);
-  const crew = tripInfoNormalizeCrewValue(rawValues.crew);
+  const crewValue = tripInfoNormalizeCrewValue(rawValues.crew);
+  const crew = crewValue ? tripInfoBuildCrewDisplayValue(crewValue) : "";
   const crewBagInput = tripInfoNormalizeCrewBagInput(rawValues.crewBag);
   const crewBagValue = crewBagInput === "" ? null : tripInfoParsePlainInteger(crewBagInput);
   const pantryCode = tripInfoNormalizePantryValue(rawValues.pantry);
@@ -1919,8 +1951,8 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     errors.push("Enter a valid date.");
   }
 
-  if (!crew) {
-    errors.push("Crew must be in the format 2+9.");
+  if (!crewValue) {
+    errors.push("Enter valid Pilots and Cabin counts.");
   }
 
   if (crewBagInput !== "" && crewBagValue === null) {
@@ -2079,7 +2111,7 @@ function tripInfoSanitizeStoredFormValues(values) {
   const parsedStoredDate = tripInfoParseDateInput(String(mergedValues.date || ""));
   const normalizedFrom = tripInfoNormalizeIataCode(String(mergedValues.from || ""));
   const normalizedTo = tripInfoNormalizeIataCode(String(mergedValues.to || ""));
-  const normalizedCrew = tripInfoNormalizeCrewValue(String(mergedValues.crew || ""));
+  const normalizedCrew = tripInfoNormalizeCrewValue(mergedValues.crew);
   const normalizedCrewBag = tripInfoNormalizeCrewBagDisplayValue(
     String(mergedValues.crewBag || "")
   );
@@ -2106,7 +2138,7 @@ function tripInfoSanitizeStoredFormValues(values) {
     from: normalizedFrom,
     to: normalizedTo,
     date: parsedStoredDate ? parsedStoredDate.iso : defaultValues.date,
-    crew: normalizedCrew || defaultValues.crew,
+    crew: normalizedCrew || tripInfoGetDefaultCrewValue(),
     crewBag: normalizedCrewBag,
     pantry: normalizedPantry,
     includeFak: normalizedIncludeFak,
@@ -2141,7 +2173,7 @@ function tripInfoSyncCrewBagFromCrew() {
     return;
   }
 
-  const autoCrewBagValue = tripInfoCalculateCrewBagFromCrew(tripInfoForm.elements.crew.value);
+  const autoCrewBagValue = getCrewTotal();
   tripInfoForm.elements.crewBag.value = autoCrewBagValue === null ? "" : String(autoCrewBagValue);
 }
 
@@ -3079,9 +3111,48 @@ function tripInfoNormalizeIataCode(value) {
     .slice(0, 3);
 }
 
+function tripInfoNormalizeCrewCountInput(value) {
+  return typeof value === "string" ? value.replace(/\D/g, "") : "";
+}
+
+function tripInfoNormalizeCrewCountDisplayValue(value) {
+  const normalizedValue = tripInfoNormalizeCrewCountInput(String(value || ""));
+  return normalizedValue ? String(Number(normalizedValue)) : "";
+}
+
 function tripInfoNormalizeCrewValue(value) {
-  const compactValue = tripInfoNormalizeText(value).replace(/\s+/g, "");
-  return /^\d+\+\d+$/.test(compactValue) ? compactValue : null;
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const pilots = tripInfoParsePlainInteger(String(value.pilots ?? ""));
+    const cabin = tripInfoParsePlainInteger(String(value.cabin ?? ""));
+
+    if (pilots !== null && cabin !== null) {
+      return { pilots, cabin };
+    }
+
+    return null;
+  }
+
+  const compactValue = tripInfoNormalizeText(String(value || "")).replace(/\s+/g, "");
+  const crewMatch = compactValue.match(/^(\d+)\+(\d+)$/);
+
+  if (!crewMatch) {
+    return null;
+  }
+
+  return {
+    pilots: Number(crewMatch[1]),
+    cabin: Number(crewMatch[2]),
+  };
+}
+
+function tripInfoBuildCrewDisplayValue(value) {
+  const normalizedCrew = tripInfoNormalizeCrewValue(value);
+  return normalizedCrew ? `${normalizedCrew.pilots}+${normalizedCrew.cabin}` : "";
+}
+
+function getCrewTotal(crewValue = tripInfoGetCrewValueFromForm()) {
+  const normalizedCrew = tripInfoNormalizeCrewValue(crewValue);
+  return normalizedCrew ? normalizedCrew.pilots + normalizedCrew.cabin : null;
 }
 
 function tripInfoNormalizeCrewBagInput(value) {
@@ -3204,15 +3275,7 @@ function tripInfoBuildWaterCorrectionText(waterCorrection) {
 }
 
 function tripInfoCalculateCrewBagFromCrew(value) {
-  const normalizedCrew = tripInfoNormalizeCrewValue(String(value || ""));
-
-  if (!normalizedCrew) {
-    return null;
-  }
-
-  return normalizedCrew
-    .split("+")
-    .reduce((sum, item) => sum + Number(item), 0);
+  return getCrewTotal(value);
 }
 
 function tripInfoParseDateInput(value) {
