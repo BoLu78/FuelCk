@@ -1,9 +1,13 @@
-const CACHE_NAME = "rampcheck-v6.5";
+const CACHE_NAME = "rampcheck-v6.6";
+const OFFLINE_FALLBACK_URL = "./index.html";
 const APP_FILES = [
   "./",
+  "./?v=6.6",
   "./index.html",
   "./app.js",
+  "./app.js?v=6.6",
   "./manifest.json",
+  "./manifest.json?v=6.6",
   "./service-worker.js",
   "./assets/tripinfo-logo-neos.png",
   "./icons/icon-192.png",
@@ -12,7 +16,9 @@ const APP_FILES = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_FILES))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(APP_FILES.map((url) => new Request(url, { cache: "reload" })))
+    )
   );
   self.skipWaiting();
 });
@@ -31,17 +37,58 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") {
+  const { request } = event;
+
+  if (request.method !== "GET") {
+    return;
+  }
+
+  if (request.cache === "only-if-cached" && request.mode !== "same-origin") {
+    return;
+  }
+
+  const requestUrl = new URL(request.url);
+
+  if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        return (
+          await cache.match(OFFLINE_FALLBACK_URL)
+        ) || await cache.match("./");
+      })
+    );
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cachedResponse = await cache.match(request);
+      const networkResponsePromise = fetch(request).then((networkResponse) => {
+        if (networkResponse && networkResponse.ok) {
+          cache.put(request, networkResponse.clone());
+        }
+
+        return networkResponse;
+      });
+
       if (cachedResponse) {
+        event.waitUntil(networkResponsePromise.catch(() => {}));
         return cachedResponse;
       }
 
-      return fetch(event.request);
-    })
+      try {
+        return await networkResponsePromise;
+      } catch {
+        return (
+          await cache.match(OFFLINE_FALLBACK_URL)
+        ) || await cache.match("./");
+      }
+    })()
   );
 });
