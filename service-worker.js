@@ -1,13 +1,13 @@
-const CACHE_NAME = "rampcheck-v6.7";
+const CACHE_NAME = "rampcheck-v6.8";
 const OFFLINE_FALLBACK_URL = "./index.html";
 const APP_FILES = [
   "./",
-  "./?v=6.7",
+  "./?v=6.8",
   "./index.html",
   "./app.js",
-  "./app.js?v=6.7",
+  "./app.js?v=6.8",
   "./manifest.json",
-  "./manifest.json?v=6.7",
+  "./manifest.json?v=6.8",
   "./service-worker.js",
   "./assets/tripinfo-logo-neos.png",
   "./icons/icon-192.png",

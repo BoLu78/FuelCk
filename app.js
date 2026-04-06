@@ -1,4 +1,4 @@
-const APP_VERSION = "6.7";
+const APP_VERSION = "6.8";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1452,15 +1452,36 @@ function tripInfoGetEffectiveWaterMode(to, selectedWaterMode, pantryCode) {
 }
 
 function tripInfoMaybeAutoSelectWaterMode() {
+  const to = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
+  const currentWaterMode = tripInfoGetSelectedWaterMode();
+
+  if (!tripInfoRequiresWaterCorrection(to)) {
+    const shouldResetSelection = currentWaterMode !== "STANDARD";
+    const shouldResetInteraction = tripInfoState.userInteractedWater;
+
+    if (shouldResetSelection) {
+      tripInfoSetSelectedWaterMode("STANDARD");
+    }
+
+    if (shouldResetInteraction) {
+      tripInfoState.userInteractedWater = false;
+    }
+
+    if (shouldResetSelection || shouldResetInteraction) {
+      tripInfoSaveState();
+    }
+
+    return;
+  }
+
   if (tripInfoState.userInteractedWater) {
     return;
   }
 
-  const to = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
   const pantryCode = tripInfoNormalizePantryValue(tripInfoForm.elements.pantry.value);
   const nextWaterMode = tripInfoGetAutoWaterModeFromContext(to, pantryCode);
 
-  if (tripInfoGetSelectedWaterMode() !== nextWaterMode) {
+  if (currentWaterMode !== nextWaterMode) {
     tripInfoSetSelectedWaterMode(nextWaterMode);
     tripInfoSaveState();
   }
