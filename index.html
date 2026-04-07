@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="8.1">
+    <meta name="app-version" content="8.2">
     <title>RampCheck</title>
-    <link rel="manifest" href="manifest.json?v=8.1">
+    <link rel="manifest" href="manifest.json?v=8.2">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <style>
       :root {
@@ -921,7 +921,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/logo-lb.png" alt="">
-          <span class="home-version">8.1</span>
+          <span class="home-version">8.2</span>
         </div>
       </section>
 
@@ -934,7 +934,7 @@
           <header class="hero fuel-header">
             <div class="module-header-row">
               <h1>FuelCk</h1>
-              <span class="module-version-badge">8.1</span>
+              <span class="module-version-badge">8.2</span>
             </div>
             <div class="card" id="toleranceCard">
               <h2>Tolerance Rule</h2>
@@ -1082,7 +1082,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>TRIP INFO</h1>
-            <span class="module-version-badge">8.1</span>
+            <span class="module-version-badge">8.2</span>
           </div>
         </header>
 
@@ -1106,13 +1106,42 @@
         <header class="hero">
           <div class="module-header-row">
             <h1 id="tripInfoTitle">TRIP INFO</h1>
-            <span class="module-version-badge">8.1</span>
+            <span class="module-version-badge">8.2</span>
           </div>
         </header>
 
         <form id="tripInfo-form" class="stack" novalidate>
           <section class="card stack tripInfoSectionCard">
             <h2>Flight / Routing</h2>
+
+            <div class="field" id="tripInfo-b737-aircraft-field" hidden>
+              <label for="tripInfo-aircraft-id">Aircraft</label>
+              <select
+                id="tripInfo-aircraft-id"
+                name="aircraftId"
+                class="select"
+                autocomplete="off"
+              >
+                <optgroup label="GROUP 1">
+                  <option value="I-NEOU">B737-800 NG — I-NEOU</option>
+                  <option value="I-NEOZ">B737-800 NG — I-NEOZ</option>
+                </optgroup>
+                <optgroup label="GROUP 2">
+                  <option value="EI-HIL">B737-800 NG — EI-HIL</option>
+                  <option value="EI-HIM">B737-800 NG — EI-HIM</option>
+                </optgroup>
+                <optgroup label="GROUP 3">
+                  <option value="EI-RZA">B737-8 MAX — EI-RZA</option>
+                  <option value="EI-RZB">B737-8 MAX — EI-RZB</option>
+                  <option value="EI-RZC">B737-8 MAX — EI-RZC</option>
+                  <option value="EI-RZD">B737-8 MAX — EI-RZD</option>
+                  <option value="EI-RZE">B737-8 MAX — EI-RZE</option>
+                  <option value="EI-RZF">B737-8 MAX — EI-RZF</option>
+                  <option value="EI-RZG">B737-8 MAX — EI-RZG</option>
+                  <option value="EI-RZH">B737-8 MAX — EI-RZH</option>
+                </optgroup>
+              </select>
+            </div>
 
             <div class="field">
               <label for="tripInfo-flight-number">Flight Number</label>
@@ -1634,7 +1663,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>ACN-PCN</h1>
-            <span class="module-version-badge">8.1</span>
+            <span class="module-version-badge">8.2</span>
           </div>
           <p class="subtitle">Pavement compatibility</p>
         </header>
@@ -1780,6 +1809,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=8.1" defer></script>
+    <script src="app.js?v=8.2" defer></script>
   </body>
 </html>

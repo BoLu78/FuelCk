@@ -1,4 +1,4 @@
-const APP_VERSION = "8.1";
+const APP_VERSION = "8.2";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -418,6 +418,137 @@ const TRIP_INFO_WATER_CORRECTIONS = {
 const TRIP_INFO_REMARKS_PRESETS = [
   "Provide MAC >= 27%",
 ];
+const TRIP_INFO_B737_AIRCRAFT_FLEET = [
+  {
+    groupLabel: "GROUP 1",
+    aircraftId: "I-NEOU",
+    registration: "I-NEOU",
+    family: "NG",
+    variantLabel: "B737-800 NG",
+    MZFW: "61688",
+    MTOW: "78925",
+    MLD: "66224",
+  },
+  {
+    groupLabel: "GROUP 1",
+    aircraftId: "I-NEOZ",
+    registration: "I-NEOZ",
+    family: "NG",
+    variantLabel: "B737-800 NG",
+    MZFW: "61688",
+    MTOW: "78925",
+    MLD: "66224",
+  },
+  {
+    groupLabel: "GROUP 2",
+    aircraftId: "EI-HIL",
+    registration: "EI-HIL",
+    family: "NG",
+    variantLabel: "B737-800 NG",
+    MZFW: "61688",
+    MTOW: "79015",
+    MLD: "66360",
+  },
+  {
+    groupLabel: "GROUP 2",
+    aircraftId: "EI-HIM",
+    registration: "EI-HIM",
+    family: "NG",
+    variantLabel: "B737-800 NG",
+    MZFW: "61688",
+    MTOW: "79015",
+    MLD: "66360",
+  },
+  {
+    groupLabel: "GROUP 3",
+    aircraftId: "EI-RZA",
+    registration: "EI-RZA",
+    family: "MAX",
+    variantLabel: "B737-8 MAX",
+    MZFW: "65952",
+    MTOW: "82190",
+    MLD: "69308",
+  },
+  {
+    groupLabel: "GROUP 3",
+    aircraftId: "EI-RZB",
+    registration: "EI-RZB",
+    family: "MAX",
+    variantLabel: "B737-8 MAX",
+    MZFW: "65952",
+    MTOW: "82190",
+    MLD: "69308",
+  },
+  {
+    groupLabel: "GROUP 3",
+    aircraftId: "EI-RZC",
+    registration: "EI-RZC",
+    family: "MAX",
+    variantLabel: "B737-8 MAX",
+    MZFW: "65952",
+    MTOW: "82190",
+    MLD: "69308",
+  },
+  {
+    groupLabel: "GROUP 3",
+    aircraftId: "EI-RZD",
+    registration: "EI-RZD",
+    family: "MAX",
+    variantLabel: "B737-8 MAX",
+    MZFW: "65952",
+    MTOW: "82190",
+    MLD: "69308",
+  },
+  {
+    groupLabel: "GROUP 3",
+    aircraftId: "EI-RZE",
+    registration: "EI-RZE",
+    family: "MAX",
+    variantLabel: "B737-8 MAX",
+    MZFW: "65952",
+    MTOW: "82190",
+    MLD: "69308",
+  },
+  {
+    groupLabel: "GROUP 3",
+    aircraftId: "EI-RZF",
+    registration: "EI-RZF",
+    family: "MAX",
+    variantLabel: "B737-8 MAX",
+    MZFW: "65952",
+    MTOW: "82190",
+    MLD: "69308",
+  },
+  {
+    groupLabel: "GROUP 3",
+    aircraftId: "EI-RZG",
+    registration: "EI-RZG",
+    family: "MAX",
+    variantLabel: "B737-8 MAX",
+    MZFW: "65952",
+    MTOW: "82190",
+    MLD: "69308",
+  },
+  {
+    groupLabel: "GROUP 3",
+    aircraftId: "EI-RZH",
+    registration: "EI-RZH",
+    family: "MAX",
+    variantLabel: "B737-8 MAX",
+    MZFW: "65952",
+    MTOW: "82190",
+    MLD: "69308",
+  },
+];
+const TRIP_INFO_B737_AIRCRAFT_BY_ID = Object.fromEntries(
+  TRIP_INFO_B737_AIRCRAFT_FLEET.map((aircraft) => [aircraft.aircraftId, aircraft])
+);
+const TRIP_INFO_B737_AIRCRAFT_BY_REGISTRATION = Object.fromEntries(
+  TRIP_INFO_B737_AIRCRAFT_FLEET.map((aircraft) => [aircraft.registration, aircraft])
+);
+const TRIP_INFO_B737_REGISTRATIONS = TRIP_INFO_B737_AIRCRAFT_FLEET.map(
+  (aircraft) => aircraft.registration
+);
 const TRIP_INFO_DEFAULTS = {
   flightNumber: "",
   from: "",
@@ -458,7 +589,8 @@ const TRIP_INFO_MODULES = {
   },
   B737: {
     title: "TRIP INFO B737",
-    aircraftType: "B737",
+    aircraftType: "B737-800 NG",
+    defaultAircraftId: "I-NEOU",
     storageKey: TRIP_INFO_STORAGE_KEYS.B737,
   },
 };
@@ -505,6 +637,7 @@ const acnDetailsList = document.getElementById("acn-details-list");
 const acnOverloadNote = document.getElementById("acn-overload-note");
 const acnComparisonDetail = document.getElementById("acn-comparison-detail");
 const tripInfoForm = document.getElementById("tripInfo-form");
+const tripInfoB737AircraftField = document.getElementById("tripInfo-b737-aircraft-field");
 const tripInfoTitle = document.getElementById("tripInfoTitle");
 const tripInfoValidationMessage = document.getElementById("tripInfo-validation-message");
 const tripInfoResetButton = document.getElementById("tripInfo-reset-button");
@@ -919,8 +1052,149 @@ function tripInfoGetActiveModuleConfig() {
   return TRIP_INFO_MODULES[activeTripInfoModuleKey] || TRIP_INFO_MODULES.B787;
 }
 
+function tripInfoIsB737ModuleActive() {
+  return activeTripInfoModuleKey === "B737";
+}
+
+function tripInfoGetB737DefaultAircraft() {
+  const activeModule = tripInfoGetActiveModuleConfig();
+  return (
+    TRIP_INFO_B737_AIRCRAFT_BY_ID[activeModule.defaultAircraftId]
+    || TRIP_INFO_B737_AIRCRAFT_FLEET[0]
+  );
+}
+
+function tripInfoGetB737AircraftData(aircraftId, registrationFallback = "") {
+  const normalizedAircraftId = tripInfoNormalizeText(String(aircraftId || ""));
+  const normalizedRegistration = tripInfoNormalizeText(String(registrationFallback || ""));
+
+  return (
+    TRIP_INFO_B737_AIRCRAFT_BY_ID[normalizedAircraftId]
+    || TRIP_INFO_B737_AIRCRAFT_BY_REGISTRATION[normalizedRegistration]
+    || tripInfoGetB737DefaultAircraft()
+  );
+}
+
+function tripInfoGetAllowedRegistrations() {
+  return tripInfoIsB737ModuleActive()
+    ? TRIP_INFO_B737_REGISTRATIONS
+    : TRIP_INFO_REGISTRATIONS;
+}
+
+function tripInfoSetAircraftTypeFieldValue(value) {
+  const aircraftTypeField = tripInfoForm.elements.aircraftType;
+
+  if (!(aircraftTypeField instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const firstOption = aircraftTypeField.options[0];
+
+  if (firstOption) {
+    firstOption.value = value;
+    firstOption.textContent = value;
+  }
+
+  aircraftTypeField.value = value;
+}
+
+function tripInfoPopulateRegistrationOptions() {
+  const aircraftRegistrationField = tripInfoForm.elements.aircraftRegistration;
+
+  if (!(aircraftRegistrationField instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const registrations = tripInfoGetAllowedRegistrations();
+  const selectedRegistration = aircraftRegistrationField.value;
+
+  aircraftRegistrationField.textContent = "";
+  registrations.forEach((registration) => {
+    const option = document.createElement("option");
+    option.value = registration;
+    option.textContent = registration;
+    aircraftRegistrationField.append(option);
+  });
+
+  aircraftRegistrationField.value = registrations.includes(selectedRegistration)
+    ? selectedRegistration
+    : (registrations[0] || "");
+}
+
+function tripInfoApplyB737AircraftSelection(aircraftId, syncWeights) {
+  if (!tripInfoIsB737ModuleActive()) {
+    return null;
+  }
+
+  const aircraft = tripInfoGetB737AircraftData(
+    aircraftId,
+    tripInfoForm.elements.aircraftRegistration.value
+  );
+  const aircraftIdField = tripInfoForm.elements.aircraftId;
+
+  if (aircraftIdField instanceof HTMLSelectElement) {
+    aircraftIdField.value = aircraft.aircraftId;
+  }
+
+  tripInfoForm.elements.aircraftRegistration.value = aircraft.registration;
+  tripInfoSetAircraftTypeFieldValue(aircraft.variantLabel);
+
+  if (syncWeights) {
+    tripInfoForm.elements.maxZfw.value = aircraft.MZFW;
+    tripInfoForm.elements.maxTow.value = aircraft.MTOW;
+    tripInfoForm.elements.maxLdw.value = aircraft.MLD;
+  }
+
+  return aircraft;
+}
+
+function tripInfoGetExpectedAircraftTypeValue(rawValues = {}) {
+  if (!tripInfoIsB737ModuleActive()) {
+    return tripInfoGetActiveModuleConfig().aircraftType;
+  }
+
+  return tripInfoGetB737AircraftData(
+    rawValues.aircraftId,
+    rawValues.aircraftRegistration
+  ).variantLabel;
+}
+
+function tripInfoGetAircraftStoragePayload() {
+  if (!tripInfoIsB737ModuleActive()) {
+    return {};
+  }
+
+  const aircraft = tripInfoGetB737AircraftData(
+    tripInfoForm.elements.aircraftId.value,
+    tripInfoForm.elements.aircraftRegistration.value
+  );
+
+  return {
+    aircraftId: aircraft.aircraftId,
+    aircraftType: aircraft.family,
+    MZFW: aircraft.MZFW,
+    MTOW: aircraft.MTOW,
+    MLD: aircraft.MLD,
+  };
+}
+
 function tripInfoGetModuleDefaults() {
   const activeModule = tripInfoGetActiveModuleConfig();
+
+  if (tripInfoIsB737ModuleActive()) {
+    const defaultAircraft = tripInfoGetB737DefaultAircraft();
+
+    return {
+      ...TRIP_INFO_DEFAULTS,
+      aircraftId: defaultAircraft.aircraftId,
+      aircraftRegistration: defaultAircraft.registration,
+      aircraftType: defaultAircraft.variantLabel,
+      maxZfw: defaultAircraft.MZFW,
+      maxTow: defaultAircraft.MTOW,
+      maxLdw: defaultAircraft.MLD,
+    };
+  }
+
   return {
     ...TRIP_INFO_DEFAULTS,
     aircraftType: activeModule.aircraftType,
@@ -929,20 +1203,18 @@ function tripInfoGetModuleDefaults() {
 
 function tripInfoApplyModulePresentation() {
   const activeModule = tripInfoGetActiveModuleConfig();
-  const aircraftTypeField = tripInfoForm.elements.aircraftType;
 
   tripInfoTitle.textContent = activeModule.title;
+  tripInfoB737AircraftField.hidden = !tripInfoIsB737ModuleActive();
+  tripInfoPopulateRegistrationOptions();
 
-  if (aircraftTypeField instanceof HTMLSelectElement) {
-    const firstOption = aircraftTypeField.options[0];
-
-    if (firstOption) {
-      firstOption.value = activeModule.aircraftType;
-      firstOption.textContent = activeModule.aircraftType;
-    }
-
-    aircraftTypeField.value = activeModule.aircraftType;
+  if (tripInfoIsB737ModuleActive()) {
+    tripInfoApplyB737AircraftSelection(activeModule.defaultAircraftId, false);
+    return;
   }
+
+  tripInfoForm.elements.aircraftId.value = "";
+  tripInfoSetAircraftTypeFieldValue(activeModule.aircraftType);
 }
 
 function openTripInfoModule(moduleKey) {
@@ -1425,6 +1697,14 @@ function handleTripInfoFormInput(event) {
     target.value = tripInfoUppercaseLiveValue(target.value);
   }
 
+  if (tripInfoIsB737ModuleActive() && target.name === "aircraftId") {
+    tripInfoApplyB737AircraftSelection(target.value, true);
+  }
+
+  if (tripInfoIsB737ModuleActive() && target.name === "aircraftRegistration") {
+    tripInfoApplyB737AircraftSelection(target.value, true);
+  }
+
   if (target.name === "from" || target.name === "to") {
     target.value = tripInfoNormalizeIataCode(target.value);
     tripInfoApplyRouteRules();
@@ -1482,6 +1762,14 @@ function handleTripInfoFormChange(event) {
     || target.name === "captainName"
   ) {
     target.value = tripInfoNormalizeText(target.value);
+  }
+
+  if (tripInfoIsB737ModuleActive() && target.name === "aircraftId") {
+    tripInfoApplyB737AircraftSelection(target.value, true);
+  }
+
+  if (tripInfoIsB737ModuleActive() && target.name === "aircraftRegistration") {
+    tripInfoApplyB737AircraftSelection(target.value, true);
   }
 
   if (target.name === "from" || target.name === "to") {
@@ -1852,6 +2140,43 @@ function tripInfoReadStoredState() {
     }
 
     const parsedState = JSON.parse(rawState);
+    const parsedFormValues = parsedState?.formValues && typeof parsedState.formValues === "object"
+      ? {
+          ...parsedState.formValues,
+        }
+      : {};
+
+    if (tripInfoIsB737ModuleActive()) {
+      if (
+        typeof parsedFormValues.aircraftId !== "string"
+        || tripInfoNormalizeText(parsedFormValues.aircraftId) === ""
+      ) {
+        parsedFormValues.aircraftId =
+          typeof parsedState?.aircraftId === "string" ? parsedState.aircraftId : "";
+      }
+
+      if (
+        (typeof parsedFormValues.maxZfw !== "string" || parsedFormValues.maxZfw === "")
+        && parsedState?.MZFW !== undefined
+      ) {
+        parsedFormValues.maxZfw = String(parsedState.MZFW);
+      }
+
+      if (
+        (typeof parsedFormValues.maxTow !== "string" || parsedFormValues.maxTow === "")
+        && parsedState?.MTOW !== undefined
+      ) {
+        parsedFormValues.maxTow = String(parsedState.MTOW);
+      }
+
+      if (
+        (typeof parsedFormValues.maxLdw !== "string" || parsedFormValues.maxLdw === "")
+        && parsedState?.MLD !== undefined
+      ) {
+        parsedFormValues.maxLdw = String(parsedState.MLD);
+      }
+    }
+
     const rawCrewBagValue = parsedState?.formValues?.crewBag;
     const rawCrewBagWeightValue = parsedState?.formValues?.crewBagWeight;
     const inferredCrewBagManualOverride = tripInfoNormalizeCrewBagInput(
@@ -1862,7 +2187,7 @@ function tripInfoReadStoredState() {
     ) !== "";
 
     return {
-      formValues: tripInfoSanitizeStoredFormValues(parsedState?.formValues),
+      formValues: tripInfoSanitizeStoredFormValues(parsedFormValues),
       generatedData:
         parsedState?.generatedData && typeof parsedState.generatedData === "object"
           ? parsedState.generatedData
@@ -1899,6 +2224,7 @@ function tripInfoSaveState() {
       activeModule.storageKey,
       JSON.stringify({
         formValues: tripInfoGetStoredFormValues(),
+        ...tripInfoGetAircraftStoragePayload(),
         generatedData: tripInfoState.generatedData,
         signatureDataUrl: tripInfoState.signatureDataUrl,
         crewBagManualOverride: tripInfoState.crewBagManualOverride,
@@ -1918,6 +2244,7 @@ function tripInfoGetFormValues() {
     from: tripInfoForm.elements.from.value,
     to: tripInfoForm.elements.to.value,
     date: tripInfoForm.elements.date.value,
+    aircraftId: tripInfoForm.elements.aircraftId.value,
     crew: tripInfoGetCrewValueFromForm(),
     crewBag: tripInfoForm.elements.crewBag.value,
     crewBagWeight: tripInfoForm.elements.crewBagWeight.value,
@@ -1991,13 +2318,19 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
 
   tripInfoForm.elements.from.value = tripInfoNormalizeIataCode(tripInfoForm.elements.from.value);
   tripInfoForm.elements.to.value = tripInfoNormalizeIataCode(tripInfoForm.elements.to.value);
+  tripInfoForm.elements.aircraftId.value = String(mergedValues.aircraftId || "");
   tripInfoApplyCrewValue(mergedValues.crew);
   tripInfoForm.elements.pantry.value = mergedValues.pantry;
   tripInfoForm.elements.flightType.value = mergedValues.flightType;
   tripInfoSetSelectedWaterMode(mergedValues.waterMode);
   tripInfoApplyRemarksPresetSelections(mergedValues.remarksPresetSelections);
-  tripInfoForm.elements.aircraftRegistration.value = mergedValues.aircraftRegistration;
-  tripInfoForm.elements.aircraftType.value = tripInfoGetActiveModuleConfig().aircraftType;
+
+  if (tripInfoIsB737ModuleActive()) {
+    tripInfoApplyB737AircraftSelection(mergedValues.aircraftId, false);
+  } else {
+    tripInfoForm.elements.aircraftRegistration.value = mergedValues.aircraftRegistration;
+    tripInfoSetAircraftTypeFieldValue(tripInfoGetActiveModuleConfig().aircraftType);
+  }
 }
 
 function resetTripInfoModule(shouldFocus) {
@@ -2059,6 +2392,7 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const flightNumber = tripInfoNormalizeText(rawValues.flightNumber);
   const from = tripInfoNormalizeIataCode(rawValues.from);
   const to = tripInfoNormalizeIataCode(rawValues.to);
+  const aircraftId = tripInfoNormalizeText(rawValues.aircraftId);
   const parsedDate = tripInfoParseDateInput(rawValues.date);
   const crewValue = tripInfoNormalizeCrewValue(rawValues.crew);
   const crew = crewValue ? tripInfoBuildCrewDisplayValue(crewValue) : "";
@@ -2095,8 +2429,12 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     new Set(remarksPresetLines.map((line) => tripInfoGetRemarkLineKey(line)))
   );
   const aircraftRegistration = tripInfoNormalizeText(rawValues.aircraftRegistration);
+  const selectedAircraft = tripInfoIsB737ModuleActive()
+    ? tripInfoGetB737AircraftData(aircraftId, aircraftRegistration)
+    : null;
   const aircraftType = rawValues.aircraftType;
-  const expectedAircraftType = tripInfoGetActiveModuleConfig().aircraftType;
+  const expectedAircraftType = tripInfoGetExpectedAircraftTypeValue(rawValues);
+  const allowedRegistrations = tripInfoGetAllowedRegistrations();
   const captainName = tripInfoNormalizeText(rawValues.captainName);
   const dowKg = tripInfoParseIntegerField(rawValues.dow);
   const doiValue = tripInfoParseDecimalField(rawValues.doi);
@@ -2138,7 +2476,14 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     errors.push("Bag weight must be a non-negative whole number.");
   }
 
-  if (!TRIP_INFO_REGISTRATIONS.includes(aircraftRegistration)) {
+  if (
+    tripInfoIsB737ModuleActive()
+    && !TRIP_INFO_B737_AIRCRAFT_BY_ID[aircraftId]
+  ) {
+    errors.push("Select a valid aircraft.");
+  }
+
+  if (!allowedRegistrations.includes(aircraftRegistration)) {
     errors.push("Select a valid A/C registration.");
   }
 
@@ -2252,6 +2597,11 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     remarksFreeTextLines,
     showRemarksContent:
       hasWaterCorrection || remarksPresetLines.length > 0 || remarksFreeTextLines.length > 0,
+    aircraftId: selectedAircraft ? selectedAircraft.aircraftId : "",
+    aircraftFamily: selectedAircraft ? selectedAircraft.family : "",
+    aircraftLimitMZFW: selectedAircraft ? selectedAircraft.MZFW : "",
+    aircraftLimitMTOW: selectedAircraft ? selectedAircraft.MTOW : "",
+    aircraftLimitMLD: selectedAircraft ? selectedAircraft.MLD : "",
     aircraftRegistration,
     aircraftType,
     captainName,
@@ -2301,6 +2651,10 @@ function tripInfoSanitizeStoredFormValues(values) {
     ...defaultValues,
     ...(values && typeof values === "object" ? values : {}),
   };
+  const hasStoredAircraftId =
+    tripInfoIsB737ModuleActive()
+    && typeof values?.aircraftId === "string"
+    && tripInfoNormalizeText(values.aircraftId) !== "";
   const parsedStoredDate = tripInfoParseDateInput(String(mergedValues.date || ""));
   const normalizedFrom = tripInfoNormalizeIataCode(String(mergedValues.from || ""));
   const normalizedTo = tripInfoNormalizeIataCode(String(mergedValues.to || ""));
@@ -2332,12 +2686,17 @@ function tripInfoSanitizeStoredFormValues(values) {
   const normalizedRemarksPresetSelections = tripInfoNormalizeRemarksPresetSelections(
     mergedValues.remarksPresetSelections
   );
+  const b737Aircraft = tripInfoIsB737ModuleActive()
+    ? tripInfoGetB737AircraftData(mergedValues.aircraftId, mergedValues.aircraftRegistration)
+    : null;
+  const allowedRegistrations = tripInfoGetAllowedRegistrations();
 
   return {
     ...mergedValues,
     from: normalizedFrom,
     to: normalizedTo,
     date: parsedStoredDate ? parsedStoredDate.iso : defaultValues.date,
+    aircraftId: b737Aircraft ? b737Aircraft.aircraftId : "",
     crew: normalizedCrew || tripInfoGetDefaultCrewValue(),
     crewBag: normalizedCrewBag,
     crewBagWeight: normalizedCrewBagWeight,
@@ -2347,13 +2706,23 @@ function tripInfoSanitizeStoredFormValues(values) {
     waterMode: normalizedWaterMode,
     remarksFreeText: normalizedRemarksFreeText,
     remarksPresetSelections: normalizedRemarksPresetSelections,
-    aircraftRegistration: TRIP_INFO_REGISTRATIONS.includes(mergedValues.aircraftRegistration)
-      ? mergedValues.aircraftRegistration
-      : defaultValues.aircraftRegistration,
-    aircraftType: tripInfoGetActiveModuleConfig().aircraftType,
-    maxZfw: String(mergedValues.maxZfw || defaultValues.maxZfw),
-    maxTow: String(mergedValues.maxTow || defaultValues.maxTow),
-    maxLdw: String(mergedValues.maxLdw || defaultValues.maxLdw),
+    aircraftRegistration: b737Aircraft
+      ? b737Aircraft.registration
+      : allowedRegistrations.includes(mergedValues.aircraftRegistration)
+        ? mergedValues.aircraftRegistration
+        : defaultValues.aircraftRegistration,
+    aircraftType: b737Aircraft
+      ? b737Aircraft.variantLabel
+      : tripInfoGetActiveModuleConfig().aircraftType,
+    maxZfw: b737Aircraft && !hasStoredAircraftId
+      ? b737Aircraft.MZFW
+      : String(mergedValues.maxZfw || defaultValues.maxZfw),
+    maxTow: b737Aircraft && !hasStoredAircraftId
+      ? b737Aircraft.MTOW
+      : String(mergedValues.maxTow || defaultValues.maxTow),
+    maxLdw: b737Aircraft && !hasStoredAircraftId
+      ? b737Aircraft.MLD
+      : String(mergedValues.maxLdw || defaultValues.maxLdw),
   };
 }
 
