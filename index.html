@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="8.5">
+    <meta name="app-version" content="8.6">
     <title>RampCheck</title>
-    <link rel="manifest" href="manifest.json?v=8.5">
+    <link rel="manifest" href="manifest.json?v=8.6">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <style>
       :root {
@@ -920,8 +920,8 @@
         </section>
 
         <div class="home-logo-wrap">
-          <img class="home-logo" src="./assets/logo-lb.png" alt="">
-          <span class="home-version">8.5</span>
+          <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
+          <span class="home-version">8.6</span>
         </div>
       </section>
 
@@ -934,7 +934,7 @@
           <header class="hero fuel-header">
             <div class="module-header-row">
               <h1>FuelCk</h1>
-              <span class="module-version-badge">8.5</span>
+              <span class="module-version-badge">8.6</span>
             </div>
             <div class="card" id="toleranceCard">
               <h2>Tolerance Rule</h2>
@@ -1082,18 +1082,16 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>TRIP INFO</h1>
-            <span class="module-version-badge">8.5</span>
+            <span class="module-version-badge">8.6</span>
           </div>
         </header>
 
         <section class="home-menu" aria-label="Trip Info aircraft selector">
           <button class="menu-button" type="button" id="openTripInfoB787Btn">
             <span class="menu-button-title">B787</span>
-            <span class="menu-button-note">Trip form generator</span>
           </button>
           <button class="menu-button" type="button" id="openTripInfoB737Btn">
             <span class="menu-button-title">B737</span>
-            <span class="menu-button-note">Trip form generator</span>
           </button>
         </section>
       </section>
@@ -1106,40 +1104,13 @@
         <header class="hero">
           <div class="module-header-row">
             <h1 id="tripInfoTitle">TRIP INFO</h1>
-            <span class="module-version-badge">8.5</span>
+            <span class="module-version-badge">8.6</span>
           </div>
         </header>
 
         <form id="tripInfo-form" class="stack" novalidate>
           <section class="card stack tripInfoSectionCard">
             <h2>Flight / Routing</h2>
-
-            <div class="field" id="tripInfo-b737-aircraft-field" hidden>
-              <label for="tripInfo-aircraft-id">Aircraft</label>
-              <select
-                id="tripInfo-aircraft-id"
-                name="aircraftId"
-                class="select"
-                autocomplete="off"
-              >
-                <optgroup label="NG">
-                  <option value="I-NEOU">B737-800 NG — I-NEOU</option>
-                  <option value="I-NEOZ">B737-800 NG — I-NEOZ</option>
-                  <option value="EI-HIL">B737-800 NG — EI-HIL</option>
-                  <option value="EI-HIM">B737-800 NG — EI-HIM</option>
-                </optgroup>
-                <optgroup label="MAX">
-                  <option value="EI-RZA">B737-8 MAX — EI-RZA</option>
-                  <option value="EI-RZB">B737-8 MAX — EI-RZB</option>
-                  <option value="EI-RZC">B737-8 MAX — EI-RZC</option>
-                  <option value="EI-RZD">B737-8 MAX — EI-RZD</option>
-                  <option value="EI-RZE">B737-8 MAX — EI-RZE</option>
-                  <option value="EI-RZF">B737-8 MAX — EI-RZF</option>
-                  <option value="EI-RZG">B737-8 MAX — EI-RZG</option>
-                  <option value="EI-RZH">B737-8 MAX — EI-RZH</option>
-                </optgroup>
-              </select>
-            </div>
 
             <div class="field">
               <label for="tripInfo-flight-number">Flight Number</label>
@@ -1305,23 +1276,6 @@
               </div>
             </div>
 
-            <div class="row two-col tripInfoTopSideRow" id="tripInfo-b737-spare-mlg-field" hidden>
-              <div class="field" aria-hidden="true"></div>
-
-              <div class="field tripInfoControlField">
-                <div class="field-title">Spare MLG</div>
-                <label class="tripInfoCheckboxControl" for="tripInfo-include-spare-mlg">
-                  <input
-                    id="tripInfo-include-spare-mlg"
-                    name="includeSpareMlg"
-                    type="checkbox"
-                    checked
-                  >
-                  <span>Spare MLG</span>
-                </label>
-              </div>
-            </div>
-
             <div class="row two-col tripInfoTopSideRow">
               <div class="field" aria-hidden="true"></div>
 
@@ -1394,9 +1348,9 @@
                     id="tripInfo-remarks-preset-mac"
                     name="remarksPresetSelections"
                     type="checkbox"
-                    value="Provide MAC >= 25%"
+                    value="Provide MAC >= 27%"
                   >
-                    <span>Provide MAC &gt;= 25%</span>
+                    <span>Provide MAC &gt;= 27%</span>
                 </label>
               </div>
             </div>
@@ -1670,6 +1624,532 @@
         </section>
       </section>
 
+      <section class="screen app-view" id="tripInfoB737View" hidden aria-hidden="true">
+        <div class="module-nav">
+          <button class="button module-back" type="button" id="backFromTripInfoB737Btn">Back</button>
+        </div>
+
+        <header class="hero">
+          <div class="module-header-row">
+            <h1>TRIP INFO B737</h1>
+            <span class="module-version-badge">8.6</span>
+          </div>
+        </header>
+
+        <form id="tripInfoB737-form" class="stack" novalidate>
+          <section class="card stack tripInfoSectionCard">
+            <h2>Flight / Routing</h2>
+
+            <div class="field">
+              <label for="tripInfoB737-aircraft-id">Aircraft</label>
+              <select
+                id="tripInfoB737-aircraft-id"
+                name="aircraftId"
+                class="select"
+                autocomplete="off"
+              >
+                <optgroup label="NG">
+                  <option value="I-NEOU">B737-800 NG — I-NEOU</option>
+                  <option value="I-NEOZ">B737-800 NG — I-NEOZ</option>
+                  <option value="EI-HIL">B737-800 NG — EI-HIL</option>
+                  <option value="EI-HIM">B737-800 NG — EI-HIM</option>
+                </optgroup>
+                <optgroup label="MAX">
+                  <option value="EI-RZA">B737-8 MAX — EI-RZA</option>
+                  <option value="EI-RZB">B737-8 MAX — EI-RZB</option>
+                  <option value="EI-RZC">B737-8 MAX — EI-RZC</option>
+                  <option value="EI-RZD">B737-8 MAX — EI-RZD</option>
+                  <option value="EI-RZE">B737-8 MAX — EI-RZE</option>
+                  <option value="EI-RZF">B737-8 MAX — EI-RZF</option>
+                  <option value="EI-RZG">B737-8 MAX — EI-RZG</option>
+                  <option value="EI-RZH">B737-8 MAX — EI-RZH</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="tripInfoB737-flight-number">Flight Number</label>
+              <input
+                id="tripInfoB737-flight-number"
+                name="flightNumber"
+                class="input tripInfoUppercaseField"
+                type="text"
+                autocomplete="off"
+                required
+              >
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfoB737-from">From</label>
+                <input
+                  id="tripInfoB737-from"
+                  name="from"
+                  class="input mono tripInfoUppercaseField"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  maxlength="3"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfoB737-to">To</label>
+                <input
+                  id="tripInfoB737-to"
+                  name="to"
+                  class="input mono tripInfoUppercaseField"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  maxlength="3"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfoB737-date">Date</label>
+                <input
+                  id="tripInfoB737-date"
+                  name="date"
+                  class="input mono tripInfoDateInput"
+                  type="date"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <span class="field-title">Crew</span>
+                <div class="tripInfoCrewInputs">
+                  <div class="field tripInfoCrewSubField">
+                    <label class="tripInfoCrewSubLabel" for="tripInfoB737-crew-pilots">Pilots</label>
+                    <input
+                      id="tripInfoB737-crew-pilots"
+                      name="crewPilots"
+                      class="input number-input mono"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      step="1"
+                      value="2"
+                      autocomplete="off"
+                      required
+                    >
+                  </div>
+
+                  <div class="field tripInfoCrewSubField">
+                    <label class="tripInfoCrewSubLabel" for="tripInfoB737-crew-cabin">Cabin</label>
+                    <input
+                      id="tripInfoB737-crew-cabin"
+                      name="crewCabin"
+                      class="input number-input mono"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      step="1"
+                      value="4"
+                      autocomplete="off"
+                      required
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field tripInfoAlignedField">
+                <label for="tripInfoB737-crew-bag">Crew Bag</label>
+                <input
+                  id="tripInfoB737-crew-bag"
+                  name="crewBag"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  autocomplete="off"
+                >
+
+                <div class="field tripInfoSecondaryField">
+                  <label class="tripInfoSecondaryLabel" for="tripInfoB737-crew-bag-weight">Bag weight</label>
+                  <div class="tripInfoSecondaryInputWrap">
+                    <input
+                      id="tripInfoB737-crew-bag-weight"
+                      name="crewBagWeight"
+                      class="input number-input tripInfoSecondaryInput"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      step="1"
+                      autocomplete="off"
+                    >
+                    <span class="tripInfoSecondarySuffix">kg</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field tripInfoAlignedField">
+                <label for="tripInfoB737-pantry">Pantry</label>
+                <select
+                  id="tripInfoB737-pantry"
+                  name="pantry"
+                  class="select tripInfoUppercaseField"
+                >
+                  <option value="Z" selected>Z - No Catering</option>
+                  <option value="A">Group A</option>
+                  <option value="B">Group B</option>
+                  <option value="C">Group C</option>
+                  <option value="D">Group D</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field tripInfoControlField">
+                <div class="field-title">Spare MLG</div>
+                <label class="tripInfoCheckboxControl" for="tripInfoB737-include-spare-mlg">
+                  <input
+                    id="tripInfoB737-include-spare-mlg"
+                    name="includeSpareMlg"
+                    type="checkbox"
+                    checked
+                  >
+                  <span>Spare MLG</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="row two-col tripInfoTopSideRow">
+              <div class="field" aria-hidden="true"></div>
+
+              <div class="field tripInfoAlignedField">
+                <label for="tripInfoB737-flight-type">Flight Type</label>
+                <select
+                  id="tripInfoB737-flight-type"
+                  name="flightType"
+                  class="select tripInfoUppercaseField"
+                >
+                  <option value="" selected>-- SELECT --</option>
+                  <option value="SCHED">SCHEDULE FLT</option>
+                  <option value="CHARTER">CHARTER FLT</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="tripInfoB737-remarks-free-text">Remarks</label>
+              <textarea
+                id="tripInfoB737-remarks-free-text"
+                name="remarksFreeText"
+                class="input tripInfoRemarksTextarea"
+                autocomplete="off"
+              ></textarea>
+            </div>
+
+            <div class="field tripInfoControlField">
+              <div class="field-title">Quick remark</div>
+              <div class="tripInfoCheckboxGroup">
+                <label class="tripInfoCheckboxControl tripInfoCompactOption tripInfoPresetRemarkOption" for="tripInfoB737-remarks-preset-mac">
+                  <input
+                    id="tripInfoB737-remarks-preset-mac"
+                    name="remarksPresetSelections"
+                    type="checkbox"
+                    value="Provide MAC >= 25%"
+                  >
+                  <span>Provide MAC &gt;= 25%</span>
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <section class="card stack tripInfoSectionCard">
+            <h2>Aircraft / Crew</h2>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfoB737-aircraft-registration">A/C Registration</label>
+                <select
+                  id="tripInfoB737-aircraft-registration"
+                  name="aircraftRegistration"
+                  class="select tripInfoUppercaseField"
+                  required
+                >
+                  <option value="I-NEOU" selected>I-NEOU</option>
+                  <option value="I-NEOZ">I-NEOZ</option>
+                  <option value="EI-HIL">EI-HIL</option>
+                  <option value="EI-HIM">EI-HIM</option>
+                  <option value="EI-RZA">EI-RZA</option>
+                  <option value="EI-RZB">EI-RZB</option>
+                  <option value="EI-RZC">EI-RZC</option>
+                  <option value="EI-RZD">EI-RZD</option>
+                  <option value="EI-RZE">EI-RZE</option>
+                  <option value="EI-RZF">EI-RZF</option>
+                  <option value="EI-RZG">EI-RZG</option>
+                  <option value="EI-RZH">EI-RZH</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="tripInfoB737-aircraft-type">A/C Type</label>
+                <select
+                  id="tripInfoB737-aircraft-type"
+                  name="aircraftType"
+                  class="select tripInfoUppercaseField"
+                  required
+                >
+                  <option value="B737-800 NG" selected>B737-800 NG</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="tripInfoB737-captain-name">Captain Name</label>
+              <input
+                id="tripInfoB737-captain-name"
+                name="captainName"
+                class="input tripInfoUppercaseField"
+                type="text"
+                autocomplete="off"
+                required
+              >
+            </div>
+          </section>
+
+          <section class="card stack tripInfoSectionCard">
+            <h2>Weights</h2>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfoB737-dow">DOW</label>
+                <input
+                  id="tripInfoB737-dow"
+                  name="dow"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfoB737-doi">DOI</label>
+                <input
+                  id="tripInfoB737-doi"
+                  name="doi"
+                  class="input number-input"
+                  type="text"
+                  inputmode="decimal"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="row two-col">
+              <div class="field">
+                <label for="tripInfoB737-max-zfw">Max ZFW</label>
+                <input
+                  id="tripInfoB737-max-zfw"
+                  name="maxZfw"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  value="61688"
+                  autocomplete="off"
+                  readonly
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfoB737-max-tow">Max or Restricted TOW</label>
+                <input
+                  id="tripInfoB737-max-tow"
+                  name="maxTow"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  value="78925"
+                  autocomplete="off"
+                  readonly
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="tripInfoB737-max-ldw">Max or Restricted LDW</label>
+              <input
+                id="tripInfoB737-max-ldw"
+                name="maxLdw"
+                class="input number-input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9., ]*"
+                value="66224"
+                autocomplete="off"
+                readonly
+                required
+              >
+            </div>
+          </section>
+
+          <section class="card stack tripInfoSectionCard">
+            <h2>Fuel / Time</h2>
+
+            <div class="field">
+              <label for="tripInfoB737-trip-fuel">Trip Fuel</label>
+              <input
+                id="tripInfoB737-trip-fuel"
+                name="tripFuel"
+                class="input number-input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9., ]*"
+                autocomplete="off"
+                required
+              >
+            </div>
+
+            <input
+              id="tripInfoB737-takeoff-fuel"
+              name="takeOffFuel"
+              type="hidden"
+            >
+
+            <div class="wrap-fuel-section">
+              <div class="field">
+                <label for="tripInfoB737-taxi-fuel">Taxi Fuel</label>
+                <input
+                  id="tripInfoB737-taxi-fuel"
+                  name="taxiFuel"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label for="tripInfoB737-block-fuel">Block Fuel</label>
+                <input
+                  id="tripInfoB737-block-fuel"
+                  name="blockFuel"
+                  class="input number-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9., ]*"
+                  autocomplete="off"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="field-title">EET</span>
+              <div class="tripInfoEetRow">
+                <div class="field">
+                  <label for="tripInfoB737-eet-hours">hrs</label>
+                  <input
+                    id="tripInfoB737-eet-hours"
+                    name="eetHours"
+                    class="input number-input"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    autocomplete="off"
+                    required
+                  >
+                </div>
+
+                <div class="field">
+                  <label for="tripInfoB737-eet-minutes">min</label>
+                  <input
+                    id="tripInfoB737-eet-minutes"
+                    name="eetMinutes"
+                    class="input number-input"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    autocomplete="off"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card stack tripInfoSectionCard">
+            <h2>Captain Signature</h2>
+            <canvas
+              id="tripInfoB737-signature-canvas"
+              class="tripInfoSignatureCanvas"
+              aria-label="Captain signature pad"
+            ></canvas>
+            <button
+              class="button"
+              type="button"
+              id="tripInfoB737-clear-signature-button"
+            >
+              Clear Signature
+            </button>
+          </section>
+
+          <p
+            id="tripInfoB737-validation-message"
+            class="inline-message"
+            aria-live="polite"
+            hidden
+          ></p>
+
+          <div class="actions">
+            <button class="button" type="button" id="tripInfoB737-reset-button">RESET</button>
+            <button class="button primary" type="submit" id="tripInfoB737-generate-button">
+              GENERATE
+            </button>
+          </div>
+        </form>
+
+        <section class="screen tripInfoPreviewSection" id="tripInfoB737-preview-section" hidden>
+          <section class="card tripInfoPreviewCard">
+            <h2>Preview</h2>
+            <div id="tripInfoB737-preview-mount" class="tripInfoPreviewMount"></div>
+          </section>
+
+          <div class="actions tripInfoExportActions">
+            <button class="button" type="button" id="tripInfoB737-download-pdf-button">
+              Download PDF
+            </button>
+            <button class="button" type="button" id="tripInfoB737-download-png-button">
+              Download PNG
+            </button>
+            <button class="button primary" type="button" id="tripInfoB737-share-button">
+              Share
+            </button>
+          </div>
+
+          <canvas id="tripInfoB737-export-canvas" class="tripInfoExportCanvas" hidden></canvas>
+        </section>
+      </section>
+
       <section class="screen app-view" id="acnView" hidden aria-hidden="true">
         <div class="module-nav">
           <button class="button module-back" type="button" id="backFromAcnBtn">Back</button>
@@ -1678,7 +2158,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>ACN-PCN</h1>
-            <span class="module-version-badge">8.5</span>
+            <span class="module-version-badge">8.6</span>
           </div>
           <p class="subtitle">Pavement compatibility</p>
         </header>
@@ -1824,6 +2304,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=8.5" defer></script>
+    <script src="app.js?v=8.6" defer></script>
   </body>
 </html>
