@@ -1,4 +1,4 @@
-const APP_VERSION = "8.4";
+const APP_VERSION = "8.5";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -436,12 +436,10 @@ const TRIP_INFO_WATER_CORRECTIONS = {
   },
 };
 const TRIP_INFO_REMARKS_PRESETS = [
-  "Provide MAC >= 27%",
+  "Provide MAC >= 25%",
 ];
 const TRIP_INFO_B737_SPARE_MLG_NOTE_LINES = [
-  "IN CASE SPARE MLG WHEEL IS REMOVED FROM FWD CGO APPLY FOLLOWING CORRECTIONS:",
-  "Basic weight and DOW -150 kg,",
-  "Basic Index and DOI +0,8",
+  "NO SPARE WHEEL CORR.",
 ];
 const TRIP_INFO_B737_SPARE_MLG_CORRECTION = {
   dowKg: -150,
