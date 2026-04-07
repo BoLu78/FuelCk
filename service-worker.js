@@ -1,15 +1,14 @@
-const CACHE_NAME = "rampcheck-v9.0";
+const CACHE_NAME = "rampcheck-v9.1";
 const OFFLINE_FALLBACK_URL = "./index.html";
 const APP_FILES = [
   "./",
-  "./?v=9.0",
+  "./?v=9.1",
   "./index.html",
   "./app.js",
-  "./app.js?v=9.0",
+  "./app.js?v=9.1",
   "./manifest.json",
-  "./manifest.json?v=9.0",
+  "./manifest.json?v=9.1",
   "./service-worker.js",
-  "./assets/logo-lb.png",
   "./assets/tripinfo-logo-neos.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -20,29 +19,30 @@ async function matchOfflineShell(cache) {
     await cache.match(OFFLINE_FALLBACK_URL)
   ) || (
     await cache.match("./")
-  ) || await cache.match("./?v=9.0");
+  ) || await cache.match("./?v=9.1");
 }
 
 async function precacheAppShell() {
   const cache = await caches.open(CACHE_NAME);
 
-  await Promise.allSettled(
-    APP_FILES.map(async (url) => {
-      const request = new Request(url, { cache: "reload" });
-      const response = await fetch(request);
+  for (const url of APP_FILES) {
+    const request = new Request(url, { cache: "reload" });
+    const response = await fetch(request);
 
-      if (!response || !response.ok) {
-        throw new Error(`Failed to cache ${url}`);
-      }
+    if (!response || !response.ok) {
+      throw new Error(`Failed to cache ${url}`);
+    }
 
-      await cache.put(request, response);
-    })
-  );
+    await cache.put(request, response);
+  }
 
   const hasOfflineShell = await matchOfflineShell(cache);
-  const hasAppScript = (await cache.match("./app.js?v=9.0")) || await cache.match("./app.js");
+  const hasAppScript = (await cache.match("./app.js?v=9.1")) || await cache.match("./app.js");
+  const hasManifest =
+    (await cache.match("./manifest.json?v=9.1")) || await cache.match("./manifest.json");
+  const hasTripInfoLogo = await cache.match("./assets/tripinfo-logo-neos.png");
 
-  if (!hasOfflineShell || !hasAppScript) {
+  if (!hasOfflineShell || !hasAppScript || !hasManifest || !hasTripInfoLogo) {
     throw new Error("Core app shell is unavailable for offline use.");
   }
 }
