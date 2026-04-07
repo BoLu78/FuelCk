@@ -1,4 +1,4 @@
-const APP_VERSION = "8.7";
+const APP_VERSION = "8.8";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -2797,6 +2797,45 @@ function tripInfoBuildPreviewSvg(data) {
       valueFontWeight: 600,
       ...options,
     });
+  const aircraftTypeFieldMarkup = Array.isArray(data.aircraftTypeOutputLines)
+    && data.aircraftTypeOutputLines.length === 2
+    ? `
+      ${tripInfoBuildSvgMmText({
+        x: topRows.aircraftType.labelX,
+        y: topRows.aircraftType.labelY,
+        text: "A/C Type",
+        fontSize: bodyFontSize,
+        fontWeight: 400,
+        letterSpacing: 0,
+      })}
+      ${tripInfoBuildSvgMmText({
+        x: topRows.aircraftType.valueCenterX,
+        y: topRows.aircraftType.valueY - 1.25,
+        text: data.aircraftTypeOutputLines[0],
+        textAnchor: "middle",
+        fontSize: valueFontSize * 0.82,
+        fontWeight: 600,
+        letterSpacing: 0,
+      })}
+      ${tripInfoBuildSvgMmText({
+        x: topRows.aircraftType.valueCenterX,
+        y: topRows.aircraftType.valueY + 0.45,
+        text: data.aircraftTypeOutputLines[1],
+        textAnchor: "middle",
+        fontSize: valueFontSize * 0.62,
+        fontWeight: 600,
+        letterSpacing: 0,
+      })}
+      ${tripInfoBuildSvgLine(
+        topRows.aircraftType.lineStartX,
+        topRows.aircraftType.lineY,
+        topRows.aircraftType.lineEndX,
+        topRows.aircraftType.lineY
+      )}
+    `.trim()
+    : buildSvgField(topRows.aircraftType, data.aircraftTypeOutputDisplay || data.aircraftType, {
+      label: "A/C Type",
+    });
   const logoMarkup = tripInfoLogoDataUrl
     ? `<image href="${tripInfoEscapeAttribute(tripInfoLogoDataUrl)}" x="${tripInfoFormatSvgNumber(
         header.logoX
@@ -2887,9 +2926,7 @@ function tripInfoBuildPreviewSvg(data) {
       ${buildSvgField(topRows.registration, data.aircraftRegistration, {
         label: "A/C Registration",
       })}
-      ${buildSvgField(topRows.aircraftType, data.aircraftTypeOutputDisplay || data.aircraftType, {
-        label: "A/C Type",
-      })}
+      ${aircraftTypeFieldMarkup}
 
       ${tripInfoBuildSvgRect(noteBox.x, noteBox.y, noteBox.width, noteBox.height)}
       ${tripInfoBuildSvgMmText({
@@ -4491,6 +4528,9 @@ function tripInfoB737ReadAndNormalizeValues(showErrors = true) {
   const correctedDowKgDisplay = tripInfoBuildPrintedKgDisplay(correctedDowKg, hasActiveCorrection);
   const correctedDoiDisplay = tripInfoBuildPrintedDoiDisplay(correctedDoiValue, hasActiveCorrection);
   const aircraftTypeOutputDisplay = aircraftType === "B737-8 MAX" ? "B738 M" : aircraftType;
+  const aircraftTypeOutputLines = aircraftType === "B737-800 NG"
+    ? ["B737-800", "NG"]
+    : null;
   const spareMlgDowOriginalDisplay = tripInfoFormatKgValue(dowKg);
   const spareMlgDowCorrectedDisplay = tripInfoFormatKgValue(correctedDowKg);
   const spareMlgDoiOriginalDisplay = tripInfoFormatDoiValue(doiValue);
@@ -4547,6 +4587,7 @@ function tripInfoB737ReadAndNormalizeValues(showErrors = true) {
     aircraftRegistration,
     aircraftType,
     aircraftTypeOutputDisplay,
+    aircraftTypeOutputLines,
     captainName,
     originalDowKg: dowKg,
     originalDoiValue: doiValue,
