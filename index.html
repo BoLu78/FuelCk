@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="8.6">
+    <meta name="app-version" content="8.7">
     <title>RampCheck</title>
-    <link rel="manifest" href="manifest.json?v=8.6">
+    <link rel="manifest" href="manifest.json?v=8.7">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <style>
       :root {
@@ -339,17 +339,16 @@
       }
 
       .home-logo {
-        width: min(14vw, 48px);
-        max-width: 48px;
-        max-height: 48px;
+        width: min(21vw, 72px);
+        max-width: 72px;
+        max-height: 72px;
         display: block;
         height: auto;
         object-fit: contain;
-        opacity: 0.36;
-        filter: invert(1);
-        mix-blend-mode: screen;
         pointer-events: none;
         user-select: none;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
       }
 
       .home-version {
@@ -921,7 +920,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">8.6</span>
+          <span class="home-version">8.7</span>
         </div>
       </section>
 
@@ -934,7 +933,7 @@
           <header class="hero fuel-header">
             <div class="module-header-row">
               <h1>FuelCk</h1>
-              <span class="module-version-badge">8.6</span>
+              <span class="module-version-badge">8.7</span>
             </div>
             <div class="card" id="toleranceCard">
               <h2>Tolerance Rule</h2>
@@ -1082,7 +1081,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>TRIP INFO</h1>
-            <span class="module-version-badge">8.6</span>
+            <span class="module-version-badge">8.7</span>
           </div>
         </header>
 
@@ -1104,7 +1103,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1 id="tripInfoTitle">TRIP INFO</h1>
-            <span class="module-version-badge">8.6</span>
+            <span class="module-version-badge">8.7</span>
           </div>
         </header>
 
@@ -1632,7 +1631,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>TRIP INFO B737</h1>
-            <span class="module-version-badge">8.6</span>
+            <span class="module-version-badge">8.7</span>
           </div>
         </header>
 
@@ -1902,14 +1901,15 @@
 
               <div class="field">
                 <label for="tripInfoB737-aircraft-type">A/C Type</label>
-                <select
+                <input
                   id="tripInfoB737-aircraft-type"
                   name="aircraftType"
-                  class="select tripInfoUppercaseField"
+                  class="input tripInfoUppercaseField"
+                  type="text"
+                  value="B737-800 NG"
+                  readonly
                   required
                 >
-                  <option value="B737-800 NG" selected>B737-800 NG</option>
-                </select>
               </div>
             </div>
 
@@ -2158,7 +2158,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>ACN-PCN</h1>
-            <span class="module-version-badge">8.6</span>
+            <span class="module-version-badge">8.7</span>
           </div>
           <p class="subtitle">Pavement compatibility</p>
         </header>
@@ -2304,6 +2304,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=8.6" defer></script>
+    <script src="app.js?v=8.7" defer></script>
   </body>
 </html>

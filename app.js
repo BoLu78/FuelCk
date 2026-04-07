@@ -1,4 +1,4 @@
-const APP_VERSION = "8.6";
+const APP_VERSION = "8.7";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -2887,7 +2887,7 @@ function tripInfoBuildPreviewSvg(data) {
       ${buildSvgField(topRows.registration, data.aircraftRegistration, {
         label: "A/C Registration",
       })}
-      ${buildSvgField(topRows.aircraftType, data.aircraftType, {
+      ${buildSvgField(topRows.aircraftType, data.aircraftTypeOutputDisplay || data.aircraftType, {
         label: "A/C Type",
       })}
 
@@ -3317,13 +3317,45 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
 
   if (data.showSpareMlgNote) {
     addGroupGap();
-    tripInfoWrapRemarksLines(
-      data.spareMlgNoteLines,
-      35,
-      Math.max(0, Math.floor((maxY - cursorY) / lineStep) + 1)
-    ).forEach((line) => {
-      pushPlainTextLine(line, remarksBodyFontSize, 400);
-    });
+
+    if (data.showSpareMlgCorrectionDetails) {
+      data.spareMlgNoteLines.forEach((line) => {
+        pushPlainTextLine(line, waterHeadlineFontSize, 700);
+      });
+      cursorY += waterDetailGap;
+      pushSegmentedTextLine([
+        { text: "DOW: " },
+        {
+          text: data.spareMlgDowOriginalDisplay,
+          textDecoration: "underline",
+        },
+        { text: " \u2192 " },
+        {
+          text: data.spareMlgDowCorrectedDisplay,
+          fontWeight: 700,
+        },
+      ], waterDetailFontSize);
+      pushSegmentedTextLine([
+        { text: "DOI: " },
+        {
+          text: data.spareMlgDoiOriginalDisplay,
+          textDecoration: "underline",
+        },
+        { text: " \u2192 " },
+        {
+          text: data.spareMlgDoiCorrectedDisplay,
+          fontWeight: 700,
+        },
+      ], waterDetailFontSize);
+    } else {
+      tripInfoWrapRemarksLines(
+        data.spareMlgNoteLines,
+        35,
+        Math.max(0, Math.floor((maxY - cursorY) / lineStep) + 1)
+      ).forEach((line) => {
+        pushPlainTextLine(line, remarksBodyFontSize, 400);
+      });
+    }
   }
 
   if (remarksPresetLines.length > 0) {
@@ -3812,18 +3844,21 @@ function tripInfoB737GetDefaultFormValues() {
 function tripInfoB737SetAircraftTypeFieldValue(value) {
   const aircraftTypeField = tripInfoB737Form.elements.aircraftType;
 
-  if (!(aircraftTypeField instanceof HTMLSelectElement)) {
+  if (aircraftTypeField instanceof HTMLInputElement) {
+    aircraftTypeField.value = value;
     return;
   }
 
-  const firstOption = aircraftTypeField.options[0];
+  if (aircraftTypeField instanceof HTMLSelectElement) {
+    const firstOption = aircraftTypeField.options[0];
 
-  if (firstOption) {
-    firstOption.value = value;
-    firstOption.textContent = value;
+    if (firstOption) {
+      firstOption.value = value;
+      firstOption.textContent = value;
+    }
+
+    aircraftTypeField.value = value;
   }
-
-  aircraftTypeField.value = value;
 }
 
 function tripInfoB737PopulateRegistrationOptions() {
@@ -4455,6 +4490,11 @@ function tripInfoB737ReadAndNormalizeValues(showErrors = true) {
   const correctedDoiValue = hasActiveCorrection ? doiValue + activeCorrection.doiValue : doiValue;
   const correctedDowKgDisplay = tripInfoBuildPrintedKgDisplay(correctedDowKg, hasActiveCorrection);
   const correctedDoiDisplay = tripInfoBuildPrintedDoiDisplay(correctedDoiValue, hasActiveCorrection);
+  const aircraftTypeOutputDisplay = aircraftType === "B737-8 MAX" ? "B738 M" : aircraftType;
+  const spareMlgDowOriginalDisplay = tripInfoFormatKgValue(dowKg);
+  const spareMlgDowCorrectedDisplay = tripInfoFormatKgValue(correctedDowKg);
+  const spareMlgDoiOriginalDisplay = tripInfoFormatDoiValue(doiValue);
+  const spareMlgDoiCorrectedDisplay = tripInfoFormatDoiValue(correctedDoiValue);
 
   return {
     flightNumber,
@@ -4506,6 +4546,7 @@ function tripInfoB737ReadAndNormalizeValues(showErrors = true) {
     aircraftLimitMLD: selectedAircraft.MLD,
     aircraftRegistration,
     aircraftType,
+    aircraftTypeOutputDisplay,
     captainName,
     originalDowKg: dowKg,
     originalDoiValue: doiValue,
@@ -4517,6 +4558,11 @@ function tripInfoB737ReadAndNormalizeValues(showErrors = true) {
     correctedDoiDisplay,
     showCorrectedDowAsterisk: hasActiveCorrection,
     showCorrectedDoiAsterisk: hasActiveCorrection,
+    showSpareMlgCorrectionDetails: shouldApplySpareMlgCorrection,
+    spareMlgDowOriginalDisplay,
+    spareMlgDowCorrectedDisplay,
+    spareMlgDoiOriginalDisplay,
+    spareMlgDoiCorrectedDisplay,
     remarksDowOriginalDisplay: "",
     remarksDowCorrectionDisplay: "",
     remarksDoiOriginalDisplay: "",
