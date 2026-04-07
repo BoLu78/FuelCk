@@ -1,4 +1,4 @@
-const APP_VERSION = "8.0";
+const APP_VERSION = "8.1";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -107,7 +107,11 @@ const ACN_DEFAULTS = {
   weightUnit: "KGS",
   actualWeight: "",
 };
-const TRIP_INFO_STORAGE_KEY = "rampcheck-trip-info";
+const TRIP_INFO_STORAGE_KEYS = {
+  B787: "rampcheck-trip-info-b787",
+  B737: "rampcheck-trip-info-b737",
+};
+const TRIP_INFO_B787_LEGACY_STORAGE_KEY = "rampcheck-trip-info";
 const TRIP_INFO_LOGO_SRC = "./assets/tripinfo-logo-neos.png";
 const TRIP_INFO_EXPORT_WIDTH = 1500;
 const TRIP_INFO_EXPORT_HEIGHT = 2100;
@@ -445,16 +449,33 @@ const TRIP_INFO_DEFAULTS = {
   eetHours: "",
   eetMinutes: "",
 };
+const TRIP_INFO_MODULES = {
+  B787: {
+    title: "TRIP INFO",
+    aircraftType: "B789",
+    storageKey: TRIP_INFO_STORAGE_KEYS.B787,
+    legacyStorageKey: TRIP_INFO_B787_LEGACY_STORAGE_KEY,
+  },
+  B737: {
+    title: "TRIP INFO B737",
+    aircraftType: "B737",
+    storageKey: TRIP_INFO_STORAGE_KEYS.B737,
+  },
+};
 
 const homeView = document.getElementById("homeView");
 const fuelView = document.getElementById("fuelView");
+const tripInfoSelectorView = document.getElementById("tripInfoSelectorView");
 const tripInfoView = document.getElementById("tripInfoView");
 const acnView = document.getElementById("acnView");
 const openFuelBtn = document.getElementById("openFuelBtn");
 const openAcnBtn = document.getElementById("openAcnBtn");
 const openTripInfoBtn = document.getElementById("openTripInfoBtn");
+const openTripInfoB787Btn = document.getElementById("openTripInfoB787Btn");
+const openTripInfoB737Btn = document.getElementById("openTripInfoB737Btn");
 const backFromFuelBtn = document.getElementById("backFromFuelBtn");
 const backFromAcnBtn = document.getElementById("backFromAcnBtn");
+const backFromTripInfoSelectorBtn = document.getElementById("backFromTripInfoSelectorBtn");
 const backFromTripInfoBtn = document.getElementById("backFromTripInfoBtn");
 const form = document.getElementById("fuel-form");
 const inputScreen = document.getElementById("input-screen");
@@ -484,6 +505,7 @@ const acnDetailsList = document.getElementById("acn-details-list");
 const acnOverloadNote = document.getElementById("acn-overload-note");
 const acnComparisonDetail = document.getElementById("acn-comparison-detail");
 const tripInfoForm = document.getElementById("tripInfo-form");
+const tripInfoTitle = document.getElementById("tripInfoTitle");
 const tripInfoValidationMessage = document.getElementById("tripInfo-validation-message");
 const tripInfoResetButton = document.getElementById("tripInfo-reset-button");
 const tripInfoPreviewSection = document.getElementById("tripInfo-preview-section");
@@ -507,6 +529,7 @@ let tripInfoState = {
 let tripInfoLogoDataUrl = "";
 let tripInfoSignaturePointerId = null;
 let tripInfoSignatureDrawing = false;
+let activeTripInfoModuleKey = "B787";
 
 registerServiceWorker();
 updateToleranceText();
@@ -525,7 +548,15 @@ openAcnBtn.addEventListener("click", () => {
 });
 
 openTripInfoBtn.addEventListener("click", () => {
-  showTripInfoView();
+  showTripInfoSelectorView();
+});
+
+openTripInfoB787Btn.addEventListener("click", () => {
+  openTripInfoModule("B787");
+});
+
+openTripInfoB737Btn.addEventListener("click", () => {
+  openTripInfoModule("B737");
 });
 
 backFromFuelBtn.addEventListener("click", () => {
@@ -536,8 +567,12 @@ backFromAcnBtn.addEventListener("click", () => {
   showHomeView();
 });
 
-backFromTripInfoBtn.addEventListener("click", () => {
+backFromTripInfoSelectorBtn.addEventListener("click", () => {
   showHomeView();
+});
+
+backFromTripInfoBtn.addEventListener("click", () => {
+  showTripInfoSelectorView();
 });
 
 acnForm.addEventListener("submit", (event) => {
@@ -851,7 +886,7 @@ function renderKeyValueList(container, rows) {
 }
 
 function showAppView(activeView) {
-  [homeView, fuelView, tripInfoView, acnView].forEach((view) => {
+  [homeView, fuelView, tripInfoSelectorView, tripInfoView, acnView].forEach((view) => {
     const isActive = view === activeView;
     view.hidden = !isActive;
     view.setAttribute("aria-hidden", String(!isActive));
@@ -871,9 +906,54 @@ function showAcnView() {
   showAppView(acnView);
 }
 
+function showTripInfoSelectorView() {
+  showAppView(tripInfoSelectorView);
+}
+
 function showTripInfoView() {
   showAppView(tripInfoView);
   tripInfoResizeSignatureCanvas(true);
+}
+
+function tripInfoGetActiveModuleConfig() {
+  return TRIP_INFO_MODULES[activeTripInfoModuleKey] || TRIP_INFO_MODULES.B787;
+}
+
+function tripInfoGetModuleDefaults() {
+  const activeModule = tripInfoGetActiveModuleConfig();
+  return {
+    ...TRIP_INFO_DEFAULTS,
+    aircraftType: activeModule.aircraftType,
+  };
+}
+
+function tripInfoApplyModulePresentation() {
+  const activeModule = tripInfoGetActiveModuleConfig();
+  const aircraftTypeField = tripInfoForm.elements.aircraftType;
+
+  tripInfoTitle.textContent = activeModule.title;
+
+  if (aircraftTypeField instanceof HTMLSelectElement) {
+    const firstOption = aircraftTypeField.options[0];
+
+    if (firstOption) {
+      firstOption.value = activeModule.aircraftType;
+      firstOption.textContent = activeModule.aircraftType;
+    }
+
+    aircraftTypeField.value = activeModule.aircraftType;
+  }
+}
+
+function openTripInfoModule(moduleKey) {
+  if (!TRIP_INFO_MODULES[moduleKey]) {
+    return;
+  }
+
+  activeTripInfoModuleKey = moduleKey;
+  tripInfoApplyModulePresentation();
+  tripInfoRestoreState();
+  showTripInfoView();
 }
 
 function initializeAcnModule() {
@@ -1292,6 +1372,7 @@ function showInputScreen() {
 }
 
 function initializeTripInfoModule() {
+  tripInfoApplyModulePresentation();
   tripInfoSetupSignaturePad();
   tripInfoRestoreState();
   tripInfoUpdateTakeOffFuelField();
@@ -1309,10 +1390,12 @@ function tripInfoGetTodayIsoDate() {
 }
 
 function tripInfoGetDefaultFormValues() {
+  const moduleDefaults = tripInfoGetModuleDefaults();
+
   return {
-    ...TRIP_INFO_DEFAULTS,
+    ...moduleDefaults,
     crew: tripInfoGetDefaultCrewValue(),
-    remarksPresetSelections: [...TRIP_INFO_DEFAULTS.remarksPresetSelections],
+    remarksPresetSelections: [...moduleDefaults.remarksPresetSelections],
     date: tripInfoGetTodayIsoDate(),
   };
 }
@@ -1725,6 +1808,10 @@ function tripInfoRestoreState() {
   if (routeRuleChanged) {
     tripInfoSaveState();
   }
+
+  if (storedState.didReadLegacyStorage) {
+    tripInfoSaveState();
+  }
 }
 
 function tripInfoReadStoredState() {
@@ -1736,10 +1823,30 @@ function tripInfoReadStoredState() {
     crewBagWeightManualOverride: false,
     fakManualOverride: false,
     userInteractedWater: false,
+    didReadLegacyStorage: false,
   };
 
   try {
-    const rawState = localStorage.getItem(TRIP_INFO_STORAGE_KEY);
+    const activeModule = tripInfoGetActiveModuleConfig();
+    const storageKeys = [
+      activeModule.storageKey,
+      ...(activeModule.legacyStorageKey ? [activeModule.legacyStorageKey] : []),
+    ];
+    let rawState = "";
+    let didReadLegacyStorage = false;
+
+    storageKeys.some((storageKey) => {
+      const storedValue = localStorage.getItem(storageKey);
+
+      if (!storedValue) {
+        return false;
+      }
+
+      rawState = storedValue;
+      didReadLegacyStorage = storageKey === activeModule.legacyStorageKey;
+      return true;
+    });
+
     if (!rawState) {
       return emptyState;
     }
@@ -1778,6 +1885,7 @@ function tripInfoReadStoredState() {
         typeof parsedState?.userInteractedWater === "boolean"
           ? parsedState.userInteractedWater
           : false,
+      didReadLegacyStorage,
     };
   } catch {
     return emptyState;
@@ -1786,8 +1894,9 @@ function tripInfoReadStoredState() {
 
 function tripInfoSaveState() {
   try {
+    const activeModule = tripInfoGetActiveModuleConfig();
     localStorage.setItem(
-      TRIP_INFO_STORAGE_KEY,
+      activeModule.storageKey,
       JSON.stringify({
         formValues: tripInfoGetStoredFormValues(),
         generatedData: tripInfoState.generatedData,
@@ -1888,7 +1997,7 @@ function tripInfoApplyFormValues(values = tripInfoGetDefaultFormValues()) {
   tripInfoSetSelectedWaterMode(mergedValues.waterMode);
   tripInfoApplyRemarksPresetSelections(mergedValues.remarksPresetSelections);
   tripInfoForm.elements.aircraftRegistration.value = mergedValues.aircraftRegistration;
-  tripInfoForm.elements.aircraftType.value = "B789";
+  tripInfoForm.elements.aircraftType.value = tripInfoGetActiveModuleConfig().aircraftType;
 }
 
 function resetTripInfoModule(shouldFocus) {
@@ -1907,7 +2016,12 @@ function resetTripInfoModule(shouldFocus) {
   tripInfoUpdateTakeOffFuelField();
 
   try {
-    localStorage.removeItem(TRIP_INFO_STORAGE_KEY);
+    const activeModule = tripInfoGetActiveModuleConfig();
+    localStorage.removeItem(activeModule.storageKey);
+
+    if (activeModule.legacyStorageKey) {
+      localStorage.removeItem(activeModule.legacyStorageKey);
+    }
   } catch {
     // Ignore storage removal issues to preserve app stability.
   }
@@ -1982,6 +2096,7 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   );
   const aircraftRegistration = tripInfoNormalizeText(rawValues.aircraftRegistration);
   const aircraftType = rawValues.aircraftType;
+  const expectedAircraftType = tripInfoGetActiveModuleConfig().aircraftType;
   const captainName = tripInfoNormalizeText(rawValues.captainName);
   const dowKg = tripInfoParseIntegerField(rawValues.dow);
   const doiValue = tripInfoParseDecimalField(rawValues.doi);
@@ -2027,8 +2142,8 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     errors.push("Select a valid A/C registration.");
   }
 
-  if (aircraftType !== "B789") {
-    errors.push("A/C Type must be B789.");
+  if (aircraftType !== expectedAircraftType) {
+    errors.push(`A/C Type must be ${expectedAircraftType}.`);
   }
 
   if (!captainName) {
@@ -2235,7 +2350,7 @@ function tripInfoSanitizeStoredFormValues(values) {
     aircraftRegistration: TRIP_INFO_REGISTRATIONS.includes(mergedValues.aircraftRegistration)
       ? mergedValues.aircraftRegistration
       : defaultValues.aircraftRegistration,
-    aircraftType: "B789",
+    aircraftType: tripInfoGetActiveModuleConfig().aircraftType,
     maxZfw: String(mergedValues.maxZfw || defaultValues.maxZfw),
     maxTow: String(mergedValues.maxTow || defaultValues.maxTow),
     maxLdw: String(mergedValues.maxLdw || defaultValues.maxLdw),
