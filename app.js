@@ -1,4 +1,4 @@
-const APP_VERSION = "8.3";
+const APP_VERSION = "8.4";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -443,9 +443,13 @@ const TRIP_INFO_B737_SPARE_MLG_NOTE_LINES = [
   "Basic weight and DOW -150 kg,",
   "Basic Index and DOI +0,8",
 ];
+const TRIP_INFO_B737_SPARE_MLG_CORRECTION = {
+  dowKg: -150,
+  doiValue: 0.8,
+};
 const TRIP_INFO_B737_AIRCRAFT_FLEET = [
   {
-    groupLabel: "GROUP 1",
+    groupLabel: "NG",
     aircraftId: "I-NEOU",
     registration: "I-NEOU",
     family: "NG",
@@ -455,7 +459,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "66224",
   },
   {
-    groupLabel: "GROUP 1",
+    groupLabel: "NG",
     aircraftId: "I-NEOZ",
     registration: "I-NEOZ",
     family: "NG",
@@ -465,7 +469,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "66224",
   },
   {
-    groupLabel: "GROUP 2",
+    groupLabel: "NG",
     aircraftId: "EI-HIL",
     registration: "EI-HIL",
     family: "NG",
@@ -475,7 +479,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "66360",
   },
   {
-    groupLabel: "GROUP 2",
+    groupLabel: "NG",
     aircraftId: "EI-HIM",
     registration: "EI-HIM",
     family: "NG",
@@ -485,7 +489,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "66360",
   },
   {
-    groupLabel: "GROUP 3",
+    groupLabel: "MAX",
     aircraftId: "EI-RZA",
     registration: "EI-RZA",
     family: "MAX",
@@ -495,7 +499,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "69308",
   },
   {
-    groupLabel: "GROUP 3",
+    groupLabel: "MAX",
     aircraftId: "EI-RZB",
     registration: "EI-RZB",
     family: "MAX",
@@ -505,7 +509,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "69308",
   },
   {
-    groupLabel: "GROUP 3",
+    groupLabel: "MAX",
     aircraftId: "EI-RZC",
     registration: "EI-RZC",
     family: "MAX",
@@ -515,7 +519,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "69308",
   },
   {
-    groupLabel: "GROUP 3",
+    groupLabel: "MAX",
     aircraftId: "EI-RZD",
     registration: "EI-RZD",
     family: "MAX",
@@ -525,7 +529,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "69308",
   },
   {
-    groupLabel: "GROUP 3",
+    groupLabel: "MAX",
     aircraftId: "EI-RZE",
     registration: "EI-RZE",
     family: "MAX",
@@ -535,7 +539,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "69308",
   },
   {
-    groupLabel: "GROUP 3",
+    groupLabel: "MAX",
     aircraftId: "EI-RZF",
     registration: "EI-RZF",
     family: "MAX",
@@ -545,7 +549,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "69308",
   },
   {
-    groupLabel: "GROUP 3",
+    groupLabel: "MAX",
     aircraftId: "EI-RZG",
     registration: "EI-RZG",
     family: "MAX",
@@ -555,7 +559,7 @@ const TRIP_INFO_B737_AIRCRAFT_FLEET = [
     MLD: "69308",
   },
   {
-    groupLabel: "GROUP 3",
+    groupLabel: "MAX",
     aircraftId: "EI-RZH",
     registration: "EI-RZH",
     family: "MAX",
@@ -681,6 +685,7 @@ const tripInfoForm = document.getElementById("tripInfo-form");
 const tripInfoB737AircraftField = document.getElementById("tripInfo-b737-aircraft-field");
 const tripInfoFakField = document.getElementById("tripInfo-fak-field");
 const tripInfoB737SpareMlgField = document.getElementById("tripInfo-b737-spare-mlg-field");
+const tripInfoWaterCorrectionField = document.getElementById("tripInfo-water-correction-field");
 const tripInfoTitle = document.getElementById("tripInfoTitle");
 const tripInfoValidationMessage = document.getElementById("tripInfo-validation-message");
 const tripInfoResetButton = document.getElementById("tripInfo-reset-button");
@@ -1301,6 +1306,7 @@ function tripInfoApplyModulePresentation() {
   tripInfoB737AircraftField.hidden = !isB737;
   tripInfoFakField.hidden = isB737;
   tripInfoB737SpareMlgField.hidden = !isB737;
+  tripInfoWaterCorrectionField.hidden = isB737;
   tripInfoPopulateRegistrationOptions();
   tripInfoPopulatePantryOptions();
   tripInfoForm.elements.maxZfw.readOnly = isB737;
@@ -1810,12 +1816,12 @@ function handleTripInfoFormInput(event) {
   if (target.name === "from" || target.name === "to") {
     target.value = tripInfoNormalizeIataCode(target.value);
     tripInfoApplyRouteRules();
-    if (target.name === "to") {
+    if (!tripInfoIsB737ModuleActive() && target.name === "to") {
       tripInfoMaybeAutoSelectWaterMode();
     }
   }
 
-  if (target.name === "pantry") {
+  if (!tripInfoIsB737ModuleActive() && target.name === "pantry") {
     tripInfoMaybeAutoSelectWaterMode();
   }
 
@@ -1877,7 +1883,7 @@ function handleTripInfoFormChange(event) {
   if (target.name === "from" || target.name === "to") {
     target.value = tripInfoNormalizeIataCode(target.value);
     tripInfoApplyRouteRules();
-    if (target.name === "to") {
+    if (!tripInfoIsB737ModuleActive() && target.name === "to") {
       tripInfoMaybeAutoSelectWaterMode();
     }
   }
@@ -1906,11 +1912,11 @@ function handleTripInfoFormChange(event) {
     tripInfoState.fakManualOverride = true;
   }
 
-  if (target.name === "pantry") {
+  if (!tripInfoIsB737ModuleActive() && target.name === "pantry") {
     tripInfoMaybeAutoSelectWaterMode();
   }
 
-  if (target.name === "waterMode") {
+  if (!tripInfoIsB737ModuleActive() && target.name === "waterMode") {
     tripInfoState.userInteractedWater = true;
   }
 
@@ -1969,6 +1975,10 @@ function tripInfoGetEffectiveWaterMode(to, selectedWaterMode, pantryCode) {
 }
 
 function tripInfoMaybeAutoSelectWaterMode() {
+  if (tripInfoIsB737ModuleActive()) {
+    return;
+  }
+
   if (tripInfoState.userInteractedWater) {
     return;
   }
@@ -2325,11 +2335,11 @@ function tripInfoReadStoredState() {
           ? parsedState.crewBagWeightManualOverride
           : inferredCrewBagWeightManualOverride,
       fakManualOverride:
-        typeof parsedState?.fakManualOverride === "boolean"
+        !tripInfoIsB737ModuleActive() && typeof parsedState?.fakManualOverride === "boolean"
           ? parsedState.fakManualOverride
           : false,
       userInteractedWater:
-        typeof parsedState?.userInteractedWater === "boolean"
+        !tripInfoIsB737ModuleActive() && typeof parsedState?.userInteractedWater === "boolean"
           ? parsedState.userInteractedWater
           : false,
       didReadLegacyStorage,
@@ -2342,18 +2352,23 @@ function tripInfoReadStoredState() {
 function tripInfoSaveState() {
   try {
     const activeModule = tripInfoGetActiveModuleConfig();
+    const storedState = {
+      formValues: tripInfoGetStoredFormValues(),
+      ...tripInfoGetAircraftStoragePayload(),
+      generatedData: tripInfoState.generatedData,
+      signatureDataUrl: tripInfoState.signatureDataUrl,
+      crewBagManualOverride: tripInfoState.crewBagManualOverride,
+      crewBagWeightManualOverride: tripInfoState.crewBagWeightManualOverride,
+    };
+
+    if (!tripInfoIsB737ModuleActive()) {
+      storedState.fakManualOverride = tripInfoState.fakManualOverride;
+      storedState.userInteractedWater = tripInfoState.userInteractedWater;
+    }
+
     localStorage.setItem(
       activeModule.storageKey,
-      JSON.stringify({
-        formValues: tripInfoGetStoredFormValues(),
-        ...tripInfoGetAircraftStoragePayload(),
-        generatedData: tripInfoState.generatedData,
-        signatureDataUrl: tripInfoState.signatureDataUrl,
-        crewBagManualOverride: tripInfoState.crewBagManualOverride,
-        crewBagWeightManualOverride: tripInfoState.crewBagWeightManualOverride,
-        fakManualOverride: tripInfoState.fakManualOverride,
-        userInteractedWater: tripInfoState.userInteractedWater,
-      })
+      JSON.stringify(storedState)
     );
   } catch {
     // Keep the app stable if storage is unavailable.
@@ -2395,8 +2410,7 @@ function tripInfoGetFormValues() {
 
 function tripInfoGetStoredFormValues() {
   const formValues = tripInfoGetFormValues();
-
-  return {
+  const storedFormValues = {
     ...formValues,
     crew: tripInfoNormalizeCrewValue(formValues.crew) || tripInfoGetDefaultCrewValue(),
     crewBagWeight:
@@ -2406,6 +2420,13 @@ function tripInfoGetStoredFormValues() {
       formValues.remarksPresetSelections
     ),
   };
+
+  if (tripInfoIsB737ModuleActive()) {
+    delete storedFormValues.includeFak;
+    delete storedFormValues.waterMode;
+  }
+
+  return storedFormValues;
 }
 
 function tripInfoGetCrewValueFromForm() {
@@ -2511,6 +2532,7 @@ function generateTripInfoPreview() {
 }
 
 function tripInfoReadAndNormalizeValues(showErrors = true) {
+  const isB737 = tripInfoIsB737ModuleActive();
   const rawValues = tripInfoGetFormValues();
   const flightNumber = tripInfoNormalizeText(rawValues.flightNumber);
   const from = tripInfoNormalizeIataCode(rawValues.from);
@@ -2525,24 +2547,32 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
   const enteredCrewBagWeightKg =
     crewBagWeightInput === "" ? null : tripInfoParsePlainInteger(crewBagWeightInput);
   const pantryCode = tripInfoNormalizePantryValue(rawValues.pantry);
-  const includeFak = tripInfoIsB737ModuleActive()
+  const includeFak = isB737
     ? false
     : tripInfoNormalizeBooleanValue(
       rawValues.includeFak,
       tripInfoShouldIncludeFakForRoute(from, to)
     );
-  const includeSpareMlg = tripInfoIsB737ModuleActive()
+  const includeSpareMlg = isB737
     ? tripInfoNormalizeBooleanValue(
       rawValues.includeSpareMlg,
       tripInfoGetActiveModuleConfig().defaultIncludeSpareMlg
     )
     : false;
+  const shouldApplySpareMlgCorrection = isB737 && !includeSpareMlg;
   const flightType = tripInfoNormalizeFlightTypeValue(rawValues.flightType);
-  const selectedWaterMode = tripInfoNormalizeWaterModeValue(rawValues.waterMode);
+  const selectedWaterMode = isB737
+    ? "STANDARD"
+    : tripInfoNormalizeWaterModeValue(rawValues.waterMode);
   const effectiveWaterMode = tripInfoGetEffectiveWaterMode(to, selectedWaterMode, pantryCode);
   const baseWaterLevel = tripInfoGetBaseWaterLevelFromWaterMode(effectiveWaterMode);
-  const finalWaterLevel = baseWaterLevel === null ? null : 100;
-  const waterCorrection = tripInfoGetWaterCorrection(baseWaterLevel, finalWaterLevel);
+  const finalWaterLevel = !isB737 && baseWaterLevel !== null ? 100 : null;
+  const waterCorrection = !isB737
+    ? tripInfoGetWaterCorrection(baseWaterLevel, finalWaterLevel)
+    : null;
+  const activeCorrection = shouldApplySpareMlgCorrection
+    ? TRIP_INFO_B737_SPARE_MLG_CORRECTION
+    : waterCorrection;
   const flightTypeNote = tripInfoBuildFlightTypeNoteText(flightType);
   const remarksWaterTransitionText = waterCorrection
     ? tripInfoBuildWaterTransitionText(baseWaterLevel, finalWaterLevel)
@@ -2692,11 +2722,12 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     crewBagValue,
     enteredCrewBagWeightKg
   );
+  const hasActiveCorrection = activeCorrection !== null;
   const hasWaterCorrection = waterCorrection !== null;
-  const correctedDowKg = hasWaterCorrection ? dowKg + waterCorrection.dowKg : dowKg;
-  const correctedDoiValue = hasWaterCorrection ? doiValue + waterCorrection.doiValue : doiValue;
-  const correctedDowKgDisplay = tripInfoBuildPrintedKgDisplay(correctedDowKg, hasWaterCorrection);
-  const correctedDoiDisplay = tripInfoBuildPrintedDoiDisplay(correctedDoiValue, hasWaterCorrection);
+  const correctedDowKg = hasActiveCorrection ? dowKg + activeCorrection.dowKg : dowKg;
+  const correctedDoiValue = hasActiveCorrection ? doiValue + activeCorrection.doiValue : doiValue;
+  const correctedDowKgDisplay = tripInfoBuildPrintedKgDisplay(correctedDowKg, hasActiveCorrection);
+  const correctedDoiDisplay = tripInfoBuildPrintedDoiDisplay(correctedDoiValue, hasActiveCorrection);
 
   return {
     flightNumber,
@@ -2717,8 +2748,10 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     includeFak,
     showFakNote: includeFak,
     includeSpareMlg,
-    showSpareMlgNote: includeSpareMlg,
-    spareMlgNoteLines: includeSpareMlg ? [...TRIP_INFO_B737_SPARE_MLG_NOTE_LINES] : [],
+    showSpareMlgNote: shouldApplySpareMlgCorrection,
+    spareMlgNoteLines: shouldApplySpareMlgCorrection
+      ? [...TRIP_INFO_B737_SPARE_MLG_NOTE_LINES]
+      : [],
     flightType,
     flightTypeNote,
     showFlightTypeNote: flightTypeNote !== "",
@@ -2737,7 +2770,7 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     remarksFreeTextLines,
     showRemarksContent:
       hasWaterCorrection
-      || includeSpareMlg
+      || shouldApplySpareMlgCorrection
       || remarksPresetLines.length > 0
       || remarksFreeTextLines.length > 0,
     aircraftId: selectedAircraft ? selectedAircraft.aircraftId : "",
@@ -2756,15 +2789,15 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     correctedDoiValue,
     correctedDowKgDisplay,
     correctedDoiDisplay,
-    showCorrectedDowAsterisk: hasWaterCorrection,
-    showCorrectedDoiAsterisk: hasWaterCorrection,
+    showCorrectedDowAsterisk: hasActiveCorrection,
+    showCorrectedDoiAsterisk: hasActiveCorrection,
     remarksDowOriginalDisplay: hasWaterCorrection ? tripInfoFormatKgIntegerValue(dowKg) : "",
     remarksDowCorrectionDisplay: hasWaterCorrection
-      ? tripInfoFormatKgIntegerValue(waterCorrection.dowKg)
+      ? tripInfoFormatKgIntegerValue(activeCorrection.dowKg)
       : "",
     remarksDoiOriginalDisplay: hasWaterCorrection ? tripInfoFormatDoiValue(doiValue) : "",
     remarksDoiCorrectionDisplay: hasWaterCorrection
-      ? tripInfoFormatDoiCorrectionValue(waterCorrection.doiValue)
+      ? tripInfoFormatDoiCorrectionValue(activeCorrection.doiValue)
       : "",
     maxZfwKg,
     maxTowKg,
@@ -2821,10 +2854,14 @@ function tripInfoSanitizeStoredFormValues(values) {
         ? "CHARTER"
         : "");
   const normalizedWaterMode =
-    tripInfoNormalizeWaterModeValue(String(mergedValues.waterMode || ""))
-    || (tripInfoNormalizeBooleanValue(mergedValues.waterFull, false)
-      ? tripInfoGetAutoWaterModeFromContext(normalizedTo, normalizedPantry)
-      : "STANDARD");
+    tripInfoIsB737ModuleActive()
+      ? "STANDARD"
+      : (
+        tripInfoNormalizeWaterModeValue(String(mergedValues.waterMode || ""))
+        || (tripInfoNormalizeBooleanValue(mergedValues.waterFull, false)
+          ? tripInfoGetAutoWaterModeFromContext(normalizedTo, normalizedPantry)
+          : "STANDARD")
+      );
   const normalizedRemarksFreeText = tripInfoNormalizeRemarksFreeText(mergedValues.remarksFreeText);
   const normalizedRemarksPresetSelections = tripInfoNormalizeRemarksPresetSelections(
     mergedValues.remarksPresetSelections
