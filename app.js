@@ -1,4 +1,4 @@
-const APP_VERSION = "8.8";
+const APP_VERSION = "8.9";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -1806,6 +1806,10 @@ function handleTripInfoFormInput(event) {
     tripInfoState.crewBagWeightManualOverride = true;
   }
 
+  if (target.name === "remarksFreeText") {
+    target.value = tripInfoNormalizeRemarksFreeText(target.value);
+  }
+
   if (target.name === "includeFak") {
     tripInfoState.fakManualOverride = true;
   }
@@ -3249,14 +3253,18 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
     return "";
   }
 
-  const waterHeadlineFontSize = bodyFontSize * 0.82;
-  const waterDetailFontSize = bodyFontSize * 0.68;
-  const remarksBodyFontSize = bodyFontSize * 0.75;
+  const remarksWrapWidth = 35;
+  const remarksScale = tripInfoGetRemarksRenderScale(
+    tripInfoEstimateRemarksWrappedLineCount(data, remarksWrapWidth)
+  );
+  const waterHeadlineFontSize = bodyFontSize * 0.82 * remarksScale.fontScale;
+  const waterDetailFontSize = bodyFontSize * 0.68 * remarksScale.fontScale;
+  const remarksBodyFontSize = bodyFontSize * 0.75 * remarksScale.fontScale;
   const textX = remarksBox.x + 2.1;
   const textY = remarksBox.y + 5.45;
-  const lineStep = 2.24;
+  const lineStep = remarksScale.lineStep;
   const waterDetailGap = 0;
-  const groupGap = 0.74;
+  const groupGap = remarksScale.groupGap;
   const maxY = remarksBox.y + remarksBox.height - 1.1;
   const markup = [];
   let cursorY = textY;
@@ -3387,7 +3395,7 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
     } else {
       tripInfoWrapRemarksLines(
         data.spareMlgNoteLines,
-        35,
+        remarksWrapWidth,
         Math.max(0, Math.floor((maxY - cursorY) / lineStep) + 1)
       ).forEach((line) => {
         pushPlainTextLine(line, remarksBodyFontSize, 400);
@@ -3399,7 +3407,7 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
     addGroupGap();
     tripInfoWrapRemarksLines(
       remarksPresetLines,
-      35,
+      remarksWrapWidth,
       Math.max(0, Math.floor((maxY - cursorY) / lineStep) + 1)
     ).forEach((line) => {
       pushPlainTextLine(line, remarksBodyFontSize, 400);
@@ -3410,7 +3418,7 @@ function tripInfoBuildRemarksBoxContentMarkup(remarksBox, data, bodyFontSize) {
     addGroupGap();
     tripInfoWrapRemarksLines(
       remarksFreeTextLines,
-      35,
+      remarksWrapWidth,
       Math.max(0, Math.floor((maxY - cursorY) / lineStep) + 1)
     ).forEach((line) => {
       pushPlainTextLine(line, remarksBodyFontSize, 400);
@@ -4296,6 +4304,10 @@ function handleTripInfoB737FormInput(event) {
   if (target.name === "crewBagWeight") {
     target.value = tripInfoNormalizeCrewBagWeightInput(target.value);
     tripInfoB737State.crewBagWeightManualOverride = true;
+  }
+
+  if (target.name === "remarksFreeText") {
+    target.value = tripInfoNormalizeRemarksFreeText(target.value);
   }
 
   if (target.name === "eetHours" || target.name === "eetMinutes") {
@@ -5198,7 +5210,62 @@ function tripInfoNormalizeRemarksFreeText(value) {
     .split("\n")
     .map((line) => line.replace(/\s+/g, " ").trim())
     .filter(Boolean)
+    .slice(0, 2)
     .join("\n");
+}
+
+function tripInfoEstimateRemarksWrappedLineCount(data, maxCharsPerLine) {
+  let wrappedLineCount = 0;
+
+  if (data.showRemarksCorrection) {
+    wrappedLineCount += 3;
+  }
+
+  if (data.showSpareMlgNote) {
+    if (data.showSpareMlgCorrectionDetails) {
+      wrappedLineCount += data.spareMlgNoteLines.filter((line) => tripInfoGetRemarkLineKey(line)).length + 2;
+    } else {
+      wrappedLineCount += tripInfoWrapRemarksLines(
+        data.spareMlgNoteLines,
+        maxCharsPerLine
+      ).length;
+    }
+  }
+
+  wrappedLineCount += tripInfoWrapRemarksLines(
+    data.remarksPresetLines,
+    maxCharsPerLine
+  ).length;
+  wrappedLineCount += tripInfoWrapRemarksLines(
+    data.remarksFreeTextLines,
+    maxCharsPerLine
+  ).length;
+
+  return wrappedLineCount;
+}
+
+function tripInfoGetRemarksRenderScale(wrappedLineCount) {
+  if (wrappedLineCount <= 3) {
+    return {
+      fontScale: 1,
+      lineStep: 2.24,
+      groupGap: 0.74,
+    };
+  }
+
+  if (wrappedLineCount <= 5) {
+    return {
+      fontScale: 0.92,
+      lineStep: 2.08,
+      groupGap: 0.64,
+    };
+  }
+
+  return {
+    fontScale: 0.84,
+    lineStep: 1.92,
+    groupGap: 0.52,
+  };
 }
 
 function tripInfoGetRemarksFreeTextLines(value) {
