@@ -1,13 +1,13 @@
-const CACHE_NAME = "rampcheck-v9.1";
+const CACHE_NAME = "rampcheck-v9.2";
 const OFFLINE_FALLBACK_URL = "./index.html";
 const APP_FILES = [
   "./",
-  "./?v=9.1",
+  "./?v=9.2",
   "./index.html",
   "./app.js",
-  "./app.js?v=9.1",
+  "./app.js?v=9.2",
   "./manifest.json",
-  "./manifest.json?v=9.1",
+  "./manifest.json?v=9.2",
   "./service-worker.js",
   "./assets/tripinfo-logo-neos.png",
   "./icons/icon-192.png",
@@ -19,7 +19,7 @@ async function matchOfflineShell(cache) {
     await cache.match(OFFLINE_FALLBACK_URL)
   ) || (
     await cache.match("./")
-  ) || await cache.match("./?v=9.1");
+  ) || await cache.match("./?v=9.2");
 }
 
 async function precacheAppShell() {
@@ -37,9 +37,9 @@ async function precacheAppShell() {
   }
 
   const hasOfflineShell = await matchOfflineShell(cache);
-  const hasAppScript = (await cache.match("./app.js?v=9.1")) || await cache.match("./app.js");
+  const hasAppScript = (await cache.match("./app.js?v=9.2")) || await cache.match("./app.js");
   const hasManifest =
-    (await cache.match("./manifest.json?v=9.1")) || await cache.match("./manifest.json");
+    (await cache.match("./manifest.json?v=9.2")) || await cache.match("./manifest.json");
   const hasTripInfoLogo = await cache.match("./assets/tripinfo-logo-neos.png");
 
   if (!hasOfflineShell || !hasAppScript || !hasManifest || !hasTripInfoLogo) {

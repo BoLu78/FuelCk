@@ -1,4 +1,4 @@
-const APP_VERSION = "9.1";
+const APP_VERSION = "9.2";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -435,12 +435,8 @@ const TRIP_INFO_WATER_CORRECTIONS = {
     doiValue: 0.97,
   },
 };
-const TRIP_INFO_B787_REMARKS_PRESETS = [
-  "Provide MAC >= 27%",
-];
-const TRIP_INFO_B737_REMARKS_PRESETS = [
-  "Provide MAC >= 25%",
-];
+const TRIP_INFO_B787_REMARKS_PRESETS = [];
+const TRIP_INFO_B737_REMARKS_PRESETS = [];
 const TRIP_INFO_REMARKS_PRESETS = TRIP_INFO_B787_REMARKS_PRESETS;
 const TRIP_INFO_B737_SPARE_MLG_NOTE_LINES = [
   "NO SPARE WHEEL CORR.",
@@ -1807,7 +1803,10 @@ function handleTripInfoFormInput(event) {
   }
 
   if (target.name === "remarksFreeText") {
-    target.value = tripInfoNormalizeRemarksFreeText(target.value);
+    const sanitizedValue = tripInfoSanitizeRemarksTextareaValue(target.value);
+    if (sanitizedValue !== target.value) {
+      target.value = sanitizedValue;
+    }
   }
 
   if (target.name === "includeFak") {
@@ -1866,7 +1865,10 @@ function handleTripInfoFormChange(event) {
   }
 
   if (target.name === "remarksFreeText") {
-    target.value = tripInfoNormalizeRemarksFreeText(target.value);
+    const sanitizedValue = tripInfoSanitizeRemarksTextareaValue(target.value);
+    if (sanitizedValue !== target.value) {
+      target.value = sanitizedValue;
+    }
   }
 
   if (target.name === "includeFak") {
@@ -4307,7 +4309,10 @@ function handleTripInfoB737FormInput(event) {
   }
 
   if (target.name === "remarksFreeText") {
-    target.value = tripInfoNormalizeRemarksFreeText(target.value);
+    const sanitizedValue = tripInfoSanitizeRemarksTextareaValue(target.value);
+    if (sanitizedValue !== target.value) {
+      target.value = sanitizedValue;
+    }
   }
 
   if (target.name === "eetHours" || target.name === "eetMinutes") {
@@ -4359,7 +4364,10 @@ function handleTripInfoB737FormChange(event) {
   }
 
   if (target.name === "remarksFreeText") {
-    target.value = tripInfoNormalizeRemarksFreeText(target.value);
+    const sanitizedValue = tripInfoSanitizeRemarksTextareaValue(target.value);
+    if (sanitizedValue !== target.value) {
+      target.value = sanitizedValue;
+    }
   }
 
   tripInfoB737UpdateTakeOffFuelField();
@@ -5201,6 +5209,13 @@ function tripInfoGetSelectedRemarksPresetSelections() {
 }
 
 function tripInfoNormalizeRemarksFreeText(value) {
+  return tripInfoSanitizeRemarksTextareaValue(value)
+    .split("\n")
+    .map((line) => line.replace(/\s+$/g, ""))
+    .join("\n");
+}
+
+function tripInfoSanitizeRemarksTextareaValue(value) {
   if (typeof value !== "string") {
     return "";
   }
@@ -5208,8 +5223,6 @@ function tripInfoNormalizeRemarksFreeText(value) {
   return value
     .replace(/\r\n?/g, "\n")
     .split("\n")
-    .map((line) => line.replace(/\s+/g, " ").trim())
-    .filter(Boolean)
     .slice(0, 2)
     .join("\n");
 }
@@ -5271,7 +5284,7 @@ function tripInfoGetRemarksRenderScale(wrappedLineCount) {
 function tripInfoGetRemarksFreeTextLines(value) {
   return tripInfoNormalizeRemarksFreeText(value)
     .split("\n")
-    .filter(Boolean);
+    .filter((line) => line.trim() !== "");
 }
 
 function tripInfoGetRemarkLineKey(value) {
