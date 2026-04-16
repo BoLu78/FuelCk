@@ -1,13 +1,15 @@
-const CACHE_NAME = "rampcheck-v9.2";
+const CACHE_NAME = "rampcheck-v9.3";
 const OFFLINE_FALLBACK_URL = "./index.html";
-const APP_FILES = [
+const CORE_APP_FILES = [
   "./",
-  "./?v=9.2",
+  "./?v=9.3",
   "./index.html",
   "./app.js",
-  "./app.js?v=9.2",
+  "./app.js?v=9.3",
   "./manifest.json",
-  "./manifest.json?v=9.2",
+  "./manifest.json?v=9.3",
+];
+const OPTIONAL_APP_FILES = [
   "./service-worker.js",
   "./assets/tripinfo-logo-neos.png",
   "./icons/icon-192.png",
@@ -19,13 +21,19 @@ async function matchOfflineShell(cache) {
     await cache.match(OFFLINE_FALLBACK_URL)
   ) || (
     await cache.match("./")
-  ) || await cache.match("./?v=9.2");
+  ) || await cache.match("./?v=9.3");
 }
 
-async function precacheAppShell() {
-  const cache = await caches.open(CACHE_NAME);
+async function matchCachedAppScript(cache) {
+  return (await cache.match("./app.js?v=9.3")) || await cache.match("./app.js");
+}
 
-  for (const url of APP_FILES) {
+async function matchCachedManifest(cache) {
+  return (await cache.match("./manifest.json?v=9.3")) || await cache.match("./manifest.json");
+}
+
+async function cacheRequiredFiles(cache, urls) {
+  for (const url of urls) {
     const request = new Request(url, { cache: "reload" });
     const response = await fetch(request);
 
@@ -33,16 +41,35 @@ async function precacheAppShell() {
       throw new Error(`Failed to cache ${url}`);
     }
 
-    await cache.put(request, response);
+    await cache.put(url, response.clone());
   }
+}
+
+async function cacheOptionalFiles(cache, urls) {
+  await Promise.allSettled(
+    urls.map(async (url) => {
+      const request = new Request(url, { cache: "reload" });
+      const response = await fetch(request);
+
+      if (!response || !response.ok) {
+        throw new Error(`Failed to cache ${url}`);
+      }
+
+      await cache.put(url, response.clone());
+    })
+  );
+}
+
+async function precacheAppShell() {
+  const cache = await caches.open(CACHE_NAME);
+  await cacheRequiredFiles(cache, CORE_APP_FILES);
+  await cacheOptionalFiles(cache, OPTIONAL_APP_FILES);
 
   const hasOfflineShell = await matchOfflineShell(cache);
-  const hasAppScript = (await cache.match("./app.js?v=9.2")) || await cache.match("./app.js");
-  const hasManifest =
-    (await cache.match("./manifest.json?v=9.2")) || await cache.match("./manifest.json");
-  const hasTripInfoLogo = await cache.match("./assets/tripinfo-logo-neos.png");
+  const hasAppScript = await matchCachedAppScript(cache);
+  const hasManifest = await matchCachedManifest(cache);
 
-  if (!hasOfflineShell || !hasAppScript || !hasManifest || !hasTripInfoLogo) {
+  if (!hasOfflineShell || !hasAppScript || !hasManifest) {
     throw new Error("Core app shell is unavailable for offline use.");
   }
 }
@@ -106,9 +133,9 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       const cache = await caches.open(CACHE_NAME);
       const cachedResponse = await cache.match(request);
-      const networkResponsePromise = fetch(request).then((networkResponse) => {
+      const networkResponsePromise = fetch(request).then(async (networkResponse) => {
         if (networkResponse && networkResponse.ok) {
-          cache.put(request, networkResponse.clone());
+          await cache.put(request, networkResponse.clone());
         }
 
         return networkResponse;

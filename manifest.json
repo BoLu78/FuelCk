@@ -1,11 +1,11 @@
 {
   "name": "RampCheck",
   "short_name": "RampChk",
-  "version": "9.2",
+  "version": "9.3",
   "display": "standalone",
   "background_color": "#0b0b0f",
   "theme_color": "#0b0b0f",
-  "start_url": "./?v=9.2",
+  "start_url": "./?v=9.3",
   "icons": [
     {
       "src": "icons/icon-192.png",
