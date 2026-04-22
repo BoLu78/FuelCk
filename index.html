@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0b0f">
-    <meta name="app-version" content="9.3">
+    <meta name="app-version" content="9.4">
     <title>RampCheck</title>
-    <link rel="manifest" href="manifest.json?v=9.3">
+    <link rel="manifest" href="manifest.json?v=9.4">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <style>
       :root {
@@ -709,6 +709,17 @@
         color-scheme: dark;
       }
 
+      .tripInfoDateField {
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .tripInfoDateField .tripInfoDateInput {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+      }
+
       .tripInfoDateInput::-webkit-calendar-picker-indicator {
         filter: invert(1);
         opacity: 0.86;
@@ -919,7 +930,7 @@
 
         <div class="home-logo-wrap">
           <img class="home-logo" src="./assets/tripinfo-logo-neos.png" alt="">
-          <span class="home-version">9.3</span>
+          <span class="home-version">9.4</span>
         </div>
       </section>
 
@@ -932,7 +943,7 @@
           <header class="hero fuel-header">
             <div class="module-header-row">
               <h1>FuelCk</h1>
-              <span class="module-version-badge">9.3</span>
+              <span class="module-version-badge">9.4</span>
             </div>
             <div class="card" id="toleranceCard">
               <h2>Tolerance Rule</h2>
@@ -1080,7 +1091,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>TRIP INFO</h1>
-            <span class="module-version-badge">9.3</span>
+            <span class="module-version-badge">9.4</span>
           </div>
         </header>
 
@@ -1102,7 +1113,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1 id="tripInfoTitle">TRIP INFO</h1>
-            <span class="module-version-badge">9.3</span>
+            <span class="module-version-badge">9.4</span>
           </div>
         </header>
 
@@ -1153,7 +1164,7 @@
             </div>
 
             <div class="row two-col">
-              <div class="field">
+              <div class="field tripInfoDateField">
                 <label for="tripInfo-date">Date</label>
                 <input
                   id="tripInfo-date"
@@ -1616,7 +1627,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>TRIP INFO B737</h1>
-            <span class="module-version-badge">9.3</span>
+            <span class="module-version-badge">9.4</span>
           </div>
         </header>
 
@@ -1694,7 +1705,7 @@
             </div>
 
             <div class="row two-col">
-              <div class="field">
+              <div class="field tripInfoDateField">
                 <label for="tripInfoB737-date">Date</label>
                 <input
                   id="tripInfoB737-date"
@@ -2129,7 +2140,7 @@
         <header class="hero">
           <div class="module-header-row">
             <h1>ACN-PCN</h1>
-            <span class="module-version-badge">9.3</span>
+            <span class="module-version-badge">9.4</span>
           </div>
           <p class="subtitle">Pavement compatibility</p>
         </header>
@@ -2275,6 +2286,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=9.3" defer></script>
+    <script src="app.js?v=9.4" defer></script>
   </body>
 </html>
