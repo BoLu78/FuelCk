@@ -1,4 +1,4 @@
-const APP_VERSION = "9.4";
+const APP_VERSION = "9.5";
 const LBS_TO_KG = 0.45359237;
 const US_GALLON_TO_LITERS = 3.785411784;
 const INVALID_ALERT_MESSAGE = "Invalid data: required uplift must be positive";
@@ -2587,6 +2587,7 @@ function tripInfoReadAndNormalizeValues(showErrors = true) {
     crewBagDisplay: crewBagValue === null ? "" : String(crewBagValue),
     crewBagWeightKg,
     crewBagWeightDisplay: crewBagWeightKg === null ? "" : tripInfoFormatKgValue(crewBagWeightKg),
+    crewBagHoldText: "HOLD 5",
     showCrewBagNote: crewBagValue !== null && crewBagValue > 0,
     showCrewBagWeightNote:
       crewBagValue !== null && crewBagValue > 0 && crewBagWeightKg !== null,
@@ -3074,7 +3075,7 @@ function tripInfoBuildNoteBoxContentMarkup(noteBox, data, bodyFontSize, valueFon
         ...(data.showCrewBagWeightNote
           ? [{ text: data.crewBagWeightDisplay, fontSize: bodyFontSize * 0.92, fontWeight: 400 }]
           : []),
-        { text: "HOLD 5", fontSize: bodyFontSize, fontWeight: 400 },
+        { text: data.crewBagHoldText || "HOLD 5", fontSize: bodyFontSize, fontWeight: 400 },
       ],
     });
   }
@@ -4567,6 +4568,7 @@ function tripInfoB737ReadAndNormalizeValues(showErrors = true) {
     crewBagDisplay: crewBagValue === null ? "" : String(crewBagValue),
     crewBagWeightKg,
     crewBagWeightDisplay: crewBagWeightKg === null ? "" : tripInfoFormatKgValue(crewBagWeightKg),
+    crewBagHoldText: "HOLD 1",
     showCrewBagNote: crewBagValue !== null && crewBagValue > 0,
     showCrewBagWeightNote:
       crewBagValue !== null && crewBagValue > 0 && crewBagWeightKg !== null,
